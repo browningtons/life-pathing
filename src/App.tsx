@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import logo from "./assets/logo.png"; 
+import logo from "./assets/logo.png";
 import { 
   Sparkles, 
   Layers,
@@ -591,7 +591,7 @@ const LifePathView = ({ lifePathData, birthDate, setBirthDate }) => {
       {/* 1. HERO HEADER */}
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex flex-col justify-center items-start gap-1">
-          <h3 className="text-xs text-indigo-600 font-bold uppercase tracking-widest">A Pattern Lens, Not a Prediction</h3>
+          <h3 className="text-lrg text-indigo-600 font-bold uppercase tracking-widest">A Pattern Lens, Not a Prediction</h3>
           <div className="flex items-center w-full">
              <div className="flex flex-row items-baseline gap-3">
                <span className="text-xs font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1 mb-1">
@@ -780,57 +780,62 @@ export default function SoulCompassApp() {
     setLifePathData(calculateLifePath(birthDate));
   }, [birthDate]);
 
-  return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-800 pb-12">
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-30 mb-8">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setView('lifepath')}>
-            <div className="bg-indigo-600 p-1.5 rounded-lg">
-              <img src="/soul-compass/favicon.ico" alt="Logo" className="w-4 h-4 invert brightness-0" /> 
-            </div>
-            <h1 className="text-base font-bold text-slate-900 tracking-tight hidden sm:block">Life Number Pathing</h1>
-          </div>
-
-          <div className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1 rounded-lg border border-slate-100 overflow-x-auto">
-            {[
-              { id: 'lifepath', label: 'Life Path' },
-              { id: 'archetypes', label: 'Archetypes' } 
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setView(tab.id)}
-                className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                  view === tab.id 
-                    ? 'bg-white text-indigo-600 shadow-sm' 
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          
-          {/* Removed the extra pencil icon div here entirely */}
-
+return (
+  <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-800 pb-12">
+    <nav className="bg-white border-b border-slate-200 sticky top-0 z-30 mb-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        
+        <div
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={() => setView("lifepath")}
+        >
+          <img
+            src={logo}
+            alt="Life Number Pathing"
+            className="h-20 w-auto sm:h-20 object-contain"
+          />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">
+            Life Number Pathing
+          </h1>
         </div>
-      </nav>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6">
-        {view === 'lifepath' && (
-          <LifePathView 
-            birthDate={birthDate} 
-            setBirthDate={setBirthDate} 
-            lifePathData={lifePathData}
-          />
-        )}
+        <div className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1 rounded-lg border border-slate-100 overflow-x-auto">
+          {[
+            { id: "lifepath", label: "Life Path" },
+            { id: "archetypes", label: "Archetypes" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setView(tab.id)}
+              className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                view === tab.id
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </nav>
 
-        {view === 'archetypes' && (
-          <ArchetypesView 
-            initialType={mbtiType} 
-            onTypeChange={setMbtiType} 
-          />
-        )}
-      </main>
-    </div>
-  );
+    <main className="max-w-4xl mx-auto px-4 sm:px-6">
+      {view === "lifepath" && (
+        <LifePathView
+          birthDate={birthDate}
+          setBirthDate={setBirthDate}
+          lifePathData={lifePathData}
+        />
+      )}
+
+      {view === "archetypes" && (
+        <ArchetypesView
+          initialType={mbtiType}
+          onTypeChange={setMbtiType}
+        />
+      )}
+    </main>
+  </div>
+);
 }
