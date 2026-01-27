@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
-  Edit3, 
   Layers,
   Star,
   Users,
   Gem,
   Globe,
   Flame,
+  ScrollText,
   Clock,
   Briefcase,
   Target,
@@ -76,7 +76,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "Entrepreneur, CEO, Manager, Inventor, Freelancer, Director.",
     light: ["Unstoppable determination", "Original thinker", "Courageous pioneer", "Self-reliant", "Natural authority"],
     shadow_list: ["Stubbornness & rigidity", "Fear of dependency", "Aggression when blocked", "Ego-centric behavior", "Difficulty asking for help"],
-    famous: ["Steve Jobs", "Martin Luther King Jr.", "Scarlett Johansson", "Henry Ford", "Tom Hanks"],
+    famous: ["Steve Jobs", "Martin Luther King Jr.", "Scarlett Johansson", "Henry Ford", "Tom Hanks", "George Lucas"],
     cosmic: { planet: "Sun", element: "Fire", tarot: "The Magician", crystal: "Garnet", symbol: "The Arrow" },
     compatibility: { vibes: [1, 3, 5], friction: [4, 6] }
   },
@@ -89,7 +89,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "Counselor, Diplomat, Healer, Teacher, Assistant, Mediator.",
     light: ["Deeply intuitive", "Master diplomat", "Patient & supportive", "Detail-oriented", "Empathetic listener"],
     shadow_list: ["Over-sensitivity", "Indecisiveness", "Passive-aggressiveness", "Self-sacrifice", "Fear of being alone"],
-    famous: ["Barack Obama", "Jennifer Aniston", "Madonna", "Tony Robbins", "Meg Ryan"],
+    famous: ["Barack Obama", "Jennifer Aniston", "Madonna", "Tony Robbins", "Meg Ryan", "Kanye West"],
     cosmic: { planet: "Moon", element: "Water", tarot: "The High Priestess", crystal: "Moonstone", symbol: "The Scale" },
     compatibility: { vibes: [2, 4, 8], friction: [5, 1] }
   },
@@ -102,7 +102,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "Actor, Writer, Musician, Sales, Marketing, Designer.",
     light: ["Charismatic storyteller", "Eternal optimist", "Artistic genius", "Social magnet", "Inspiring communicator"],
     shadow_list: ["Scattered energy", "Superficiality", "Exaggeration/Gossip", "Mood swings", "Avoiding depth"],
-    famous: ["David Bowie", "Frida Kahlo", "Cameron Diaz", "Snoop Dogg", "Charles Dickens"],
+    famous: ["David Bowie", "Frida Kahlo", "Cameron Diaz", "Snoop Dogg", "Charles Dickens", "Jackie Chan"],
     cosmic: { planet: "Jupiter", element: "Air", tarot: "The Empress", crystal: "Citrine", symbol: "The Triangle" },
     compatibility: { vibes: [3, 6, 9], friction: [4, 8] }
   },
@@ -115,7 +115,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "Engineer, Architect, Accountant, Project Manager, Real Estate.",
     light: ["Rock-solid reliability", "Master of systems", "Disciplined worker", "Honest & loyal", "Practical problem solver"],
     shadow_list: ["Rigidity", "Fear of change", "Stubbornness", "Workaholism", "Lack of imagination"],
-    famous: ["Bill Gates", "Oprah Winfrey", "Brad Pitt", "Elton John", "Margaret Thatcher"],
+    famous: ["Bill Gates", "Oprah Winfrey", "Brad Pitt", "Elton John", "Margaret Thatcher", "Arnold Schwarzenegger"],
     cosmic: { planet: "Uranus", element: "Earth", tarot: "The Emperor", crystal: "Emerald", symbol: "The Square" },
     compatibility: { vibes: [2, 4, 8], friction: [3, 5] }
   },
@@ -141,7 +141,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "Teacher, Nurse, Counselor, Interior Design, Artist, Healer.",
     light: ["Unconditional love", "Natural healer/counselor", "Responsible protector", "Community builder", "Eye for beauty"],
     shadow_list: ["Meddling/Interfering", "Perfectionism", "Self-righteousness", "Martyr complex", "Difficulty saying no"],
-    famous: ["Michael Jackson", "Albert Einstein", "Robert De Niro", "Eleanor Roosevelt", "Stephen King"],
+    famous: ["Michael Jackson", "Albert Einstein", "Robert De Niro", "Eleanor Roosevelt", "Stephen King", "Eddie Murphy"],
     cosmic: { planet: "Venus", element: "Earth", tarot: "The Lovers", crystal: "Rose Quartz", symbol: "The Hexagram" },
     compatibility: { vibes: [2, 6, 9], friction: [1, 5] }
   },
@@ -154,7 +154,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "Scientist, Researcher, Philosopher, Writer, Mystic, Investigator.",
     light: ["Deep wisdom", "Analytical genius", "Spiritual intuition", "Independent thinker", "Truth seeker"],
     shadow_list: ["Isolation/Withdrawal", "Cynicism", "Over-thinking", "Secretive nature", "Social awkwardness"],
-    famous: ["Johnny Depp", "Julia Roberts", "Princess Diana", "Leonardo DiCaprio", "Marilyn Monroe"],
+    famous: ["Johnny Depp", "Julia Roberts", "Princess Diana", "Leonardo DiCaprio", "Marilyn Monroe", "Queen Elizabeth II"],
     cosmic: { planet: "Neptune", element: "Water", tarot: "The Chariot", crystal: "Amethyst", symbol: "The Staff" },
     compatibility: { vibes: [5, 7, 4], friction: [3, 8] }
   },
@@ -167,7 +167,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "CEO, Finance, Law, Executive, Business Owner, Publisher.",
     light: ["Executive ability", "Financial abundance", "Personal power", "Resilience", "Visionary leadership"],
     shadow_list: ["Greed/Materialism", "Domination/Control", "Intimidation", "Workaholism", "Neglecting emotions"],
-    famous: ["Pablo Picasso", "Sandra Bullock", "Matt Damon", "Martha Stewart", "Nelson Mandela"],
+    famous: ["Pablo Picasso", "Sandra Bullock", "Matt Damon", "Martha Stewart", "Nelson Mandela", "Jason Statham"],
     cosmic: { planet: "Saturn", element: "Earth", tarot: "Strength", crystal: "Citrine", symbol: "Infinity" },
     compatibility: { vibes: [2, 4, 8], friction: [3, 7] }
   },
@@ -180,7 +180,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "Non-profit, HR, Artist, Doctor, Writer, Philanthropist.",
     light: ["Universal compassion", "Global consciousness", "Artistic talent", "Generosity", "Wisdom of experience"],
     shadow_list: ["Resentment", "Martyrdom", "Emotional aloofness", "Difficulty letting go", "Aimless dreaming"],
-    famous: ["Mahatma Gandhi", "Mother Teresa", "Morgan Freeman", "Bob Marley", "Jim Carrey"],
+    famous: ["Mahatma Gandhi", "Mother Teresa", "Morgan Freeman", "Bob Marley", "Jim Carrey", "Harrison Ford"],
     cosmic: { planet: "Mars", element: "Fire", tarot: "The Hermit", crystal: "Hematite", symbol: "The Circle" },
     compatibility: { vibes: [3, 6, 9], friction: [4, 8] }
   },
@@ -193,7 +193,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "Spiritual Teacher, Media, Inventor, Psychologist, Artist.",
     light: ["Psychic intuition", "Spiritual teacher", "Charismatic leader", "Visionary peace-maker", "Electric presence"],
     shadow_list: ["Nervous tension", "Impracticality", "Hypersensitivity", "Self-criticism", "Overwhelmed by energy"],
-    famous: ["Michelle Obama", "Harry Houdini", "Derren Brown", "Lucy Liu", "Orlando Bloom"],
+    famous: ["Michelle Obama", "Harry Houdini", "Derren Brown", "Lucy Liu", "Orlando Bloom", "Michael Jordan"],
     cosmic: { planet: "Moon/Sun", element: "Air", tarot: "Justice", crystal: "Lapis Lazuli", symbol: "The Lightning" },
     compatibility: { vibes: [2, 11], friction: [4] }
   },
@@ -206,7 +206,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "International Business, Politics, Architecture, Global Leadership.",
     light: ["Manifestation master", "Global impact", "Practical genius", "Diplomatic leader", "Legacy builder"],
     shadow_list: ["Fear of failure", "Overwhelmed by potential", "Controlling", "Laziness (fear of work)", "Indifference"],
-    famous: ["Paul McCartney", "Will Smith", "Dalai Lama (14th)", "Sir Richard Branson"],
+    famous: ["Paul McCartney", "Will Smith", "Dalai Lama (14th)", "Sir Richard Branson", "Bryan Adams"],
     cosmic: { planet: "Pluto", element: "Earth", tarot: "The Fool", crystal: "Black Tourmaline", symbol: "The Cross" },
     compatibility: { vibes: [4, 22], friction: [5] }
   },
@@ -219,7 +219,7 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     career: "Healing Arts, Ministry, Teaching, Counseling, Community Service.",
     light: ["Cosmic parent", "Selfless service", "Master healer", "Compassionate guide", "Joyful spirit"],
     shadow_list: ["Burdened by others", "Emotional volatility", "Perfectionism", "Neglecting self", "Martyrdom"],
-    famous: ["Meryl Streep", "Francis Ford Coppola", "Salma Hayek"],
+    famous: ["Meryl Streep", "Francis Ford Coppola", "Salma Hayek", "Robert De Niro", "Stephen King", "John Lennon"],
     cosmic: { planet: "Venus", element: "Water", tarot: "The World", crystal: "Diamond", symbol: "The Heart" }
   }
 };
@@ -285,7 +285,6 @@ const MBTI_DATA: Record<string, any> = {
     growth: "Focus is your friend. Follow through on one idea before jumping to the next to see true results.",
     famous: ["Robert Downey Jr.", "Robin Williams", "Will Smith", "Walt Disney", "Quentin Tarantino"]
   },
-  // Fallback for other types
   ESTJ: { 
       title: "The Executive", 
       archetype: "The Supervisor", 
@@ -653,24 +652,20 @@ const LifePathView = ({ lifePathData, birthDate, setBirthDate }) => {
       
       {/* 1. HERO HEADER */}
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-             <div className="p-2 bg-white rounded-full shadow-sm text-slate-400">
-                <Edit3 size={16} />
-             </div>
-             <div className="flex flex-col">
-               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date of Birth</span>
+        <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex flex-col justify-center items-start gap-1">
+          <h3 className="text-xs text-indigo-600 font-bold uppercase tracking-widest">A Pattern Lens, Not a Prediction</h3>
+          <div className="flex items-center w-full">
+             <div className="flex flex-row items-baseline gap-3">
+               <span className="text-xs font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1 mb-1">
+                  Input your birth date <ArrowRight size={12} />
+               </span>
                <input 
                   type="date" 
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
-                  className="bg-transparent border-none p-0 text-slate-700 font-bold focus:ring-0 cursor-pointer"
-                />
+                  className="bg-transparent border-none p-0 text-slate-800 font-bold focus:ring-0 cursor-pointer text-lg"
+               />
              </div>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
-            <Sparkles size={14} />
-            <span>Calculating Life Path Algorithm...</span>
           </div>
         </div>
 
@@ -694,7 +689,7 @@ const LifePathView = ({ lifePathData, birthDate, setBirthDate }) => {
                  <div className="flex gap-3">
                     <div className="mt-1 text-indigo-500"><Target size={18} /></div>
                     <div>
-                       <h4 className="text-xs font-bold text-slate-900 uppercase">Core Theme</h4>
+                       <h4 className="text-xs font-bold text-slate-900 uppercase">Primary System Pressure</h4>
                        <p className="text-sm text-slate-600">{meaning.purpose}</p>
                     </div>
                  </div>
@@ -712,14 +707,6 @@ const LifePathView = ({ lifePathData, birthDate, setBirthDate }) => {
                        <p className="text-sm text-slate-600">{meaning.career}</p>
                     </div>
                  </div>
-              </div>
-
-              <div className="flex gap-2 mt-8">
-                {meaning.keywords && meaning.keywords.split(', ').map((k, i) => (
-                   <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold">
-                     {k}
-                   </span>
-                ))}
               </div>
            </div>
 
@@ -789,63 +776,9 @@ const LifePathView = ({ lifePathData, birthDate, setBirthDate }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
          
-        {/* Compatibility and Famous People Row */}
-        <Card className="flex flex-col justify-between">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
-              <Shuffle size={16} /> Compatibility
-            </h3>
-            
-            <div className="space-y-6">
-               <div>
-                  <div className="flex items-center gap-2 mb-3">
-                     <Heart size={14} className="text-emerald-500" />
-                     <span className="text-xs font-bold text-slate-700">Natural Harmony</span>
-                  </div>
-                  <div className="flex gap-3">
-                     {meaning.compatibility?.vibes.map(num => (
-                        <div key={num} className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold shadow-sm">
-                           {num}
-                        </div>
-                     ))}
-                  </div>
-               </div>
-
-               <div>
-                  <div className="flex items-center gap-2 mb-3">
-                     <Zap size={14} className="text-orange-500" />
-                     <span className="text-xs font-bold text-slate-700">Growth Friction</span>
-                  </div>
-                  <div className="flex gap-3">
-                     {meaning.compatibility?.friction.map(num => (
-                        <div key={num} className="w-10 h-10 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600 font-bold shadow-sm">
-                           {num}
-                        </div>
-                     ))}
-                  </div>
-               </div>
-            </div>
-         </Card>
-
-         <Card className="bg-white border-slate-100">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-               <Users size={16} /> Famous Kindred Spirits
-            </h3>
-            <div className="flex flex-wrap gap-2">
-               {meaning.famous.length > 0 ? meaning.famous.map((person, i) => (
-                  <span key={i} className="px-3 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-slate-600 rounded-lg text-xs font-bold cursor-default">
-                     {person}
-                  </span>
-               )) : (
-                  <span className="text-sm text-slate-400 italic">Famous figures for this type coming soon...</span>
-               )}
-            </div>
-         </Card>
-      </div>
-
-      {/* 4. LIGHT & SHADOW */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         {/* 4. LIGHT & SHADOW */}
          <Card className="bg-gradient-to-br from-white to-indigo-50/30 border-indigo-50">
             <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Star size={14} /> Constructive Expression
@@ -862,7 +795,7 @@ const LifePathView = ({ lifePathData, birthDate, setBirthDate }) => {
 
          <Card className="bg-slate-50 border-slate-100">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <ShieldAlert size={14} /> Resistance Patterns
+              <ShieldAlert size={14} /> Common Breakdown Patterns
             </h3>
             <ul className="space-y-3">
               {meaning.shadow_list && meaning.shadow_list.map((item, i) => (
@@ -873,48 +806,27 @@ const LifePathView = ({ lifePathData, birthDate, setBirthDate }) => {
               ))}
             </ul>
          </Card>
+
+         {/* 5. FAMOUS PEOPLE */}
+         <Card className="bg-white border-slate-100">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+               <Users size={16} /> Famous Kindred Spirits
+            </h3>
+            <div className="flex flex-wrap gap-2">
+               {meaning.famous.length > 0 ? meaning.famous.map((person, i) => (
+                  <span key={i} className="px-3 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-slate-600 rounded-lg text-xs font-bold cursor-default">
+                     {person}
+                  </span>
+               )) : (
+                  <span className="text-sm text-slate-400 italic">Famous figures for this type coming soon...</span>
+               )}
+            </div>
+         </Card>
+
       </div>
-
-      {/* 6. ANCIENT WISDOM CARD */}
-      <Card className="bg-gradient-to-r from-indigo-900 to-slate-900 text-indigo-100 border-none relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-overlay filter blur-3xl opacity-10 -mr-16 -mt-16"></div>
-          <div className="relative z-10 flex flex-col md:flex-row items-start gap-6">
-             <div className="p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-                <Compass size={32} className="text-indigo-300" />
-             </div>
-             <div>
-                <h3 className="text-lg font-bold text-white mb-2">The Geometric Soul</h3>
-                <p className="text-sm text-indigo-200 leading-relaxed max-w-2xl">
-                   This system is rooted in the teachings of <strong className="text-white">Pythagoras (c. 570–495 BC)</strong>, the father of mathematics. He taught that numbers are not merely quantities, but living frequencies that shape the fabric of our reality. 
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-xs font-medium text-indigo-400 uppercase tracking-widest">
-                   <Book size={12} /> Ancient Wisdom
-                </div>
-             </div>
-          </div>
-      </Card>
-
     </div>
   );
 };
-
-const JournalView = () => (
-  <div className="max-w-2xl mx-auto animate-in fade-in duration-500">
-    <Card className="min-h-[500px] flex flex-col">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-        <div>
-          <h2 className="text-lg font-bold text-slate-800">Daily Reflection</h2>
-          <p className="text-xs text-slate-400">Capture your thoughts, dreams, and shadow moments.</p>
-        </div>
-        <span className="text-xs font-medium text-slate-400">{new Date().toLocaleDateString()}</span>
-      </div>
-      <textarea 
-        className="flex-1 w-full resize-none border-none focus:ring-0 p-0 text-slate-600 leading-relaxed placeholder:text-slate-300"
-        placeholder="What is coming up for you today?..."
-      />
-    </Card>
-  </div>
-);
 
 export default function SoulCompassApp() {
   const [view, setView] = useState('lifepath'); 
@@ -957,14 +869,6 @@ export default function SoulCompassApp() {
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setView('journal')}
-              className={`p-2 rounded-full transition-colors ${view === 'journal' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:bg-slate-50'}`}
-            >
-              <Edit3 size={18} />
-            </button>
-          </div>
         </div>
       </nav>
 
@@ -983,8 +887,6 @@ export default function SoulCompassApp() {
             onTypeChange={setMbtiType} 
           />
         )}
-
-        {view === 'journal' && <JournalView />}
       </main>
     </div>
   );
