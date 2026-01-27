@@ -8,7 +8,6 @@ import {
   Gem,
   Globe,
   Flame,
-  ScrollText,
   Clock,
   Briefcase,
   Target,
