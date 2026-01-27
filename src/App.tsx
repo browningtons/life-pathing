@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Sparkles, 
+  Edit3, 
   Layers,
   Star,
   Users,
@@ -350,28 +351,6 @@ const calculateLifePath = (dateString) => {
   return { number: sum, compound: compound, breakdown: { y: rYear, m: rMonth, d: rDay, rawY: year, rawM: month, rawD: day, ySum, mSum, dSum } };
 };
 
-const calculatePersonalYear = (birthDateString) => {
-  if (!birthDateString) return 0;
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const parts = birthDateString.split('-');
-  if (parts.length !== 3) return 0;
-  const [_, month, day] = parts;
-  const reduce = (val) => {
-    let n = parseInt(val);
-    if (isNaN(n)) return 0;
-    while (n > 9) {
-      n = String(n).split('').reduce((acc, curr) => acc + parseInt(curr), 0);
-    }
-    return n;
-  };
-  let sum = reduce(currentYear) + reduce(month) + reduce(day);
-  while (sum > 9 && sum !== 11 && sum !== 22) {
-     sum = String(sum).split('').reduce((acc, curr) => acc + parseInt(curr), 0);
-  }
-  return sum;
-};
-
 // --- Components ---
 
 const Card = ({ children, className = "", ...props }) => (
@@ -446,8 +425,12 @@ const ArchetypesView = ({ initialType, onTypeChange }) => {
     <div className="space-y-8 animate-in fade-in duration-500">
       
       {/* Header / Selector */}
-      <Card className="bg-indigo-900 text-white border-indigo-800 relative overflow-hidden">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 -mr-16 -mt-16"></div>
+      <Card className="bg-indigo-900 !bg-indigo-900 text-white border-indigo-800 !border-indigo-800 relative">
+         {/* Background clipped container */}
+         <div className="absolute inset-0 overflow-hidden rounded-2xl">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 -mr-16 -mt-16"></div>
+         </div>
+         {/* Content with z-10 */}
          <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
             <div>
                <div className="flex items-center gap-3 mb-2 opacity-80">
@@ -643,8 +626,6 @@ const ArchetypesView = ({ initialType, onTypeChange }) => {
 const LifePathView = ({ lifePathData, birthDate, setBirthDate }) => {
   const meaning = LIFE_PATH_MEANINGS[lifePathData.number] || LIFE_PATH_MEANINGS[0] || {};
   const { breakdown, compound } = lifePathData;
-  const personalYear = calculatePersonalYear(birthDate);
-  const personalYearMeaning = PERSONAL_YEAR_MEANINGS[personalYear] || {};
   const compoundMeaning = COMPOUND_MEANINGS[compound] || null;
 
   return (
