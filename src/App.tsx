@@ -1,15 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
-  Edit3, 
   Layers,
   Star,
   Users,
   Gem,
-  Globe,
-  Flame,
-  ScrollText,
-  Clock,
   Briefcase,
   Target,
   Heart,
@@ -19,9 +14,7 @@ import {
   ArrowRight,
   ShieldAlert,
   Ghost,
-  Book,
-  Shuffle,
-  Compass
+  Calendar
 } from 'lucide-react';
 
 // --- Data ---
@@ -53,20 +46,6 @@ const COMPOUND_MEANINGS: Record<number, string> = {
   33: "The Master Teacher (Master Number)"
 };
 
-const PERSONAL_YEAR_MEANINGS: Record<number, {title: string, desc: string}> = {
-  1: { title: "Year of New Beginnings", desc: "A time to plant seeds, start projects, and take initiative. Energy is high and forward-moving." },
-  2: { title: "Year of Patience", desc: "A slower pace focused on partnerships, diplomacy, and waiting for seeds to sprout." },
-  3: { title: "Year of Expression", desc: "Social, creative, and fun. A time to find your voice and connect with others." },
-  4: { title: "Year of Foundations", desc: "Hard work, discipline, and building structures for the future. A practical year." },
-  5: { title: "Year of Change", desc: "Dynamic shifts, travel, and freedom. Expect the unexpected and embrace flexibility." },
-  6: { title: "Year of Nurturing", desc: "Focus on home, family, and responsibility. A time to heal relationships." },
-  7: { title: "Year of Introspection", desc: "Spiritual growth, study, and solitude. A time to look inward rather than outward." },
-  8: { title: "Year of Power", desc: "Harvest time. Focus on career, money, and authority. You reap what you sowed." },
-  9: { title: "Year of Completion", desc: "Letting go, finishing cycles, and clearing space for the new 1 year coming next." },
-  11: { title: "Master Year of Illumination", desc: "Heightened intuition and spiritual revelation. Nervous energy but high potential." },
-  22: { title: "Master Year of Building", desc: "Turning big dreams into reality on a massive scale." }
-};
-
 const LIFE_PATH_MEANINGS: Record<number, any> = {
   1: { 
     title: "The Leader", 
@@ -78,8 +57,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Unstoppable determination", "Original thinker", "Courageous pioneer", "Self-reliant", "Natural authority"],
     shadow_list: ["Stubbornness & rigidity", "Fear of dependency", "Aggression when blocked", "Ego-centric behavior", "Difficulty asking for help"],
     famous: ["Steve Jobs", "Martin Luther King Jr.", "Scarlett Johansson", "Henry Ford", "Tom Hanks", "George Lucas"],
-    cosmic: { planet: "Sun", element: "Fire", tarot: "The Magician", crystal: "Garnet", symbol: "The Arrow" },
-    compatibility: { vibes: [1, 3, 5], friction: [4, 6] }
   },
   2: { 
     title: "The Peacemaker", 
@@ -91,8 +68,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Deeply intuitive", "Master diplomat", "Patient & supportive", "Detail-oriented", "Empathetic listener"],
     shadow_list: ["Over-sensitivity", "Indecisiveness", "Passive-aggressiveness", "Self-sacrifice", "Fear of being alone"],
     famous: ["Barack Obama", "Jennifer Aniston", "Madonna", "Tony Robbins", "Meg Ryan", "Kanye West"],
-    cosmic: { planet: "Moon", element: "Water", tarot: "The High Priestess", crystal: "Moonstone", symbol: "The Scale" },
-    compatibility: { vibes: [2, 4, 8], friction: [5, 1] }
   },
   3: { 
     title: "The Creative", 
@@ -104,8 +79,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Charismatic storyteller", "Eternal optimist", "Artistic genius", "Social magnet", "Inspiring communicator"],
     shadow_list: ["Scattered energy", "Superficiality", "Exaggeration/Gossip", "Mood swings", "Avoiding depth"],
     famous: ["David Bowie", "Frida Kahlo", "Cameron Diaz", "Snoop Dogg", "Charles Dickens", "Jackie Chan"],
-    cosmic: { planet: "Jupiter", element: "Air", tarot: "The Empress", crystal: "Citrine", symbol: "The Triangle" },
-    compatibility: { vibes: [3, 6, 9], friction: [4, 8] }
   },
   4: { 
     title: "The Builder", 
@@ -117,8 +90,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Rock-solid reliability", "Master of systems", "Disciplined worker", "Honest & loyal", "Practical problem solver"],
     shadow_list: ["Rigidity", "Fear of change", "Stubbornness", "Workaholism", "Lack of imagination"],
     famous: ["Bill Gates", "Oprah Winfrey", "Brad Pitt", "Elton John", "Margaret Thatcher", "Arnold Schwarzenegger"],
-    cosmic: { planet: "Uranus", element: "Earth", tarot: "The Emperor", crystal: "Emerald", symbol: "The Square" },
-    compatibility: { vibes: [2, 4, 8], friction: [3, 5] }
   },
   5: { 
     title: "The Adventurer", 
@@ -130,8 +101,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Fearless change-maker", "Versatile & adaptable", "Magnetic personality", "Visionary thinker", "Lover of freedom"],
     shadow_list: ["Restlessness", "Impulsiveness", "Inconsistency", "Fear of commitment", "Over-indulgence"],
     famous: ["Gautama Buddha", "Angelina Jolie", "Mick Jagger", "Beyoncé", "Abraham Lincoln", "Steven Spielberg"],
-    cosmic: { planet: "Mercury", element: "Air", tarot: "The Hierophant", crystal: "Aquamarine", symbol: "The Star" },
-    compatibility: { vibes: [1, 5, 7], friction: [2, 4] }
   },
   6: { 
     title: "The Nurturer", 
@@ -143,8 +112,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Unconditional love", "Natural healer/counselor", "Responsible protector", "Community builder", "Eye for beauty"],
     shadow_list: ["Meddling/Interfering", "Perfectionism", "Self-righteousness", "Martyr complex", "Difficulty saying no"],
     famous: ["Michael Jackson", "Albert Einstein", "Robert De Niro", "Eleanor Roosevelt", "Stephen King", "Eddie Murphy"],
-    cosmic: { planet: "Venus", element: "Earth", tarot: "The Lovers", crystal: "Rose Quartz", symbol: "The Hexagram" },
-    compatibility: { vibes: [2, 6, 9], friction: [1, 5] }
   },
   7: { 
     title: "The Seeker", 
@@ -156,8 +123,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Deep wisdom", "Analytical genius", "Spiritual intuition", "Independent thinker", "Truth seeker"],
     shadow_list: ["Isolation/Withdrawal", "Cynicism", "Over-thinking", "Secretive nature", "Social awkwardness"],
     famous: ["Johnny Depp", "Julia Roberts", "Princess Diana", "Leonardo DiCaprio", "Marilyn Monroe", "Queen Elizabeth II"],
-    cosmic: { planet: "Neptune", element: "Water", tarot: "The Chariot", crystal: "Amethyst", symbol: "The Staff" },
-    compatibility: { vibes: [5, 7, 4], friction: [3, 8] }
   },
   8: { 
     title: "The Powerhouse", 
@@ -169,8 +134,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Executive ability", "Financial abundance", "Personal power", "Resilience", "Visionary leadership"],
     shadow_list: ["Greed/Materialism", "Domination/Control", "Intimidation", "Workaholism", "Neglecting emotions"],
     famous: ["Pablo Picasso", "Sandra Bullock", "Matt Damon", "Martha Stewart", "Nelson Mandela", "Jason Statham"],
-    cosmic: { planet: "Saturn", element: "Earth", tarot: "Strength", crystal: "Citrine", symbol: "Infinity" },
-    compatibility: { vibes: [2, 4, 8], friction: [3, 7] }
   },
   9: { 
     title: "The Humanitarian", 
@@ -182,8 +145,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Universal compassion", "Global consciousness", "Artistic talent", "Generosity", "Wisdom of experience"],
     shadow_list: ["Resentment", "Martyrdom", "Emotional aloofness", "Difficulty letting go", "Aimless dreaming"],
     famous: ["Mahatma Gandhi", "Mother Teresa", "Morgan Freeman", "Bob Marley", "Jim Carrey", "Harrison Ford"],
-    cosmic: { planet: "Mars", element: "Fire", tarot: "The Hermit", crystal: "Hematite", symbol: "The Circle" },
-    compatibility: { vibes: [3, 6, 9], friction: [4, 8] }
   },
   11: { 
     title: "The Illuminator", 
@@ -195,8 +156,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Psychic intuition", "Spiritual teacher", "Charismatic leader", "Visionary peace-maker", "Electric presence"],
     shadow_list: ["Nervous tension", "Impracticality", "Hypersensitivity", "Self-criticism", "Overwhelmed by energy"],
     famous: ["Michelle Obama", "Harry Houdini", "Derren Brown", "Lucy Liu", "Orlando Bloom", "Michael Jordan"],
-    cosmic: { planet: "Moon/Sun", element: "Air", tarot: "Justice", crystal: "Lapis Lazuli", symbol: "The Lightning" },
-    compatibility: { vibes: [2, 11], friction: [4] }
   },
   22: { 
     title: "The Master Builder", 
@@ -208,8 +167,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Manifestation master", "Global impact", "Practical genius", "Diplomatic leader", "Legacy builder"],
     shadow_list: ["Fear of failure", "Overwhelmed by potential", "Controlling", "Laziness (fear of work)", "Indifference"],
     famous: ["Paul McCartney", "Will Smith", "Dalai Lama (14th)", "Sir Richard Branson", "Bryan Adams"],
-    cosmic: { planet: "Pluto", element: "Earth", tarot: "The Fool", crystal: "Black Tourmaline", symbol: "The Cross" },
-    compatibility: { vibes: [4, 22], friction: [5] }
   },
   33: { 
     title: "The Master Teacher", 
@@ -221,7 +178,6 @@ const LIFE_PATH_MEANINGS: Record<number, any> = {
     light: ["Cosmic parent", "Selfless service", "Master healer", "Compassionate guide", "Joyful spirit"],
     shadow_list: ["Burdened by others", "Emotional volatility", "Perfectionism", "Neglecting self", "Martyrdom"],
     famous: ["Meryl Streep", "Francis Ford Coppola", "Salma Hayek", "Robert De Niro", "Stephen King", "John Lennon"],
-    cosmic: { planet: "Venus", element: "Water", tarot: "The World", crystal: "Diamond", symbol: "The Heart" }
   }
 };
 
@@ -640,12 +596,15 @@ const LifePathView = ({ lifePathData, birthDate, setBirthDate }) => {
                <span className="text-xs font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1 mb-1">
                   Input your birth date <ArrowRight size={12} />
                </span>
-               <input 
-                  type="date" 
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  className="bg-transparent border-none p-0 text-slate-800 font-bold focus:ring-0 cursor-pointer text-lg"
-               />
+               <div className="flex items-center gap-2">
+                  <Calendar size={18} className="text-indigo-600" />
+                  <input 
+                      type="date" 
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      className="bg-transparent border-none p-0 text-slate-800 font-bold focus:ring-0 cursor-pointer text-lg"
+                  />
+               </div>
              </div>
           </div>
         </div>
@@ -826,9 +785,9 @@ export default function SoulCompassApp() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setView('lifepath')}>
             <div className="bg-indigo-600 p-1.5 rounded-lg">
-              <Sparkles className="w-4 h-4 text-white" />
+              <img src="/soul-compass/favicon.ico" alt="Logo" className="w-4 h-4 invert brightness-0" /> 
             </div>
-            <h1 className="text-base font-bold text-slate-900 tracking-tight hidden sm:block">Life Number Pathing</h1>
+            <h1 className="text-base font-bold text-slate-900 tracking-tight hidden sm:block">Life Path Number Patterns</h1>
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1 rounded-lg border border-slate-100 overflow-x-auto">
@@ -849,6 +808,8 @@ export default function SoulCompassApp() {
               </button>
             ))}
           </div>
+          
+          {/* Removed the extra pencil icon div here entirely */}
 
         </div>
       </nav>
