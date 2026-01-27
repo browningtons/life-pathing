@@ -828,7 +828,7 @@ export default function SoulCompassApp() {
             <div className="bg-indigo-600 p-1.5 rounded-lg">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <h1 className="text-base font-bold text-slate-900 tracking-tight hidden sm:block">Life Path Number Patterns</h1>
+            <h1 className="text-base font-bold text-slate-900 tracking-tight hidden sm:block">Life Number Pathing</h1>
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1 rounded-lg border border-slate-100 overflow-x-auto">
