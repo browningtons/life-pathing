@@ -791,7 +791,7 @@ return (
         >
           <img
             src={logo}
-            alt="Life Number Pathing"
+            alt="Life Path Numbering"
             className="h-20 w-auto sm:h-20 object-contain"
           />
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">
