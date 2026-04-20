@@ -369,7 +369,7 @@ const ArchetypesView = ({ initialType, onTypeChange }) => {
 
   const toggle = (dim) => {
     setType(prev => {
-      let next = { ...prev };
+      const next = { ...prev };
       if (dim === 'ie') next.ie = prev.ie === 'I' ? 'E' : 'I';
       if (dim === 'sn') next.sn = prev.sn === 'S' ? 'N' : 'S';
       if (dim === 'tf') next.tf = prev.tf === 'T' ? 'F' : 'T';
