@@ -25,12 +25,13 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // Prefer the typescript-eslint version — handles function type signatures correctly.
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
-      // Known smell in ArchetypesView — syncing prop-driven state via useEffect.
-      // Fix when App.tsx is split into views.
-      'react-hooks/set-state-in-effect': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' },
+      ],
     },
   },
 ])

@@ -16,9 +16,10 @@
 
     "allowJs": true,
 
-    "strict": false,
-    "noImplicitAny": false,
-    "noFallthroughCasesInSwitch": true
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": ["src"]
 }

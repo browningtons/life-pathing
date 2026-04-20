@@ -1,0 +1,98 @@
+import type { MbtiEntry } from '../types';
+
+export const MBTI_DATA: Record<string, MbtiEntry> = {
+  INFP: {
+    title: "The Healer",
+    archetype: "The Dreamer",
+    drive: "Authenticity & Meaning",
+    stack: ["Fi", "Ne", "Si", "Te"],
+    desc: "Poetic, kind, and altruistic people, always eager to help a good cause. You are guided by your principles rather than logic or excitement.",
+    strengths: ["Deeply Empathetic", "Open-Minded", "Creative", "Passionate", "Idealistic"],
+    strength_tip: "Your authenticity is your magnet. Don't hide your quirkiness; it is exactly what draws your true tribe to you.",
+    shadows: ["Unrealistic Expectations", "Isolating", "Unfocused", "Emotionally Vulnerable", "Self-Critical"],
+    growth: "Balance your idealism with action. Don't just dream of a better world; take small, concrete steps to build it.",
+    famous: ["J.R.R. Tolkien", "William Shakespeare", "Björk", "Johnny Depp", "Princess Diana"],
+  },
+  INFJ: {
+    title: "The Advocate",
+    archetype: "The Mystic",
+    drive: "Insight & Harmony",
+    stack: ["Ni", "Fe", "Ti", "Se"],
+    desc: "Quiet and mystical, yet very inspiring and tireless idealists. You see patterns others miss and strive to help others realize their potential.",
+    strengths: ["Insightful", "Principled", "Passionate", "Altruistic", "Creative"],
+    strength_tip: "Trust your gut. Your intuition often knows the answer long before your logic can explain why.",
+    shadows: ["Sensitive to Criticism", "Perfectionistic", "Privacy-Obsessed", "Burnout Prone", "Always Need a Cause"],
+    growth: "Remember that you cannot pour from an empty cup. Protect your boundaries as fiercely as you protect others.",
+    famous: ["Martin Luther King Jr.", "Nelson Mandela", "Mother Teresa", "Lady Gaga", "Nicole Kidman"],
+  },
+  INTJ: {
+    title: "The Architect",
+    archetype: "The Strategist",
+    drive: "Mastery & Competence",
+    stack: ["Ni", "Te", "Fi", "Se"],
+    desc: "Imaginative and strategic thinkers, with a plan for everything. You value intellect and competence above all else.",
+    strengths: ["Rational", "Informed", "Independent", "Determined", "Curious"],
+    strength_tip: "Your vision is a superpower. Trust your ability to see the chess moves ten steps ahead of everyone else.",
+    shadows: ["Arrogant", "Dismissive of Emotions", "Overly Critical", "Combative", "Socially Clueless"],
+    growth: "Learn to value the emotional and social components of life. Not everything can be solved with logic alone.",
+    famous: ["Elon Musk", "Christopher Nolan", "Michelle Obama", "Friedrich Nietzsche", "Arnold Schwarzenegger"],
+  },
+  INTP: {
+    title: "The Logician",
+    archetype: "The Thinker",
+    drive: "Understanding & Truth",
+    stack: ["Ti", "Ne", "Si", "Fe"],
+    desc: "Innovative inventors with an unquenchable thirst for knowledge. You love patterns and spotting discrepancies.",
+    strengths: ["Analytical", "Original", "Open-Minded", "Curious", "Objective"],
+    strength_tip: "Your brain is a unique problem-solving engine. Give yourself permission to explore ideas that others find 'weird'.",
+    shadows: ["Disconnected", "Insensitive", "Dissatisfied", "Impatient", "Fear of Failure"],
+    growth: "Connect with others emotionally. Your brilliant ideas need people to bring them to life.",
+    famous: ["Albert Einstein", "Bill Gates", "Kristen Stewart", "Avicii", "Descartes"],
+  },
+  ENFP: {
+    title: "The Campaigner",
+    archetype: "The Inspirer",
+    drive: "Connection & Possibility",
+    stack: ["Ne", "Fi", "Te", "Si"],
+    desc: "Enthusiastic, creative and sociable free spirits, who can always find a reason to smile.",
+    strengths: ["Curious", "Observant", "Energetic and Enthusiastic", "Excellent Communicator", "Know How to Relax"],
+    strength_tip: "Your enthusiasm is contagious. Use it to spark movements and inspire those who are stuck.",
+    shadows: ["Poor Practical Skills", "Find it Difficult to Focus", "Overthink Things", "Get Stressed Easily", "Highly Emotional"],
+    growth: "Focus is your friend. Follow through on one idea before jumping to the next to see true results.",
+    famous: ["Robert Downey Jr.", "Robin Williams", "Will Smith", "Walt Disney", "Quentin Tarantino"],
+  },
+  ESTJ: {
+    title: "The Executive",
+    archetype: "The Supervisor",
+    drive: "Order & Structure",
+    stack: ["Te", "Si", "Ne", "Fi"],
+    desc: "Excellent administrators, unsurpassed at managing things or people.",
+    strengths: ["Dedicated", "Strong-willed", "Direct", "Honest", "Loyal"],
+    strength_tip: "Your ability to create order is a gift. You make the chaotic world safe for others.",
+    shadows: ["Inflexible", "Judgmental", "Difficult Relaxing", "Too Focused on Status"],
+    growth: "Practice patience with those who don't follow the rules as strictly as you do.",
+    famous: ["Judge Judy", "Frank Sinatra"],
+  },
+};
+
+export const DIMENSION_TOOLTIPS: Record<string, string> = {
+  ie: "Energy Source: Introverts (I) recharge in solitude; Extroverts (E) recharge through social interaction.",
+  sn: "Information Processing: Sensors (S) focus on facts & details; Intuitives (N) focus on ideas & possibilities.",
+  tf: "Decision Making: Thinkers (T) prioritize logic & objectivity; Feelers (F) prioritize values & harmony.",
+  jp: "Structure: Judgers (J) prefer plans & closure; Perceivers (P) prefer flexibility & spontaneity.",
+};
+
+const FALLBACK_MBTI: MbtiEntry = {
+  title: "The Personality",
+  archetype: "The Individual",
+  drive: "To Be Known",
+  stack: ["X", "Y", "Z", "A"],
+  desc: "A unique combination of traits that defines your interaction with the world.",
+  strengths: ["Adaptable", "Unique", "Capable"],
+  strength_tip: "Lean into your natural talents.",
+  shadows: ["Uncertainty", "Imbalance"],
+  growth: "Explore your cognitive functions to understand your true potential.",
+  famous: [],
+};
+
+export const getMbtiData = (type: string): MbtiEntry => MBTI_DATA[type] ?? FALLBACK_MBTI;
