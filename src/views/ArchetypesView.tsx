@@ -38,7 +38,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
         <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
           <div>
             <div className="flex items-center gap-3 mb-2 opacity-80">
-              <Brain size={20} />
+              <Brain size={20} aria-hidden="true" />
               <span className="text-xs font-bold uppercase tracking-widest">Cognitive Architecture</span>
             </div>
             <h2 className="text-4xl font-bold mb-2">{currentTypeString}</h2>
@@ -87,7 +87,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
         <div className="flex items-center gap-2 mb-6">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Functional Stack</h3>
           <div className="group relative">
-            <HelpCircle size={14} className="text-slate-400 hover:text-indigo-500 cursor-help" />
+            <HelpCircle size={14} className="text-slate-400 hover:text-indigo-500 cursor-help" aria-hidden="true" />
             <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-64 p-3 bg-slate-800 text-white text-xs rounded-lg hidden group-hover:block z-50 shadow-xl">
               <strong>The Engine Under the Hood.</strong> Your stack determines how you process the world.
               <br /><br />
@@ -124,7 +124,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-emerald-50 border-emerald-100">
           <h3 className="text-sm font-bold text-emerald-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Star size={16} /> Strengths & Light
+            <Star size={16} aria-hidden="true" /> Strengths & Light
           </h3>
           <ul className="space-y-2 mb-6">
             {data.strengths.map((s, i) => (
@@ -142,7 +142,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
 
         <Card className="bg-slate-50 border-slate-200">
           <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Ghost size={16} /> Shadows & Growth
+            <Ghost size={16} aria-hidden="true" /> Shadows & Growth
           </h3>
           <ul className="space-y-2 mb-6">
             {data.shadows.map((s, i) => (
@@ -161,7 +161,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
 
       <Card className="bg-white border-slate-100">
         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Users size={16} /> Famous Kindred Spirits
+          <Users size={16} aria-hidden="true" /> Famous Kindred Spirits
         </h3>
         <p className="text-xs text-slate-500 mb-4">
           Others who have walked the path of the {currentTypeString}.
@@ -196,13 +196,19 @@ interface DimensionToggleProps {
 
 const DimensionToggle = ({ dim, label, left, right, value, onToggle }: DimensionToggleProps) => (
   <button
+    type="button"
     onClick={() => onToggle(dim)}
-    className="flex flex-col items-center p-3 rounded-lg bg-black/20 hover:bg-black/30 transition-colors relative group"
+    aria-label={`${label}: ${value}. Click to toggle to ${value === left ? right : left}.`}
+    title={DIMENSION_TOOLTIPS[dim]}
+    className="flex flex-col items-center p-3 rounded-lg bg-black/20 hover:bg-black/30 transition-colors relative group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-300"
   >
     <div className="absolute top-2 right-2">
       <div className="group relative">
-        <HelpCircle size={14} className="text-white/30 hover:text-white" />
-        <div className="absolute bottom-full right-0 mb-2 w-40 p-2 bg-black text-white text-[10px] rounded hidden group-hover:block z-50 shadow-lg">
+        <HelpCircle size={14} className="text-white/30 hover:text-white" aria-hidden="true" />
+        <div
+          role="tooltip"
+          className="absolute bottom-full right-0 mb-2 w-40 p-2 bg-black text-white text-[10px] rounded hidden group-hover:block z-50 shadow-lg"
+        >
           {DIMENSION_TOOLTIPS[dim]}
         </div>
       </div>
