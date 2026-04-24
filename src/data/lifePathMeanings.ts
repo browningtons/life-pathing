@@ -9,7 +9,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You need a partner who is independent and self-sufficient. You can be protective, but must watch out for being too controlling.",
     career: "Entrepreneur, CEO, Manager, Inventor, Freelancer, Director.",
     light: ["Unstoppable determination", "Original thinker", "Courageous pioneer", "Self-reliant", "Natural authority"],
-    shadow_list: ["Stubbornness & rigidity", "Fear of dependency", "Aggression when blocked", "Ego-centric behavior", "Difficulty asking for help"],
+    shadows: ["Stubbornness & rigidity", "Fear of dependency", "Aggression when blocked", "Ego-centric behavior", "Difficulty asking for help"],
     famous: ["Steve Jobs", "Martin Luther King Jr.", "Scarlett Johansson", "Henry Ford", "Tom Hanks", "George Lucas"],
   },
   2: {
@@ -20,7 +20,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You are deeply devoted and romantic. You need reassurance and harmony at home. Conflict is physically draining for you.",
     career: "Counselor, Diplomat, Healer, Teacher, Assistant, Mediator.",
     light: ["Deeply intuitive", "Master diplomat", "Patient & supportive", "Detail-oriented", "Empathetic listener"],
-    shadow_list: ["Over-sensitivity", "Indecisiveness", "Passive-aggressiveness", "Self-sacrifice", "Fear of being alone"],
+    shadows: ["Over-sensitivity", "Indecisiveness", "Passive-aggressiveness", "Self-sacrifice", "Fear of being alone"],
     famous: ["Barack Obama", "Jennifer Aniston", "Madonna", "Tony Robbins", "Meg Ryan", "Kanye West"],
   },
   3: {
@@ -31,7 +31,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You are fun, flirty, and charming. You need a partner who stimulates you mentally and allows you social freedom.",
     career: "Actor, Writer, Musician, Sales, Marketing, Designer.",
     light: ["Charismatic storyteller", "Eternal optimist", "Artistic genius", "Social magnet", "Inspiring communicator"],
-    shadow_list: ["Scattered energy", "Superficiality", "Exaggeration/Gossip", "Mood swings", "Avoiding depth"],
+    shadows: ["Scattered energy", "Superficiality", "Exaggeration/Gossip", "Mood swings", "Avoiding depth"],
     famous: ["David Bowie", "Frida Kahlo", "Cameron Diaz", "Snoop Dogg", "Charles Dickens", "Jackie Chan"],
   },
   4: {
@@ -42,7 +42,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You are loyal and take commitment seriously. You show love through acts of service and providing security rather than grand emotional displays.",
     career: "Engineer, Architect, Accountant, Project Manager, Real Estate.",
     light: ["Rock-solid reliability", "Master of systems", "Disciplined worker", "Honest & loyal", "Practical problem solver"],
-    shadow_list: ["Rigidity", "Fear of change", "Stubbornness", "Workaholism", "Lack of imagination"],
+    shadows: ["Rigidity", "Fear of change", "Stubbornness", "Workaholism", "Lack of imagination"],
     famous: ["Bill Gates", "Oprah Winfrey", "Brad Pitt", "Elton John", "Margaret Thatcher", "Arnold Schwarzenegger"],
   },
   5: {
@@ -53,7 +53,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You are passionate and exciting, but you need space. A partner who tries to cage you will lose you quickly.",
     career: "Travel, Media, Sales, Consulting, Entertainment, Event Planning.",
     light: ["Fearless change-maker", "Versatile & adaptable", "Magnetic personality", "Visionary thinker", "Lover of freedom"],
-    shadow_list: ["Restlessness", "Impulsiveness", "Inconsistency", "Fear of commitment", "Over-indulgence"],
+    shadows: ["Restlessness", "Impulsiveness", "Inconsistency", "Fear of commitment", "Over-indulgence"],
     famous: ["Gautama Buddha", "Angelina Jolie", "Mick Jagger", "Beyoncé", "Abraham Lincoln", "Steven Spielberg"],
   },
   6: {
@@ -64,7 +64,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You are the marrying type. Home and family are your top priority. You can be idealistically demanding of partners.",
     career: "Teacher, Nurse, Counselor, Interior Design, Artist, Healer.",
     light: ["Unconditional love", "Natural healer/counselor", "Responsible protector", "Community builder", "Eye for beauty"],
-    shadow_list: ["Meddling/Interfering", "Perfectionism", "Self-righteousness", "Martyr complex", "Difficulty saying no"],
+    shadows: ["Meddling/Interfering", "Perfectionism", "Self-righteousness", "Martyr complex", "Difficulty saying no"],
     famous: ["Michael Jackson", "Albert Einstein", "Robert De Niro", "Eleanor Roosevelt", "Stephen King", "Eddie Murphy"],
   },
   7: {
@@ -75,7 +75,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You can be hard to get to know. You need a partner who respects your need for quiet and intellectual depth.",
     career: "Scientist, Researcher, Philosopher, Writer, Mystic, Investigator.",
     light: ["Deep wisdom", "Analytical genius", "Spiritual intuition", "Independent thinker", "Truth seeker"],
-    shadow_list: ["Isolation/Withdrawal", "Cynicism", "Over-thinking", "Secretive nature", "Social awkwardness"],
+    shadows: ["Isolation/Withdrawal", "Cynicism", "Over-thinking", "Secretive nature", "Social awkwardness"],
     famous: ["Johnny Depp", "Julia Roberts", "Princess Diana", "Leonardo DiCaprio", "Marilyn Monroe", "Queen Elizabeth II"],
   },
   8: {
@@ -86,7 +86,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You value status and strength in a partner. You are loyal and protective, but need to be careful not to treat relationships like business deals.",
     career: "CEO, Finance, Law, Executive, Business Owner, Publisher.",
     light: ["Executive ability", "Financial abundance", "Personal power", "Resilience", "Visionary leadership"],
-    shadow_list: ["Greed/Materialism", "Domination/Control", "Intimidation", "Workaholism", "Neglecting emotions"],
+    shadows: ["Greed/Materialism", "Domination/Control", "Intimidation", "Workaholism", "Neglecting emotions"],
     famous: ["Pablo Picasso", "Sandra Bullock", "Matt Damon", "Martha Stewart", "Nelson Mandela", "Jason Statham"],
   },
   9: {
@@ -97,7 +97,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You are romantic and giving, but can be distant if you feel your freedom is threatened. You love humanity, sometimes more than individuals.",
     career: "Non-profit, HR, Artist, Doctor, Writer, Philanthropist.",
     light: ["Universal compassion", "Global consciousness", "Artistic talent", "Generosity", "Wisdom of experience"],
-    shadow_list: ["Resentment", "Martyrdom", "Emotional aloofness", "Difficulty letting go", "Aimless dreaming"],
+    shadows: ["Resentment", "Martyrdom", "Emotional aloofness", "Difficulty letting go", "Aimless dreaming"],
     famous: ["Mahatma Gandhi", "Mother Teresa", "Morgan Freeman", "Bob Marley", "Jim Carrey", "Harrison Ford"],
   },
   11: {
@@ -108,7 +108,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You are highly sensitive and need a partner who understands your spiritual nature. You seek a soulmate connection.",
     career: "Spiritual Teacher, Media, Inventor, Psychologist, Artist.",
     light: ["Psychic intuition", "Spiritual teacher", "Charismatic leader", "Visionary peace-maker", "Electric presence"],
-    shadow_list: ["Nervous tension", "Impracticality", "Hypersensitivity", "Self-criticism", "Overwhelmed by energy"],
+    shadows: ["Nervous tension", "Impracticality", "Hypersensitivity", "Self-criticism", "Overwhelmed by energy"],
     famous: ["Michelle Obama", "Harry Houdini", "Derren Brown", "Lucy Liu", "Orlando Bloom", "Michael Jordan"],
   },
   22: {
@@ -119,7 +119,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You need a supportive partner who can handle your ambition and power. You are loyal and stable.",
     career: "International Business, Politics, Architecture, Global Leadership.",
     light: ["Manifestation master", "Global impact", "Practical genius", "Diplomatic leader", "Legacy builder"],
-    shadow_list: ["Fear of failure", "Overwhelmed by potential", "Controlling", "Laziness (fear of work)", "Indifference"],
+    shadows: ["Fear of failure", "Overwhelmed by potential", "Controlling", "Laziness (fear of work)", "Indifference"],
     famous: ["Paul McCartney", "Will Smith", "Dalai Lama (14th)", "Sir Richard Branson", "Bryan Adams"],
   },
   33: {
@@ -130,7 +130,7 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathEntry> = {
     love: "You love deeply and protectively. You need a partner who appreciates your caring nature but doesn't take advantage of it.",
     career: "Healing Arts, Ministry, Teaching, Counseling, Community Service.",
     light: ["Cosmic parent", "Selfless service", "Master healer", "Compassionate guide", "Joyful spirit"],
-    shadow_list: ["Burdened by others", "Emotional volatility", "Perfectionism", "Neglecting self", "Martyrdom"],
+    shadows: ["Burdened by others", "Emotional volatility", "Perfectionism", "Neglecting self", "Martyrdom"],
     famous: ["Meryl Streep", "Francis Ford Coppola", "Salma Hayek", "Robert De Niro", "Stephen King", "John Lennon"],
   },
 };

@@ -6,7 +6,7 @@ export interface LifePathEntry {
   love: string;
   career: string;
   light: string[];
-  shadow_list: string[];
+  shadows: string[];
   famous: string[];
 }
 

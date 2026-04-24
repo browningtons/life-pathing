@@ -29,7 +29,7 @@ const FALLBACK_MEANING: LifePathEntry = {
   love: '',
   career: '',
   light: [],
-  shadow_list: [],
+  shadows: [],
   famous: [],
 };
 
@@ -65,8 +65,10 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePath
 
         <div className="p-5 grid md:grid-cols-5 gap-8 items-start">
           <div className="md:col-span-3">
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">Life Path {lifePathData.number}</h1>
-            <h2 className="text-xl text-indigo-600 font-medium mb-4">{meaning.title}</h2>
+            <div aria-live="polite" aria-atomic="true">
+              <h1 className="text-4xl font-bold text-slate-900 mb-2">Life Path {lifePathData.number}</h1>
+              <h2 className="text-xl text-indigo-600 font-medium mb-4">{meaning.title}</h2>
+            </div>
             {compoundMeaning && (
               <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg text-indigo-800">
                 <Gem size={14} className="text-indigo-500" aria-hidden="true" />
@@ -186,7 +188,7 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePath
             <ShieldAlert size={14} aria-hidden="true" /> Common Breakdown Patterns
           </h3>
           <ul className="space-y-3">
-            {meaning.shadow_list.map((item, i) => (
+            {meaning.shadows.map((item, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                 <div className="mt-1.5 w-1.5 h-1.5 bg-rose-400 rounded-full shrink-0"></div>
                 <span className="leading-relaxed">{item}</span>
