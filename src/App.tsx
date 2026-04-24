@@ -2,13 +2,15 @@ import { useMemo, useState } from 'react';
 import logo from './assets/logo.png';
 import { LifePathView } from './views/LifePathView';
 import { ArchetypesView } from './views/ArchetypesView';
+import { PersonalityView } from './views/PersonalityView';
 import { calculateLifePath } from './lib/calculateLifePath';
 
-type View = 'lifepath' | 'archetypes';
+type View = 'lifepath' | 'archetypes' | 'profile';
 
 const TABS: { id: View; label: string }[] = [
   { id: 'lifepath', label: 'Life Path' },
   { id: 'archetypes', label: 'Archetypes' },
+  { id: 'profile', label: 'Profile' },
 ];
 
 const DEFAULT_BIRTH_DATE = '1986-08-09';
@@ -98,6 +100,16 @@ export default function SoulCompassApp() {
             aria-labelledby="tab-archetypes"
           >
             <ArchetypesView mbtiType={mbtiType} setMbtiType={setMbtiType} />
+          </div>
+        )}
+
+        {view === 'profile' && (
+          <div
+            role="tabpanel"
+            id="panel-profile"
+            aria-labelledby="tab-profile"
+          >
+            <PersonalityView />
           </div>
         )}
       </main>
