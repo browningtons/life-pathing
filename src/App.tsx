@@ -109,7 +109,7 @@ export default function SoulCompassApp() {
             id="panel-profile"
             aria-labelledby="tab-profile"
           >
-            <PersonalityView />
+            <PersonalityView mbtiType={mbtiType} lifePathNumber={lifePathData.number} />
           </div>
         )}
       </main>
