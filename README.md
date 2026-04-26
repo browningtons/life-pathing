@@ -5,8 +5,6 @@ A small web app that combines two self-reflection lenses:
 - **Life Path number** — derived from your birth date using Pythagorean numerology, with a breakdown of the compound digits and master-number handling (11, 22, 33).
 - **MBTI archetype** — pick a type and see the archetype, cognitive function stack, and elemental flavor.
 
-Live at **https://browningtons.github.io/life-pathing/**.
-
 ## Local development
 
 ```bash
@@ -25,17 +23,27 @@ Requires Node 20+.
 - [Tailwind CSS 3](https://tailwindcss.com/) for styling
 - [lucide-react](https://lucide.dev/) for icons
 - ESLint 9 (flat config)
-- Deployed to GitHub Pages via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+- Vitest for unit tests
+- Deployed to Vercel; CI gate (lint/typecheck/test/build) via [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+- Monetization plumbing shared with other apps via the **appkit** starter (see `src/kit/`)
 
 ## Project layout
 
 ```
 src/
-  App.tsx        # root app — views, data, and calc (currently monolithic)
-  main.jsx       # React entry point
+  App.tsx        # root app
+  main.tsx       # React entry point — wraps App in <KitProvider>
   index.css      # Tailwind directives
+  views/         # LifePathView, ArchetypesView, PersonalityView
+  data/          # numerology + MBTI + personality content
+  lib/           # calculateLifePath + tests
+  components/    # local UI primitives
+  kit/           # appkit — paywall + entitlement plumbing (shared across apps)
   assets/        # logo
+
+api/             # Vercel serverless functions (verify-purchase)
 public/          # favicons
+kit.config.ts    # per-app Stripe / brand / analytics config (see kit.config.example.ts)
 ```
 
 ## Disclaimer

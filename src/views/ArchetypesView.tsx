@@ -1,11 +1,14 @@
 import { Star, Users, Brain, HelpCircle, Ghost } from 'lucide-react';
 import { Card } from '../components/Card';
+import { LockedOverlay } from '../kit';
 import { DIMENSION_TOOLTIPS, getMbtiData } from '../data/mbti';
 import type { MbtiDimension } from '../types';
 
 interface ArchetypesViewProps {
   mbtiType: string;
   setMbtiType: (type: string) => void;
+  isPro: boolean;
+  onUpgrade: () => void;
 }
 
 const normalize = (mbtiType: string) => ({
@@ -15,7 +18,7 @@ const normalize = (mbtiType: string) => ({
   jp: mbtiType[3] === 'J' ? 'J' : 'P',
 });
 
-export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) => {
+export const ArchetypesView = ({ mbtiType, setMbtiType, isPro, onUpgrade }: ArchetypesViewProps) => {
   const type = normalize(mbtiType);
   const currentTypeString = `${type.ie}${type.sn}${type.tf}${type.jp}`;
   const data = getMbtiData(currentTypeString);
@@ -121,7 +124,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-emerald-50 border-emerald-100">
           <h3 className="text-sm font-bold text-emerald-800 uppercase tracking-wider mb-4 flex items-center gap-2">
             <Star size={16} aria-hidden="true" /> Strengths & Light
@@ -157,30 +160,34 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
             "{data.growth}"
           </div>
         </Card>
+        {!isPro && <LockedOverlay onUpgrade={onUpgrade} label="Unlock strengths & shadows" />}
       </div>
 
-      <Card className="bg-white border-slate-100">
-        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Users size={16} aria-hidden="true" /> Famous Kindred Spirits
-        </h3>
-        <p className="text-xs text-slate-500 mb-4">
-          Others who have walked the path of the {currentTypeString}.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {data.famous.length > 0 ? (
-            data.famous.map((person, i) => (
-              <span
-                key={i}
-                className="px-3 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-slate-600 rounded-lg text-xs font-bold cursor-default"
-              >
-                {person}
-              </span>
-            ))
-          ) : (
-            <span className="text-sm text-slate-400 italic">Famous figures for this type coming soon...</span>
-          )}
-        </div>
-      </Card>
+      <div className="relative">
+        <Card className="bg-white border-slate-100">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Users size={16} aria-hidden="true" /> Famous Kindred Spirits
+          </h3>
+          <p className="text-xs text-slate-500 mb-4">
+            Others who have walked the path of the {currentTypeString}.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {data.famous.length > 0 ? (
+              data.famous.map((person, i) => (
+                <span
+                  key={i}
+                  className="px-3 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-slate-600 rounded-lg text-xs font-bold cursor-default"
+                >
+                  {person}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-slate-400 italic">Famous figures for this type coming soon...</span>
+            )}
+          </div>
+        </Card>
+        {!isPro && <LockedOverlay onUpgrade={onUpgrade} label="Unlock kindred spirits" />}
+      </div>
     </div>
   );
 };

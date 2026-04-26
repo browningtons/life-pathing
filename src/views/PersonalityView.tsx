@@ -1,21 +1,37 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   categories,
   categoryMeta,
-  convergenceThemes,
-  descriptors,
-  growthEdges,
-  personas,
+  getConvergenceForMbti,
+  getDescriptorsForMbti,
+  getGrowthEdgesForMbti,
+  getMbtiLetterDetails,
+  getTemperamentForMbti,
+  getTraitsForMbti,
+  getTypeMatchesForMbti,
+  personasFramework,
   sections,
   sectionLabels,
-  temperaments,
-  traitsData,
-  typeMatches,
+  temperamentForMbti,
+  type ConvergenceTheme,
+  type GrowthEdge,
   type Section,
+  type TemperamentEntry,
   type TemperamentName,
   type Trait,
   type TraitCategory,
+  type TypeMatch,
 } from '../data/personality';
+import { LIFE_PATH_MEANINGS } from '../data/lifePathMeanings';
+import { getMbtiData } from '../data/mbti';
+import { LockedOverlay } from '../kit';
+
+interface PersonalityViewProps {
+  mbtiType: string;
+  lifePathNumber: number;
+  isPro: boolean;
+  onUpgrade: () => void;
+}
 
 function getIntensity(diff: number) {
   if (diff <= 10) return 'balanced';
@@ -77,8 +93,12 @@ function TraitBar({ trait, index, isExpanded, onToggle }: TraitBarProps) {
   );
 }
 
-function SignatureTraits() {
-  const sorted = [...traitsData].sort((a, b) => Math.abs(b.leftPct - b.rightPct) - Math.abs(a.leftPct - a.rightPct));
+interface SignatureTraitsProps {
+  traits: Trait[];
+}
+
+function SignatureTraits({ traits }: SignatureTraitsProps) {
+  const sorted = [...traits].sort((a, b) => Math.abs(b.leftPct - b.rightPct) - Math.abs(a.leftPct - a.rightPct));
   const top5 = sorted.slice(0, 5);
   const balanced = sorted.filter((t) => Math.abs(t.leftPct - t.rightPct) <= 10);
   return (
@@ -110,7 +130,7 @@ function SignatureTraits() {
   );
 }
 
-function DescriptorBars() {
+function DescriptorBars({ descriptors }: { descriptors: { word: string; pct: number }[] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {descriptors.map((d, i) => {
@@ -129,23 +149,24 @@ function DescriptorBars() {
   );
 }
 
-function TemperamentSection() {
-  const colors: Record<TemperamentName, string> = {
-    Empath: '#9E6B9B',
-    Theorist: '#4A7FB5',
-    Responder: '#CD8245',
-    Preserver: '#5E9E58',
-  };
+const TEMPERAMENT_COLORS: Record<TemperamentName, string> = {
+  Empath: '#9E6B9B',
+  Theorist: '#4A7FB5',
+  Responder: '#CD8245',
+  Preserver: '#5E9E58',
+};
+
+function TemperamentSection({ temperaments }: { temperaments: TemperamentEntry[] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {temperaments.map((t, i) => (
         <div key={t.name} style={{ animation: `fadeIn 0.4s ease ${i * 0.08}s both` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <span style={{ fontSize: 16, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: colors[t.name] }}>{t.name}</span>
-            <span style={{ fontSize: 22, fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, color: colors[t.name] }}>{t.pct}%</span>
+            <span style={{ fontSize: 16, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: TEMPERAMENT_COLORS[t.name] }}>{t.name}</span>
+            <span style={{ fontSize: 22, fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, color: TEMPERAMENT_COLORS[t.name] }}>{t.pct}%</span>
           </div>
           <div style={{ height: 10, borderRadius: 5, background: '#F0EBE3' }}>
-            <div style={{ width: `${t.pct}%`, height: '100%', borderRadius: 5, background: colors[t.name], transition: 'width 0.6s ease' }} />
+            <div style={{ width: `${t.pct}%`, height: '100%', borderRadius: 5, background: TEMPERAMENT_COLORS[t.name], transition: 'width 0.6s ease' }} />
           </div>
           <div style={{ marginTop: 4, fontSize: 12.5, fontFamily: "'Cormorant Garamond', serif", color: '#8A857E', fontStyle: 'italic' }}>{t.desc}</div>
         </div>
@@ -154,10 +175,10 @@ function TemperamentSection() {
   );
 }
 
-function TypeMatchSection() {
+function TypeMatchSection({ matches }: { matches: TypeMatch[] }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-      {typeMatches.map((t, i) => {
+      {matches.map((t, i) => {
         const isTop = t.pct >= 68;
         return (
           <div
@@ -181,13 +202,18 @@ function TypeMatchSection() {
   );
 }
 
-function ConvergenceSection() {
+interface ConvergenceProps {
+  themes: ConvergenceTheme[];
+  growth: GrowthEdge[];
+}
+
+function ConvergenceSection({ themes, growth }: ConvergenceProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#7A756E', fontStyle: 'italic', lineHeight: 1.6, marginBottom: 4 }}>
         Where MBTI, Big Five, Numerology, and Enneagram all point the same direction.
       </div>
-      {convergenceThemes.map((t, i) => (
+      {themes.map((t, i) => (
         <div
           key={t.title}
           style={{
@@ -204,7 +230,7 @@ function ConvergenceSection() {
         </div>
       ))}
       <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginTop: 8, fontWeight: 500 }}>Growth Edges</div>
-      {growthEdges.map((g, i) => (
+      {growth.map((g, i) => (
         <div
           key={g.title}
           style={{
@@ -223,15 +249,20 @@ function ConvergenceSection() {
   );
 }
 
-function PersonaSection() {
+interface PersonaSectionProps {
+  lifePathNumber: number;
+}
+
+function PersonaSection({ lifePathNumber }: PersonaSectionProps) {
+  const lp = LIFE_PATH_MEANINGS[lifePathNumber];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#7A756E', fontStyle: 'italic', lineHeight: 1.6, marginBottom: 4 }}>
-        Three named internal personas — a framework for self-awareness and role clarity.
+        {personasFramework.intro}
       </div>
-      {personas.map((p, i) => (
+      {personasFramework.archetypes.map((p, i) => (
         <div
-          key={p.name}
+          key={p.label}
           style={{
             padding: '16px',
             borderRadius: 10,
@@ -241,36 +272,45 @@ function PersonaSection() {
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: p.color }}>{p.name}</span>
+            <span style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: p.color }}>{p.label}</span>
             <span style={{ fontSize: 12, fontFamily: "'Source Sans 3', sans-serif", color: '#A09890' }}>{p.role}</span>
           </div>
           <div style={{ marginTop: 6, fontSize: 13.5, fontFamily: "'Cormorant Garamond', serif", color: '#5A554E', lineHeight: 1.6 }}>{p.desc}</div>
         </div>
       ))}
-      <div style={{ marginTop: 8, padding: '14px 16px', borderRadius: 10, background: '#F5F0E8', border: '1px solid #E0D8CC' }}>
-        <div style={{ fontSize: 12, fontFamily: "'Source Sans 3', sans-serif", color: '#A09890', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Life Path 23/5</div>
-        <div style={{ fontSize: 15, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: '#CD8245', marginBottom: 4 }}>The Philosopher-Warrior</div>
-        <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#5A554E', lineHeight: 1.6, fontStyle: 'italic' }}>
-          Freedom through truth and mastery of voice. Here to speak truth to power, break generational silence, and turn chaos into sacred architecture.
-        </div>
+      <div style={{ marginTop: 4, fontSize: 12.5, fontFamily: "'Cormorant Garamond', serif", color: '#9E9A94', fontStyle: 'italic', lineHeight: 1.5 }}>
+        {personasFramework.prompt}
       </div>
+      {lp && (
+        <div style={{ marginTop: 8, padding: '14px 16px', borderRadius: 10, background: '#F5F0E8', border: '1px solid #E0D8CC' }}>
+          <div style={{ fontSize: 12, fontFamily: "'Source Sans 3', sans-serif", color: '#A09890', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Life Path {lifePathNumber}</div>
+          <div style={{ fontSize: 15, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: '#CD8245', marginBottom: 4 }}>{lp.title}</div>
+          <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#5A554E', lineHeight: 1.6, fontStyle: 'italic' }}>
+            {lp.purpose}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-const MBTI_LETTERS: { letter: string; pct: number; label: string; color: string }[] = [
-  { letter: 'E', pct: 51, label: 'Extraversion', color: '#5E9E58' },
-  { letter: 'N', pct: 73, label: 'Intuition', color: '#4A7FB5' },
-  { letter: 'F', pct: 50, label: 'Feeling', color: '#9E6B9B' },
-  { letter: 'P', pct: 63, label: 'Perceiving', color: '#CD8245' },
-];
-
-export const PersonalityView = () => {
+export const PersonalityView = ({ mbtiType, lifePathNumber, isPro, onUpgrade }: PersonalityViewProps) => {
   const [activeSection, setActiveSection] = useState<Section>('traits');
   const [activeCategory, setActiveCategory] = useState<'all' | TraitCategory>('all');
   const [expandedTrait, setExpandedTrait] = useState<string | null>(null);
 
-  const filtered = activeCategory === 'all' ? traitsData : traitsData.filter((t) => t.category === activeCategory);
+  const traits = useMemo(() => getTraitsForMbti(mbtiType), [mbtiType]);
+  const descriptors = useMemo(() => getDescriptorsForMbti(mbtiType), [mbtiType]);
+  const temperaments = useMemo(() => getTemperamentForMbti(mbtiType), [mbtiType]);
+  const typeMatches = useMemo(() => getTypeMatchesForMbti(mbtiType), [mbtiType]);
+  const convergence = useMemo(() => getConvergenceForMbti(mbtiType), [mbtiType]);
+  const growth = useMemo(() => getGrowthEdgesForMbti(mbtiType), [mbtiType]);
+  const letterDetails = useMemo(() => getMbtiLetterDetails(mbtiType), [mbtiType]);
+  const mbtiData = useMemo(() => getMbtiData(mbtiType), [mbtiType]);
+  const lpMeaning = LIFE_PATH_MEANINGS[lifePathNumber];
+  const temperament = temperamentForMbti(mbtiType);
+
+  const filtered = activeCategory === 'all' ? traits : traits.filter((t) => t.category === activeCategory);
 
   return (
     <div
@@ -290,12 +330,14 @@ export const PersonalityView = () => {
       <div style={{ maxWidth: 520, margin: '0 auto' }}>
         <div style={{ marginBottom: 36, textAlign: 'center', animation: 'fadeIn 0.5s ease both' }}>
           <div style={{ fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#B5AFA6', marginBottom: 10, fontFamily: "'Source Sans 3', sans-serif" }}>Complete Personality Profile</div>
-          <h1 style={{ fontSize: 40, fontWeight: 300, lineHeight: 1.1, marginBottom: 6, color: '#2E2A25', fontStyle: 'italic' }}>Paul Brown</h1>
-          <div style={{ fontSize: 14, color: '#9E9A94', fontStyle: 'italic', fontWeight: 300 }}>ENFP · 23/5 · Philosopher-Warrior</div>
+          <h1 style={{ fontSize: 40, fontWeight: 300, lineHeight: 1.1, marginBottom: 6, color: '#2E2A25', fontStyle: 'italic' }}>{mbtiType} · Life Path {lifePathNumber}</h1>
+          <div style={{ fontSize: 14, color: '#9E9A94', fontStyle: 'italic', fontWeight: 300 }}>
+            {mbtiData.title}{lpMeaning ? ` · ${lpMeaning.title}` : ''} · {temperament}
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 32, justifyContent: 'center', animation: 'fadeIn 0.5s ease 0.08s both' }}>
-          {MBTI_LETTERS.map((d) => (
+          {letterDetails.map((d) => (
             <div key={d.letter} style={{ textAlign: 'center', padding: '16px 14px', background: '#fff', borderRadius: 10, border: '1px solid #E8E2D8', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', minWidth: 68 }}>
               <div style={{ fontSize: 32, fontWeight: 700, color: d.color, lineHeight: 1 }}>{d.letter}</div>
               <div style={{ fontSize: 11, color: '#A09890', marginTop: 4, fontFamily: "'Source Sans 3', sans-serif", fontWeight: 500 }}>{d.pct}%</div>
@@ -304,6 +346,7 @@ export const PersonalityView = () => {
           ))}
         </div>
 
+        <div style={{ position: 'relative' }}>
         <div style={{ display: 'flex', gap: 4, marginBottom: 28, flexWrap: 'wrap', justifyContent: 'center', animation: 'fadeIn 0.5s ease 0.12s both' }}>
           {sections.map((s) => (
             <button
@@ -331,7 +374,7 @@ export const PersonalityView = () => {
         <div style={{ animation: 'fadeIn 0.4s ease both' }}>
           {activeSection === 'traits' && (
             <>
-              <SignatureTraits />
+              <SignatureTraits traits={traits} />
               <div style={{ display: 'flex', gap: 6, marginBottom: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <button
                   type="button"
@@ -413,15 +456,17 @@ export const PersonalityView = () => {
               )}
             </>
           )}
-          {activeSection === 'descriptors' && <DescriptorBars />}
-          {activeSection === 'temperament' && <TemperamentSection />}
-          {activeSection === 'types' && <TypeMatchSection />}
-          {activeSection === 'convergence' && <ConvergenceSection />}
-          {activeSection === 'personas' && <PersonaSection />}
+          {activeSection === 'descriptors' && <DescriptorBars descriptors={descriptors} />}
+          {activeSection === 'temperament' && <TemperamentSection temperaments={temperaments} />}
+          {activeSection === 'types' && <TypeMatchSection matches={typeMatches} />}
+          {activeSection === 'convergence' && <ConvergenceSection themes={convergence} growth={growth} />}
+          {activeSection === 'personas' && <PersonaSection lifePathNumber={lifePathNumber} />}
+        </div>
+        {!isPro && <LockedOverlay onUpgrade={onUpgrade} label="Unlock your Profile" />}
         </div>
 
         <div style={{ marginTop: 40, paddingTop: 16, fontSize: 10.5, color: '#C0B8AD', fontFamily: "'Source Sans 3', sans-serif", textAlign: 'center', fontWeight: 400, fontStyle: 'italic' }}>
-          TypeFinder® Assessment · Life Path 23/5 · Systems Convergence Analysis · March 2024
+          A journaling lens, not a measurement. Rendered for {mbtiType} · Life Path {lifePathNumber}.
         </div>
       </div>
     </div>
