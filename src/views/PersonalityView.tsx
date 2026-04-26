@@ -1,5 +1,21 @@
 import { useState, useMemo } from 'react';
 import {
+  Sparkles,
+  Eye,
+  Flame,
+  Users,
+  Layers,
+  Drama,
+  Brain,
+  Zap,
+  Heart,
+  Compass,
+  ChevronDown,
+  Star,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Card } from '../components/Card';
+import {
   categories,
   categoryMeta,
   getConvergenceForMbti,
@@ -30,6 +46,114 @@ interface PersonalityViewProps {
   lifePathNumber: number;
 }
 
+interface CategoryStyle {
+  text: string;
+  bg: string;
+  track: string;
+  bar: string;
+  muted: string;
+}
+
+const CATEGORY_STYLES: Record<TraitCategory, CategoryStyle> = {
+  Cognitive: {
+    text: 'text-sky-700',
+    bg: 'bg-sky-600',
+    track: 'bg-sky-100',
+    bar: 'bg-sky-500',
+    muted: 'bg-sky-200',
+  },
+  Energy: {
+    text: 'text-emerald-700',
+    bg: 'bg-emerald-600',
+    track: 'bg-emerald-100',
+    bar: 'bg-emerald-500',
+    muted: 'bg-emerald-200',
+  },
+  Values: {
+    text: 'text-purple-700',
+    bg: 'bg-purple-600',
+    track: 'bg-purple-100',
+    bar: 'bg-purple-500',
+    muted: 'bg-purple-200',
+  },
+  Lifestyle: {
+    text: 'text-amber-700',
+    bg: 'bg-amber-600',
+    track: 'bg-amber-100',
+    bar: 'bg-amber-500',
+    muted: 'bg-amber-200',
+  },
+};
+
+const CATEGORY_ICONS: Record<TraitCategory, LucideIcon> = {
+  Cognitive: Brain,
+  Energy: Zap,
+  Values: Heart,
+  Lifestyle: Compass,
+};
+
+const SECTION_ICONS: Record<Section, LucideIcon> = {
+  traits: Sparkles,
+  descriptors: Eye,
+  temperament: Flame,
+  types: Users,
+  convergence: Layers,
+  personas: Drama,
+};
+
+interface PaletteEntry {
+  text: string;
+  bar: string;
+  track: string;
+  borderL: string;
+}
+
+const PALETTE: Record<string, PaletteEntry> = {
+  '#9E6B9B': {
+    text: 'text-purple-700',
+    bar: 'bg-purple-500',
+    track: 'bg-purple-100',
+    borderL: 'border-l-purple-400',
+  },
+  '#4A7FB5': {
+    text: 'text-sky-700',
+    bar: 'bg-sky-500',
+    track: 'bg-sky-100',
+    borderL: 'border-l-sky-400',
+  },
+  '#CD8245': {
+    text: 'text-amber-700',
+    bar: 'bg-amber-500',
+    track: 'bg-amber-100',
+    borderL: 'border-l-amber-400',
+  },
+  '#5E9E58': {
+    text: 'text-emerald-700',
+    bar: 'bg-emerald-500',
+    track: 'bg-emerald-100',
+    borderL: 'border-l-emerald-400',
+  },
+};
+
+const FALLBACK_PALETTE: PaletteEntry = {
+  text: 'text-slate-700',
+  bar: 'bg-slate-500',
+  track: 'bg-slate-100',
+  borderL: 'border-l-slate-400',
+};
+
+const paletteFor = (hex: string) => PALETTE[hex] ?? FALLBACK_PALETTE;
+
+const TEMPERAMENT_HEX: Record<TemperamentName, string> = {
+  Empath: '#9E6B9B',
+  Theorist: '#4A7FB5',
+  Responder: '#CD8245',
+  Preserver: '#5E9E58',
+};
+
+const FOCUS_RING =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500';
+
 function getIntensity(diff: number) {
   if (diff <= 10) return 'balanced';
   if (diff <= 25) return 'leaning';
@@ -39,46 +163,76 @@ function getIntensity(diff: number) {
 
 interface TraitBarProps {
   trait: Trait;
-  index: number;
   isExpanded: boolean;
   onToggle: () => void;
 }
 
-function TraitBar({ trait, index, isExpanded, onToggle }: TraitBarProps) {
+function TraitBar({ trait, isExpanded, onToggle }: TraitBarProps) {
   const diff = Math.abs(trait.leftPct - trait.rightPct);
   const intensity = getIntensity(diff);
   const leftDominant = trait.leftPct >= trait.rightPct;
-  const meta = categoryMeta[trait.category];
+  const style = CATEGORY_STYLES[trait.category];
 
   return (
-    <div
+    <button
+      type="button"
       onClick={onToggle}
-      style={{
-        cursor: 'pointer',
-        padding: '14px 0',
-        borderBottom: '1px solid rgba(0,0,0,0.04)',
-        animation: `fadeIn 0.5s ease ${index * 0.04}s both`,
-      }}
+      className={`w-full text-left py-3 border-b border-slate-100 last:border-b-0 ${FOCUS_RING}`}
+      aria-expanded={isExpanded}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: 15, fontFamily: "'Cormorant Garamond', serif", color: leftDominant ? '#2E2A25' : '#A09890', fontWeight: leftDominant ? 700 : 400 }}>{trait.left}</span>
-          {leftDominant && <span style={{ fontSize: 12, fontFamily: "'Source Sans 3', sans-serif", color: meta.color, fontWeight: 600 }}>{trait.leftPct}%</span>}
+      <div className="flex justify-between items-baseline mb-2">
+        <div className="flex items-baseline gap-2">
+          <span
+            className={`text-sm ${
+              leftDominant ? 'font-bold text-slate-800' : 'text-slate-400'
+            }`}
+          >
+            {trait.left}
+          </span>
+          {leftDominant && (
+            <span className={`text-xs font-bold ${style.text}`}>{trait.leftPct}%</span>
+          )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          {!leftDominant && <span style={{ fontSize: 12, fontFamily: "'Source Sans 3', sans-serif", color: meta.color, fontWeight: 600 }}>{trait.rightPct}%</span>}
-          <span style={{ fontSize: 15, fontFamily: "'Cormorant Garamond', serif", color: !leftDominant ? '#2E2A25' : '#A09890', fontWeight: !leftDominant ? 700 : 400 }}>{trait.right}</span>
+        <div className="flex items-baseline gap-2">
+          {!leftDominant && (
+            <span className={`text-xs font-bold ${style.text}`}>{trait.rightPct}%</span>
+          )}
+          <span
+            className={`text-sm ${
+              !leftDominant ? 'font-bold text-slate-800' : 'text-slate-400'
+            }`}
+          >
+            {trait.right}
+          </span>
         </div>
       </div>
-      <div style={{ display: 'flex', height: 12, borderRadius: 6, overflow: 'hidden', background: meta.track }}>
-        <div style={{ width: `${trait.leftPct}%`, background: leftDominant ? meta.color : meta.muted, borderRadius: '6px 0 0 6px', transition: 'width 0.6s ease' }} />
-        <div style={{ width: 2, background: '#fff' }} />
-        <div style={{ width: `${trait.rightPct}%`, background: !leftDominant ? meta.color : meta.muted, borderRadius: '0 6px 6px 0', transition: 'width 0.6s ease' }} />
+
+      <div className={`flex h-2.5 rounded-full overflow-hidden ${style.track}`}>
+        <div
+          className={`${leftDominant ? style.bar : style.muted} transition-all duration-500`}
+          style={{ width: `${trait.leftPct}%` }}
+        />
+        <div className="w-px bg-white" />
+        <div
+          className={`${!leftDominant ? style.bar : style.muted} transition-all duration-500`}
+          style={{ width: `${trait.rightPct}%` }}
+        />
       </div>
-      <div style={{ marginTop: 6, textAlign: 'center', fontSize: 10.5, color: '#B5AFA6', fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic' }}>{intensity}</div>
+
+      <div className="mt-2 flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
+          {intensity}
+        </span>
+        <ChevronDown
+          size={12}
+          className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
+      </div>
+
       {isExpanded && (
-        <div style={{ marginTop: 8, padding: '10px 14px', background: meta.track, borderRadius: 8, fontSize: 13.5, lineHeight: 1.6, color: '#5A554E', fontFamily: "'Cormorant Garamond', serif" }}>
-          <span style={{ color: meta.color, fontWeight: 700 }}>{trait.dominant}</span> at {trait.dominantPct}%
+        <div className={`mt-3 p-3 rounded-lg ${style.track} text-xs text-slate-700 leading-relaxed`}>
+          <span className={`font-bold ${style.text}`}>{trait.dominant}</span> at {trait.dominantPct}%
           {diff <= 10 && ' — both sides come and go. A tension, not a place to land.'}
           {diff > 10 && diff <= 25 && ' — a clear lean, with the other side available when needed.'}
           {diff > 25 && diff <= 50 && ' — this tends to color the room. People notice.'}
@@ -86,206 +240,251 @@ function TraitBar({ trait, index, isExpanded, onToggle }: TraitBarProps) {
           {diff > 70 && ' — not a preference. The way the wiring runs.'}
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
-interface SignatureTraitsProps {
-  traits: Trait[];
-}
-
-function SignatureTraits({ traits }: SignatureTraitsProps) {
-  const sorted = [...traits].sort((a, b) => Math.abs(b.leftPct - b.rightPct) - Math.abs(a.leftPct - a.rightPct));
+function SignatureTraits({ traits }: { traits: Trait[] }) {
+  const sorted = [...traits].sort(
+    (a, b) => Math.abs(b.leftPct - b.rightPct) - Math.abs(a.leftPct - a.rightPct),
+  );
   const top5 = sorted.slice(0, 5);
   const balanced = sorted.filter((t) => Math.abs(t.leftPct - t.rightPct) <= 10);
+
   return (
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginBottom: 12, fontWeight: 500 }}>What shows up loudest</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+    <Card className="bg-white border-slate-100">
+      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <Star size={14} aria-hidden="true" /> What shows up loudest
+      </h3>
+      <div className="flex flex-wrap gap-2 mb-6">
         {top5.map((t) => {
-          const meta = categoryMeta[t.category];
+          const style = CATEGORY_STYLES[t.category];
           return (
-            <div key={t.facet} style={{ padding: '8px 18px', borderRadius: 8, background: meta.color, color: '#fff', fontSize: 14, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
-              {t.dominant} <span style={{ opacity: 0.7, fontSize: 12, fontFamily: "'Source Sans 3', sans-serif", fontWeight: 400 }}>{t.dominantPct}%</span>
-            </div>
+            <span
+              key={t.facet}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold ${style.bg} text-white shadow-sm`}
+            >
+              {t.dominant}
+              <span className="opacity-70 font-normal ml-1.5">{t.dominantPct}%</span>
+            </span>
           );
         })}
       </div>
+
       {balanced.length > 0 && (
         <>
-          <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginBottom: 10, fontWeight: 500 }}>Where you split</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Sparkles size={14} aria-hidden="true" /> Where you split
+          </h4>
+          <div className="flex flex-wrap gap-2">
             {balanced.map((t) => (
-              <div key={t.facet} style={{ padding: '6px 14px', borderRadius: 8, background: '#F0EBE3', border: '1px solid #DDD7CD', fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#7A756E' }}>
-                {t.left} ↔ {t.right}
-              </div>
+              <span
+                key={t.facet}
+                className="px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600"
+              >
+                {t.left} <span className="text-slate-400">↔</span> {t.right}
+              </span>
             ))}
           </div>
         </>
       )}
-    </div>
+    </Card>
   );
 }
 
 function DescriptorBars({ descriptors }: { descriptors: { word: string; pct: number }[] }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      {descriptors.map((d, i) => {
-        const hue = d.pct >= 70 ? '#4A7FB5' : d.pct >= 50 ? '#7EA87A' : '#C8C0B4';
-        return (
-          <div key={d.word} style={{ display: 'flex', alignItems: 'center', gap: 10, animation: `fadeIn 0.4s ease ${i * 0.03}s both` }}>
-            <span style={{ width: 100, fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#4A453E', fontWeight: d.pct >= 60 ? 700 : 400, textAlign: 'right' }}>{d.word}</span>
-            <div style={{ flex: 1, height: 10, borderRadius: 5, background: '#F0EBE3' }}>
-              <div style={{ width: `${d.pct}%`, height: '100%', borderRadius: 5, background: hue, transition: 'width 0.5s ease' }} />
+    <Card className="bg-white border-slate-100">
+      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+        <Eye size={14} aria-hidden="true" /> How others tend to read you
+      </h3>
+      <div className="flex flex-col gap-3">
+        {descriptors.map((d) => {
+          const colorClass =
+            d.pct >= 70
+              ? 'bg-indigo-500'
+              : d.pct >= 50
+              ? 'bg-emerald-500'
+              : 'bg-slate-300';
+          const labelClass =
+            d.pct >= 60 ? 'font-bold text-slate-800' : 'font-medium text-slate-500';
+          return (
+            <div key={d.word} className="flex items-center gap-3">
+              <span className={`w-28 text-sm text-right ${labelClass}`}>{d.word}</span>
+              <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${colorClass} transition-all duration-500`}
+                  style={{ width: `${d.pct}%` }}
+                />
+              </div>
+              <span className="w-8 text-xs font-bold text-slate-500 text-right">{d.pct}</span>
             </div>
-            <span style={{ width: 30, fontSize: 11, fontFamily: "'Source Sans 3', sans-serif", color: '#A09890', fontWeight: 500 }}>{d.pct}</span>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </Card>
   );
 }
 
-const TEMPERAMENT_COLORS: Record<TemperamentName, string> = {
-  Empath: '#9E6B9B',
-  Theorist: '#4A7FB5',
-  Responder: '#CD8245',
-  Preserver: '#5E9E58',
-};
-
 function TemperamentSection({ temperaments }: { temperaments: TemperamentEntry[] }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {temperaments.map((t, i) => (
-        <div key={t.name} style={{ animation: `fadeIn 0.4s ease ${i * 0.08}s both` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <span style={{ fontSize: 16, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: TEMPERAMENT_COLORS[t.name] }}>{t.name}</span>
-            <span style={{ fontSize: 22, fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, color: TEMPERAMENT_COLORS[t.name] }}>{t.pct}%</span>
-          </div>
-          <div style={{ height: 10, borderRadius: 5, background: '#F0EBE3' }}>
-            <div style={{ width: `${t.pct}%`, height: '100%', borderRadius: 5, background: TEMPERAMENT_COLORS[t.name], transition: 'width 0.6s ease' }} />
-          </div>
-          <div style={{ marginTop: 4, fontSize: 12.5, fontFamily: "'Cormorant Garamond', serif", color: '#8A857E', fontStyle: 'italic' }}>{t.desc}</div>
-        </div>
-      ))}
-    </div>
+    <Card className="bg-white border-slate-100">
+      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+        <Flame size={14} aria-hidden="true" /> The four temperaments
+      </h3>
+      <div className="flex flex-col gap-5">
+        {temperaments.map((t) => {
+          const palette = paletteFor(TEMPERAMENT_HEX[t.name]);
+          return (
+            <div key={t.name}>
+              <div className="flex justify-between items-baseline mb-2">
+                <span className={`text-sm font-bold ${palette.text}`}>{t.name}</span>
+                <span className={`text-2xl font-light ${palette.text}`}>{t.pct}%</span>
+              </div>
+              <div className={`h-2.5 rounded-full ${palette.track} overflow-hidden`}>
+                <div
+                  className={`h-full rounded-full ${palette.bar} transition-all duration-500`}
+                  style={{ width: `${t.pct}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">{t.desc}</p>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
   );
 }
 
 function TypeMatchSection({ matches }: { matches: TypeMatch[] }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-      {matches.map((t, i) => {
-        const isTop = t.pct >= 68;
-        return (
-          <div
-            key={t.code}
-            style={{
-              padding: '14px 16px',
-              borderRadius: 10,
-              background: isTop ? '#fff' : '#FAF7F2',
-              border: isTop ? '2px solid #4A7FB5' : '1px solid #E8E2D8',
-              boxShadow: isTop ? '0 2px 8px rgba(74,127,181,0.12)' : 'none',
-              animation: `fadeIn 0.4s ease ${i * 0.06}s both`,
-            }}
-          >
-            <div style={{ fontSize: 20, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: isTop ? '#4A7FB5' : '#7A756E' }}>{t.code}</div>
-            <div style={{ fontSize: 12, fontFamily: "'Source Sans 3', sans-serif", color: '#A09890', marginTop: 2 }}>{t.name}</div>
-            <div style={{ fontSize: 24, fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, color: isTop ? '#4A7FB5' : '#B5AFA6', marginTop: 6 }}>{t.pct}%</div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-interface ConvergenceProps {
-  themes: ConvergenceTheme[];
-  growth: GrowthEdge[];
-}
-
-function ConvergenceSection({ themes, growth }: ConvergenceProps) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#7A756E', fontStyle: 'italic', lineHeight: 1.6, marginBottom: 4 }}>
-        Where four old systems — MBTI, Big Five, numerology, Enneagram — happen to point the same way.
+    <Card className="bg-white border-slate-100">
+      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+        <Users size={14} aria-hidden="true" /> Types that sit closest
+      </h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {matches.map((t) => {
+          const isTop = t.pct >= 68;
+          return (
+            <div
+              key={t.code}
+              className={`p-4 rounded-xl border ${
+                isTop
+                  ? 'bg-indigo-50/50 border-indigo-200 shadow-sm'
+                  : 'bg-slate-50 border-slate-100'
+              }`}
+            >
+              <div
+                className={`text-xl font-bold ${
+                  isTop ? 'text-indigo-600' : 'text-slate-600'
+                }`}
+              >
+                {t.code}
+              </div>
+              <div className="text-[11px] text-slate-400 mt-0.5 leading-tight">{t.name}</div>
+              <div
+                className={`text-2xl font-light mt-2 ${
+                  isTop ? 'text-indigo-600' : 'text-slate-400'
+                }`}
+              >
+                {t.pct}%
+              </div>
+            </div>
+          );
+        })}
       </div>
-      {themes.map((t, i) => (
-        <div
-          key={t.title}
-          style={{
-            padding: '14px 16px',
-            borderRadius: 10,
-            background: '#fff',
-            border: '1px solid #E8E2D8',
-            borderLeft: `4px solid ${t.color}`,
-            animation: `fadeIn 0.4s ease ${i * 0.08}s both`,
-          }}
-        >
-          <div style={{ fontSize: 15, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: t.color, marginBottom: 4 }}>{t.title}</div>
-          <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#5A554E', lineHeight: 1.6 }}>{t.desc}</div>
+    </Card>
+  );
+}
+
+function ConvergenceSection({ themes, growth }: { themes: ConvergenceTheme[]; growth: GrowthEdge[] }) {
+  return (
+    <div className="space-y-4">
+      <Card className="bg-white border-slate-100">
+        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Layers size={14} aria-hidden="true" /> Where the systems agree
+        </h3>
+        <p className="text-xs text-slate-500 italic mb-5 leading-relaxed">
+          Where four old systems — MBTI, Big Five, numerology, Enneagram — happen to point the same way.
+        </p>
+        <div className="flex flex-col gap-3">
+          {themes.map((t) => {
+            const palette = paletteFor(t.color);
+            return (
+              <div
+                key={t.title}
+                className={`p-4 rounded-xl bg-slate-50/50 border border-slate-100 border-l-4 ${palette.borderL}`}
+              >
+                <div className={`text-sm font-bold ${palette.text} mb-1`}>{t.title}</div>
+                <p className="text-sm text-slate-600 leading-relaxed">{t.desc}</p>
+              </div>
+            );
+          })}
         </div>
-      ))}
-      <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginTop: 8, fontWeight: 500 }}>Where it tends to ask more of you</div>
-      {growth.map((g, i) => (
-        <div
-          key={g.title}
-          style={{
-            padding: '12px 16px',
-            borderRadius: 10,
-            background: '#FDF8F0',
-            border: '1px solid #E8DFD0',
-            animation: `fadeIn 0.4s ease ${(i + 4) * 0.08}s both`,
-          }}
-        >
-          <div style={{ fontSize: 14, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: '#CD8245', marginBottom: 4 }}>{g.title}</div>
-          <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#5A554E', lineHeight: 1.6 }}>{g.desc}</div>
+      </Card>
+
+      <Card className="bg-amber-50/40 border-amber-100">
+        <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Compass size={14} aria-hidden="true" /> Where it tends to ask more of you
+        </h3>
+        <div className="flex flex-col gap-3">
+          {growth.map((g) => (
+            <div
+              key={g.title}
+              className="p-4 rounded-xl bg-white border border-amber-100"
+            >
+              <div className="text-sm font-bold text-amber-700 mb-1">{g.title}</div>
+              <p className="text-sm text-slate-600 leading-relaxed">{g.desc}</p>
+            </div>
+          ))}
         </div>
-      ))}
+      </Card>
     </div>
   );
 }
 
-interface PersonaSectionProps {
-  lifePathNumber: number;
-}
-
-function PersonaSection({ lifePathNumber }: PersonaSectionProps) {
+function PersonaSection({ lifePathNumber }: { lifePathNumber: number }) {
   const lp = LIFE_PATH_MEANINGS[lifePathNumber];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#7A756E', fontStyle: 'italic', lineHeight: 1.6, marginBottom: 4 }}>
-        {personasFramework.intro}
-      </div>
-      {personasFramework.archetypes.map((p, i) => (
-        <div
-          key={p.label}
-          style={{
-            padding: '16px',
-            borderRadius: 10,
-            background: '#fff',
-            border: '1px solid #E8E2D8',
-            animation: `fadeIn 0.4s ease ${i * 0.1}s both`,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: p.color }}>{p.label}</span>
-            <span style={{ fontSize: 12, fontFamily: "'Source Sans 3', sans-serif", color: '#A09890' }}>{p.role}</span>
-          </div>
-          <div style={{ marginTop: 6, fontSize: 13.5, fontFamily: "'Cormorant Garamond', serif", color: '#5A554E', lineHeight: 1.6 }}>{p.desc}</div>
+    <div className="space-y-4">
+      <Card className="bg-white border-slate-100">
+        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Drama size={14} aria-hidden="true" /> The inner cast
+        </h3>
+        <p className="text-xs text-slate-500 italic mb-5 leading-relaxed">
+          {personasFramework.intro}
+        </p>
+        <div className="flex flex-col gap-3">
+          {personasFramework.archetypes.map((p) => {
+            const palette = paletteFor(p.color);
+            return (
+              <div
+                key={p.label}
+                className={`p-4 rounded-xl bg-slate-50/50 border border-slate-100 border-l-4 ${palette.borderL}`}
+              >
+                <div className="flex justify-between items-baseline mb-1">
+                  <span className={`text-base font-bold ${palette.text}`}>{p.label}</span>
+                  <span className="text-xs text-slate-400 font-medium">{p.role}</span>
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed">{p.desc}</p>
+              </div>
+            );
+          })}
         </div>
-      ))}
-      <div style={{ marginTop: 4, fontSize: 12.5, fontFamily: "'Cormorant Garamond', serif", color: '#9E9A94', fontStyle: 'italic', lineHeight: 1.5 }}>
-        {personasFramework.prompt}
-      </div>
+        <p className="mt-4 text-xs text-slate-400 italic leading-relaxed">
+          {personasFramework.prompt}
+        </p>
+      </Card>
+
       {lp && (
-        <div style={{ marginTop: 8, padding: '14px 16px', borderRadius: 10, background: '#F5F0E8', border: '1px solid #E0D8CC' }}>
-          <div style={{ fontSize: 12, fontFamily: "'Source Sans 3', sans-serif", color: '#A09890', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Life Path {lifePathNumber}</div>
-          <div style={{ fontSize: 15, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, color: '#CD8245', marginBottom: 4 }}>{lp.title}</div>
-          <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#5A554E', lineHeight: 1.6, fontStyle: 'italic' }}>
-            {lp.purpose}
+        <Card className="bg-gradient-to-br from-white to-indigo-50/30 border-indigo-50">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+            Life Path {lifePathNumber}
           </div>
-        </div>
+          <div className="text-lg font-bold text-indigo-600 mb-1">{lp.title}</div>
+          <p className="text-sm text-slate-600 italic leading-relaxed">{lp.purpose}</p>
+        </Card>
       )}
     </div>
   );
@@ -310,159 +509,190 @@ export const PersonalityView = ({ mbtiType, lifePathNumber }: PersonalityViewPro
   const filtered = activeCategory === 'all' ? traits : traits.filter((t) => t.category === activeCategory);
 
   return (
-    <div
-      style={{
-        background: '#FDFBF7',
-        color: '#2E2A25',
-        fontFamily: "'Cormorant Garamond', serif",
-        padding: '40px 20px',
-        borderRadius: 16,
-      }}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Source+Sans+3:wght@300;400;500;600&display=swap');
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
+    <div className="space-y-4 animate-in fade-in duration-500">
+      {/* HERO */}
+      <Card className="bg-indigo-900 !bg-indigo-900 text-white border-indigo-800 !border-indigo-800 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden rounded-2xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 -mr-16 -mt-16"></div>
+        </div>
+        <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <div className="flex items-center gap-3 mb-2 opacity-80">
+              <Sparkles size={20} aria-hidden="true" />
+              <span className="text-xs font-bold uppercase tracking-widest">A Reader's Profile</span>
+            </div>
+            <h2 className="text-4xl font-bold mb-2">
+              {mbtiType} <span className="text-indigo-300 font-light">·</span> Life Path {lifePathNumber}
+            </h2>
+            <h3 className="text-xl text-indigo-300 font-medium mb-4">
+              {mbtiData.title}
+              {lpMeaning ? ` · ${lpMeaning.title}` : ''} · {temperament}
+            </h3>
+            <p className="text-sm text-indigo-100/80 leading-relaxed max-w-md">
+              Four lenses laid over each other. MBTI for the wiring, Big Five for the texture, numerology for the
+              arc, Enneagram for the inward pull. Read it as a journal prompt, not a measurement.
+            </p>
+          </div>
 
-      <div style={{ maxWidth: 520, margin: '0 auto' }}>
-        <div style={{ marginBottom: 36, textAlign: 'center', animation: 'fadeIn 0.5s ease both' }}>
-          <div style={{ fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#B5AFA6', marginBottom: 10, fontFamily: "'Source Sans 3', sans-serif" }}>A Reader's Profile</div>
-          <h1 style={{ fontSize: 40, fontWeight: 300, lineHeight: 1.1, marginBottom: 6, color: '#2E2A25', fontStyle: 'italic' }}>{mbtiType} · Life Path {lifePathNumber}</h1>
-          <div style={{ fontSize: 14, color: '#9E9A94', fontStyle: 'italic', fontWeight: 300 }}>
-            {mbtiData.title}{lpMeaning ? ` · ${lpMeaning.title}` : ''} · {temperament}
+          <div className="bg-white/10 p-5 rounded-xl backdrop-blur-sm border border-white/10 grid grid-cols-4 gap-3">
+            {letterDetails.map((d) => (
+              <div
+                key={d.letter}
+                className="text-center p-3 rounded-lg bg-black/20"
+              >
+                <div className="text-3xl font-bold leading-none" style={{ color: d.color }}>
+                  {d.letter}
+                </div>
+                <div className="text-xs font-bold text-white/70 mt-2">{d.pct}%</div>
+                <div className="text-[10px] text-white/40 mt-1">{d.label}</div>
+              </div>
+            ))}
           </div>
         </div>
+      </Card>
 
-        <div style={{ display: 'flex', gap: 10, marginBottom: 32, justifyContent: 'center', animation: 'fadeIn 0.5s ease 0.08s both' }}>
-          {letterDetails.map((d) => (
-            <div key={d.letter} style={{ textAlign: 'center', padding: '16px 14px', background: '#fff', borderRadius: 10, border: '1px solid #E8E2D8', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', minWidth: 68 }}>
-              <div style={{ fontSize: 32, fontWeight: 700, color: d.color, lineHeight: 1 }}>{d.letter}</div>
-              <div style={{ fontSize: 11, color: '#A09890', marginTop: 4, fontFamily: "'Source Sans 3', sans-serif", fontWeight: 500 }}>{d.pct}%</div>
-              <div style={{ fontSize: 9, color: '#C0B8AD', marginTop: 2, fontFamily: "'Source Sans 3', sans-serif" }}>{d.label}</div>
-            </div>
-          ))}
+      {/* SECTION TABS */}
+      <Card className="bg-white border-slate-100 !p-3">
+        <div
+          role="tablist"
+          aria-label="Profile sections"
+          className="flex flex-wrap gap-1 sm:gap-2 justify-center"
+        >
+          {sections.map((s) => {
+            const Icon = SECTION_ICONS[s];
+            const active = activeSection === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setActiveSection(s)}
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap ${FOCUS_RING} ${
+                  active
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                }`}
+              >
+                <Icon size={14} aria-hidden="true" />
+                {sectionLabels[s]}
+              </button>
+            );
+          })}
         </div>
+      </Card>
 
-        <div style={{ display: 'flex', gap: 4, marginBottom: 28, flexWrap: 'wrap', justifyContent: 'center', animation: 'fadeIn 0.5s ease 0.12s both' }}>
-          {sections.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setActiveSection(s)}
-              style={{
-                padding: '7px 14px',
-                borderRadius: 8,
-                border: activeSection === s ? '1px solid #2E2A25' : '1px solid #E8E2D8',
-                cursor: 'pointer',
-                fontSize: 12,
-                fontFamily: "'Cormorant Garamond', serif",
-                fontWeight: 600,
-                background: activeSection === s ? '#2E2A25' : '#fff',
-                color: activeSection === s ? '#fff' : '#7A756E',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {sectionLabels[s]}
-            </button>
-          ))}
-        </div>
+      {/* CONTENT */}
+      <div className="animate-in fade-in duration-300" key={activeSection}>
+        {activeSection === 'traits' && (
+          <div className="space-y-4">
+            <SignatureTraits traits={traits} />
 
-        <div style={{ animation: 'fadeIn 0.4s ease both' }}>
-          {activeSection === 'traits' && (
-            <>
-              <SignatureTraits traits={traits} />
-              <div style={{ display: 'flex', gap: 6, marginBottom: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Card className="bg-white border-slate-100 !p-3">
+              <div className="flex flex-wrap gap-1 sm:gap-2 justify-center">
                 <button
                   type="button"
                   onClick={() => setActiveCategory('all')}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: 8,
-                    border: '1px solid #E8E2D8',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontWeight: 600,
-                    background: activeCategory === 'all' ? '#2E2A25' : '#fff',
-                    color: activeCategory === 'all' ? '#fff' : '#7A756E',
-                  }}
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${FOCUS_RING} ${
+                    activeCategory === 'all'
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                  }`}
                 >
                   All
                 </button>
                 {categories.map((cat) => {
-                  const meta = categoryMeta[cat];
+                  const Icon = CATEGORY_ICONS[cat];
+                  const style = CATEGORY_STYLES[cat];
                   const active = activeCategory === cat;
                   return (
                     <button
                       key={cat}
                       type="button"
                       onClick={() => setActiveCategory(cat)}
-                      style={{
-                        padding: '8px 16px',
-                        borderRadius: 8,
-                        border: `1px solid ${active ? meta.color : '#E8E2D8'}`,
-                        cursor: 'pointer',
-                        fontSize: 13,
-                        fontFamily: "'Cormorant Garamond', serif",
-                        fontWeight: 600,
-                        background: active ? meta.color : '#fff',
-                        color: active ? '#fff' : '#7A756E',
-                      }}
+                      className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap ${FOCUS_RING} ${
+                        active
+                          ? `${style.bg} text-white shadow-sm`
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                      }`}
                     >
-                      {meta.icon} {meta.label}
+                      <Icon size={14} aria-hidden="true" />
+                      {categoryMeta[cat].label}
                     </button>
                   );
                 })}
               </div>
-              {activeCategory === 'all' ? (
-                categories.map((cat) => {
-                  const meta = categoryMeta[cat];
-                  const catTraits = filtered.filter((t) => t.category === cat);
-                  return (
-                    <div key={cat} style={{ marginBottom: 28 }}>
-                      <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: meta.color, marginBottom: 8, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, fontFamily: "'Source Sans 3', sans-serif" }}>
-                        <span style={{ fontSize: 14 }}>{meta.icon}</span> {meta.label}
-                      </div>
-                      <div style={{ background: '#fff', borderRadius: 12, padding: '0 18px', border: '1px solid #E8E2D8', boxShadow: '0 1px 6px rgba(0,0,0,0.03)' }}>
-                        {catTraits.map((trait, i) => (
-                          <TraitBar
-                            key={trait.facet}
-                            trait={trait}
-                            index={i}
-                            isExpanded={expandedTrait === trait.facet}
-                            onToggle={() => setExpandedTrait(expandedTrait === trait.facet ? null : trait.facet)}
-                          />
-                        ))}
-                      </div>
+            </Card>
+
+            {activeCategory === 'all' ? (
+              categories.map((cat) => {
+                const Icon = CATEGORY_ICONS[cat];
+                const style = CATEGORY_STYLES[cat];
+                const catTraits = filtered.filter((t) => t.category === cat);
+                return (
+                  <Card key={cat} className="bg-white border-slate-100">
+                    <h3
+                      className={`text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2 ${style.text}`}
+                    >
+                      <Icon size={14} aria-hidden="true" /> {categoryMeta[cat].label}
+                    </h3>
+                    <div>
+                      {catTraits.map((trait) => (
+                        <TraitBar
+                          key={trait.facet}
+                          trait={trait}
+                          isExpanded={expandedTrait === trait.facet}
+                          onToggle={() =>
+                            setExpandedTrait(expandedTrait === trait.facet ? null : trait.facet)
+                          }
+                        />
+                      ))}
                     </div>
+                  </Card>
+                );
+              })
+            ) : (
+              <Card className="bg-white border-slate-100">
+                {(() => {
+                  const Icon = CATEGORY_ICONS[activeCategory];
+                  const style = CATEGORY_STYLES[activeCategory];
+                  return (
+                    <h3
+                      className={`text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2 ${style.text}`}
+                    >
+                      <Icon size={14} aria-hidden="true" /> {categoryMeta[activeCategory].label}
+                    </h3>
                   );
-                })
-              ) : (
-                <div style={{ background: '#fff', borderRadius: 12, padding: '0 18px', border: '1px solid #E8E2D8', boxShadow: '0 1px 6px rgba(0,0,0,0.03)' }}>
-                  {filtered.map((trait, i) => (
+                })()}
+                <div>
+                  {filtered.map((trait) => (
                     <TraitBar
                       key={trait.facet}
                       trait={trait}
-                      index={i}
                       isExpanded={expandedTrait === trait.facet}
-                      onToggle={() => setExpandedTrait(expandedTrait === trait.facet ? null : trait.facet)}
+                      onToggle={() =>
+                        setExpandedTrait(expandedTrait === trait.facet ? null : trait.facet)
+                      }
                     />
                   ))}
                 </div>
-              )}
-            </>
-          )}
-          {activeSection === 'descriptors' && <DescriptorBars descriptors={descriptors} />}
-          {activeSection === 'temperament' && <TemperamentSection temperaments={temperaments} />}
-          {activeSection === 'types' && <TypeMatchSection matches={typeMatches} />}
-          {activeSection === 'convergence' && <ConvergenceSection themes={convergence} growth={growth} />}
-          {activeSection === 'personas' && <PersonaSection lifePathNumber={lifePathNumber} />}
-        </div>
+              </Card>
+            )}
+          </div>
+        )}
 
-        <div style={{ marginTop: 40, paddingTop: 16, fontSize: 10.5, color: '#C0B8AD', fontFamily: "'Source Sans 3', sans-serif", textAlign: 'center', fontWeight: 400, fontStyle: 'italic' }}>
-          A reader's tool. Not a measurement. Read it that way. {mbtiType} · Life Path {lifePathNumber}.
-        </div>
+        {activeSection === 'descriptors' && <DescriptorBars descriptors={descriptors} />}
+        {activeSection === 'temperament' && <TemperamentSection temperaments={temperaments} />}
+        {activeSection === 'types' && <TypeMatchSection matches={typeMatches} />}
+        {activeSection === 'convergence' && (
+          <ConvergenceSection themes={convergence} growth={growth} />
+        )}
+        {activeSection === 'personas' && <PersonaSection lifePathNumber={lifePathNumber} />}
       </div>
+
+      <p className="text-center text-xs text-slate-400 italic pt-4">
+        A reader's tool. Not a measurement. Read it that way. {mbtiType} · Life Path {lifePathNumber}.
+      </p>
     </div>
   );
 };

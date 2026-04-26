@@ -39,7 +39,7 @@ export default function SoulCompassApp() {
           aria-label="Primary"
           className="bg-white border-b border-slate-200 sticky top-0 z-30 mb-8"
         >
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setView('lifepath')}
