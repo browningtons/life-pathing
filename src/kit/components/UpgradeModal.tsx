@@ -1,7 +1,17 @@
 import { useEffect } from 'react';
-import { X, Zap, Check } from 'lucide-react';
+import { X, Zap, Check, ExternalLink } from 'lucide-react';
 import { useKitConfig } from '../use-kit-config';
-import { trackUpgradeShown } from '../analytics';
+import { stripeUrlWithUtm, trackUpgradeShown } from '../analytics';
+
+/**
+ * The Buy Button web component requires a Stripe-dashboard-created Buy
+ * Button ID. If the consuming app hasn't created one yet (or prefers the
+ * hosted Payment Link flow), we fall back to a styled anchor tag pointing
+ * at `paymentUrl`. Either path lands the buyer in Stripe Checkout.
+ */
+function isBuyButtonConfigured(buyButtonId: string): boolean {
+  return Boolean(buyButtonId) && !buyButtonId.includes('REPLACE_ME') && buyButtonId !== 'buy_btn_DEMO';
+}
 
 interface UpgradeModalProps {
   onClose: () => void;
@@ -62,12 +72,22 @@ export default function UpgradeModal({ onClose, onRestore, source }: UpgradeModa
           </div>
         </div>
 
-        {/* CTA — Stripe inline buy button */}
+        {/* CTA — inline Buy Button if configured, else Payment Link */}
         <div className="px-6 pb-4 flex justify-center">
-          <stripe-buy-button
-            buy-button-id={stripe.buyButtonId}
-            publishable-key={stripe.publishableKey}
-          />
+          {isBuyButtonConfigured(stripe.buyButtonId) ? (
+            <stripe-buy-button
+              buy-button-id={stripe.buyButtonId}
+              publishable-key={stripe.publishableKey}
+            />
+          ) : (
+            <a
+              href={stripeUrlWithUtm(stripe.paymentUrl)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold rounded-lg shadow-md transition-colors"
+            >
+              Buy now — {upgrade.price}
+              <ExternalLink size={14} />
+            </a>
+          )}
         </div>
 
         {/* Restore */}
