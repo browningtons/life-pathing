@@ -26,10 +26,11 @@ const DEFAULT_MBTI = 'INFP';
 const FOCUS_RING =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500';
 
-// Capture UTMs once on app load (before render, so every event has them).
-captureUtmParams();
-
 export default function SoulCompassApp() {
+  // Capture UTMs once per session. Inside the component body so that
+  // KitProvider's setKitConfig() has already run by the time we read it.
+  captureUtmParams();
+
   const [view, setView] = useState<View>('lifepath');
   const [mbtiType, setMbtiType] = useState(DEFAULT_MBTI);
   const [birthDate, setBirthDate] = useState(DEFAULT_BIRTH_DATE);
