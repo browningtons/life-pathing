@@ -4,6 +4,13 @@ import { LifePathView } from './views/LifePathView';
 import { ArchetypesView } from './views/ArchetypesView';
 import { PersonalityView } from './views/PersonalityView';
 import { calculateLifePath } from './lib/calculateLifePath';
+import {
+  AdminBar,
+  ProBadge,
+  UpgradeModal,
+  useAuth,
+  captureUtmParams,
+} from './kit';
 
 type View = 'lifepath' | 'archetypes' | 'profile';
 
@@ -19,14 +26,29 @@ const DEFAULT_MBTI = 'INFP';
 const FOCUS_RING =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500';
 
+// Capture UTMs once on app load (before render, so every event has them).
+captureUtmParams();
+
 export default function SoulCompassApp() {
   const [view, setView] = useState<View>('lifepath');
   const [mbtiType, setMbtiType] = useState(DEFAULT_MBTI);
   const [birthDate, setBirthDate] = useState(DEFAULT_BIRTH_DATE);
   const lifePathData = useMemo(() => calculateLifePath(birthDate), [birthDate]);
 
+  const auth = useAuth();
+  const onUpgrade = (source: string) => auth.openUpgrade(source);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-800 pb-12">
+      {auth.isAdmin && (
+        <AdminBar
+          isPro={auth.isPro}
+          viewAs={auth.viewAs}
+          setViewAs={auth.setViewAs}
+          setIsAdmin={auth.setIsAdmin}
+        />
+      )}
+
       <header>
         <nav
           aria-label="Primary"
@@ -35,7 +57,10 @@ export default function SoulCompassApp() {
           <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <button
               type="button"
-              onClick={() => setView('lifepath')}
+              onClick={() => {
+                auth.handleLogoTap();
+                setView('lifepath');
+              }}
               aria-label="Life Number Pathing — go to Life Path"
               className={`flex items-center gap-3 rounded-md ${FOCUS_RING}`}
             >
@@ -48,6 +73,7 @@ export default function SoulCompassApp() {
               <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">
                 Life Number Pathing
               </span>
+              {auth.isPro && <ProBadge />}
             </button>
 
             <div
@@ -89,6 +115,8 @@ export default function SoulCompassApp() {
               birthDate={birthDate}
               setBirthDate={setBirthDate}
               lifePathData={lifePathData}
+              isPro={auth.isPro}
+              onUpgrade={() => onUpgrade('lifepath_detail')}
             />
           </div>
         )}
@@ -99,7 +127,12 @@ export default function SoulCompassApp() {
             id="panel-archetypes"
             aria-labelledby="tab-archetypes"
           >
-            <ArchetypesView mbtiType={mbtiType} setMbtiType={setMbtiType} />
+            <ArchetypesView
+              mbtiType={mbtiType}
+              setMbtiType={setMbtiType}
+              isPro={auth.isPro}
+              onUpgrade={() => onUpgrade('archetypes_detail')}
+            />
           </div>
         )}
 
@@ -109,10 +142,23 @@ export default function SoulCompassApp() {
             id="panel-profile"
             aria-labelledby="tab-profile"
           >
-            <PersonalityView mbtiType={mbtiType} lifePathNumber={lifePathData.number} />
+            <PersonalityView
+              mbtiType={mbtiType}
+              lifePathNumber={lifePathData.number}
+              isPro={auth.isPro}
+              onUpgrade={() => onUpgrade('profile_tab')}
+            />
           </div>
         )}
       </main>
+
+      {auth.upgradeSource && (
+        <UpgradeModal
+          source={auth.upgradeSource}
+          onClose={auth.closeUpgrade}
+          onRestore={auth.handleRestore}
+        />
+      )}
     </div>
   );
 }

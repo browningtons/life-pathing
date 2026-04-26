@@ -24,10 +24,13 @@ import {
 } from '../data/personality';
 import { LIFE_PATH_MEANINGS } from '../data/lifePathMeanings';
 import { getMbtiData } from '../data/mbti';
+import { LockedOverlay } from '../kit';
 
 interface PersonalityViewProps {
   mbtiType: string;
   lifePathNumber: number;
+  isPro: boolean;
+  onUpgrade: () => void;
 }
 
 function getIntensity(diff: number) {
@@ -291,7 +294,7 @@ function PersonaSection({ lifePathNumber }: PersonaSectionProps) {
   );
 }
 
-export const PersonalityView = ({ mbtiType, lifePathNumber }: PersonalityViewProps) => {
+export const PersonalityView = ({ mbtiType, lifePathNumber, isPro, onUpgrade }: PersonalityViewProps) => {
   const [activeSection, setActiveSection] = useState<Section>('traits');
   const [activeCategory, setActiveCategory] = useState<'all' | TraitCategory>('all');
   const [expandedTrait, setExpandedTrait] = useState<string | null>(null);
@@ -343,6 +346,7 @@ export const PersonalityView = ({ mbtiType, lifePathNumber }: PersonalityViewPro
           ))}
         </div>
 
+        <div style={{ position: 'relative' }}>
         <div style={{ display: 'flex', gap: 4, marginBottom: 28, flexWrap: 'wrap', justifyContent: 'center', animation: 'fadeIn 0.5s ease 0.12s both' }}>
           {sections.map((s) => (
             <button
@@ -457,6 +461,8 @@ export const PersonalityView = ({ mbtiType, lifePathNumber }: PersonalityViewPro
           {activeSection === 'types' && <TypeMatchSection matches={typeMatches} />}
           {activeSection === 'convergence' && <ConvergenceSection themes={convergence} growth={growth} />}
           {activeSection === 'personas' && <PersonaSection lifePathNumber={lifePathNumber} />}
+        </div>
+        {!isPro && <LockedOverlay onUpgrade={onUpgrade} label="Unlock your Profile" />}
         </div>
 
         <div style={{ marginTop: 40, paddingTop: 16, fontSize: 10.5, color: '#C0B8AD', fontFamily: "'Source Sans 3', sans-serif", textAlign: 'center', fontWeight: 400, fontStyle: 'italic' }}>
