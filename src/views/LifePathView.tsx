@@ -11,7 +11,6 @@ import {
   Calendar,
 } from 'lucide-react';
 import { Card } from '../components/Card';
-import { LockedOverlay } from '../kit';
 import { COMPOUND_MEANINGS } from '../data/compoundMeanings';
 import { LIFE_PATH_MEANINGS } from '../data/lifePathMeanings';
 import type { LifePathData, LifePathEntry } from '../types';
@@ -20,8 +19,6 @@ interface LifePathViewProps {
   lifePathData: LifePathData;
   birthDate: string;
   setBirthDate: (value: string) => void;
-  isPro: boolean;
-  onUpgrade: () => void;
 }
 
 const FALLBACK_MEANING: LifePathEntry = {
@@ -36,7 +33,7 @@ const FALLBACK_MEANING: LifePathEntry = {
   famous: [],
 };
 
-export const LifePathView = ({ lifePathData, birthDate, setBirthDate, isPro, onUpgrade }: LifePathViewProps) => {
+export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePathViewProps) => {
   const meaning = LIFE_PATH_MEANINGS[lifePathData.number] ?? FALLBACK_MEANING;
   const { breakdown, compound } = lifePathData;
   const compoundMeaning = COMPOUND_MEANINGS[compound] ?? null;
@@ -172,62 +169,53 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate, isPro, onU
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="relative">
-          <Card className="bg-gradient-to-br from-white to-indigo-50/30 border-indigo-50">
-            <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Star size={14} aria-hidden="true" /> Constructive Expression
-            </h3>
-            <ul className="space-y-3">
-              {meaning.light.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
-                  <div className="mt-1.5 w-1.5 h-1.5 bg-emerald-400 rounded-full shrink-0"></div>
-                  <span className="leading-relaxed">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-          {!isPro && <LockedOverlay onUpgrade={onUpgrade} label="Unlock the full path" />}
-        </div>
+        <Card className="bg-gradient-to-br from-white to-indigo-50/30 border-indigo-50">
+          <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Star size={14} aria-hidden="true" /> Constructive Expression
+          </h3>
+          <ul className="space-y-3">
+            {meaning.light.map((item, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                <div className="mt-1.5 w-1.5 h-1.5 bg-emerald-400 rounded-full shrink-0"></div>
+                <span className="leading-relaxed">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
 
-        <div className="relative">
-          <Card className="bg-slate-50 border-slate-100">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <ShieldAlert size={14} aria-hidden="true" /> Common Breakdown Patterns
-            </h3>
-            <ul className="space-y-3">
-              {meaning.shadows.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
-                  <div className="mt-1.5 w-1.5 h-1.5 bg-rose-400 rounded-full shrink-0"></div>
-                  <span className="leading-relaxed">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-          {!isPro && <LockedOverlay onUpgrade={onUpgrade} label="Unlock the full path" />}
-        </div>
+        <Card className="bg-slate-50 border-slate-100">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <ShieldAlert size={14} aria-hidden="true" /> Common Breakdown Patterns
+          </h3>
+          <ul className="space-y-3">
+            {meaning.shadows.map((item, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                <div className="mt-1.5 w-1.5 h-1.5 bg-rose-400 rounded-full shrink-0"></div>
+                <span className="leading-relaxed">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
 
-        <div className="relative">
-          <Card className="bg-white border-slate-100">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Users size={16} aria-hidden="true" /> Famous Kindred Spirits
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {meaning.famous.length > 0 ? (
-                meaning.famous.map((person, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-slate-600 rounded-lg text-xs font-bold cursor-default"
-                  >
-                    {person}
-                  </span>
-                ))
-              ) : (
-                <span className="text-sm text-slate-400 italic">Famous figures for this type coming soon...</span>
-              )}
-            </div>
-          </Card>
-          {!isPro && <LockedOverlay onUpgrade={onUpgrade} label="Unlock the full path" />}
-        </div>
+        <Card className="bg-white border-slate-100">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Users size={16} aria-hidden="true" /> Famous Kindred Spirits
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {meaning.famous.length > 0 ? (
+              meaning.famous.map((person, i) => (
+                <span
+                  key={i}
+                  className="px-3 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-slate-600 rounded-lg text-xs font-bold cursor-default"
+                >
+                  {person}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-slate-400 italic">Famous figures for this type coming soon...</span>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );
