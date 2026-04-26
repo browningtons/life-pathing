@@ -39,7 +39,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
           <div>
             <div className="flex items-center gap-3 mb-2 opacity-80">
               <Brain size={20} aria-hidden="true" />
-              <span className="text-xs font-bold uppercase tracking-widest">Cognitive Architecture</span>
+              <span className="text-xs font-bold uppercase tracking-widest">Reading a Type</span>
             </div>
             <h2 className="text-4xl font-bold mb-2">{currentTypeString}</h2>
             <h3 className="text-xl text-indigo-300 font-medium mb-4">{data.title}</h3>
@@ -85,16 +85,16 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
 
       <Card className="bg-white border-slate-100">
         <div className="flex items-center gap-2 mb-6">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Functional Stack</h3>
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">The order of operations</h3>
           <div className="group relative">
             <HelpCircle size={14} className="text-slate-400 hover:text-indigo-500 cursor-help" aria-hidden="true" />
             <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-64 p-3 bg-slate-800 text-white text-xs rounded-lg hidden group-hover:block z-50 shadow-xl">
-              <strong>The Engine Under the Hood.</strong> Your stack determines how you process the world.
+              <strong>The order the mind reaches for things.</strong> More or less without asking.
               <br /><br />
-              1. <strong>Dominant (Hero):</strong> Your automatic flow state.<br />
-              2. <strong>Auxiliary (Parent):</strong> Supports the hero.<br />
-              3. <strong>Tertiary (Child):</strong> Playful but immature.<br />
-              4. <strong>Inferior (Grip):</strong> Your stress point.
+              1. <strong>Dominant:</strong> the natural first move.<br />
+              2. <strong>Auxiliary:</strong> the steady second.<br />
+              3. <strong>Tertiary:</strong> the playful, half-formed third.<br />
+              4. <strong>Inferior:</strong> the place stress finds.
             </div>
           </div>
         </div>
@@ -113,7 +113,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
                 {fn}
               </div>
               <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                {i === 0 ? 'Dominant' : i === 1 ? 'Auxiliary' : i === 2 ? 'Tertiary' : 'Inferior'}
+                {i === 0 ? 'First' : i === 1 ? 'Second' : i === 2 ? 'Third' : 'Last'}
               </span>
               {i < 3 && <div className="hidden md:block absolute top-6 left-1/2 ml-6 w-full h-px bg-slate-100 z-0" />}
             </div>
@@ -124,7 +124,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-emerald-50 border-emerald-100">
           <h3 className="text-sm font-bold text-emerald-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Star size={16} aria-hidden="true" /> Strengths & Light
+            <Star size={16} aria-hidden="true" /> What the type does well
           </h3>
           <ul className="space-y-2 mb-6">
             {data.strengths.map((s, i) => (
@@ -135,14 +135,14 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
             ))}
           </ul>
           <div className="bg-white p-4 rounded-xl border border-emerald-200 text-xs text-emerald-800 italic">
-            <span className="font-bold text-emerald-900 not-italic block mb-1">Strength Tip:</span>
+            <span className="font-bold text-emerald-900 not-italic block mb-1">A note:</span>
             "{data.strength_tip}"
           </div>
         </Card>
 
         <Card className="bg-slate-50 border-slate-200">
           <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Ghost size={16} aria-hidden="true" /> Shadows & Growth
+            <Ghost size={16} aria-hidden="true" /> Where the type tends to stumble
           </h3>
           <ul className="space-y-2 mb-6">
             {data.shadows.map((s, i) => (
@@ -153,7 +153,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
             ))}
           </ul>
           <div className="bg-white p-4 rounded-xl border border-slate-200 text-xs text-slate-600 italic">
-            <span className="font-bold text-slate-800 not-italic block mb-1">Growth Tip:</span>
+            <span className="font-bold text-slate-800 not-italic block mb-1">A note:</span>
             "{data.growth}"
           </div>
         </Card>
@@ -161,10 +161,10 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
 
       <Card className="bg-white border-slate-100">
         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Users size={16} aria-hidden="true" /> Famous Kindred Spirits
+          <Users size={16} aria-hidden="true" /> Some who carry this type
         </h3>
         <p className="text-xs text-slate-500 mb-4">
-          Others who have walked the path of the {currentTypeString}.
+          A few names recorded as {currentTypeString}.
         </p>
         <div className="flex flex-wrap gap-2">
           {data.famous.length > 0 ? (
@@ -177,7 +177,7 @@ export const ArchetypesView = ({ mbtiType, setMbtiType }: ArchetypesViewProps) =
               </span>
             ))
           ) : (
-            <span className="text-sm text-slate-400 italic">Famous figures for this type coming soon...</span>
+            <span className="text-sm text-slate-400 italic">No names recorded for this one yet.</span>
           )}
         </div>
       </Card>

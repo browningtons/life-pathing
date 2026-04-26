@@ -43,11 +43,11 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePath
       {/* 1. HERO HEADER */}
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex flex-col justify-center items-start gap-1">
-          <h3 className="text-lrg text-indigo-600 font-bold uppercase tracking-widest">A Pattern Lens, Not a Prediction</h3>
+          <h3 className="text-lrg text-indigo-600 font-bold uppercase tracking-widest">Reading a Life Path</h3>
           <div className="flex items-center w-full">
             <div className="flex flex-row items-baseline gap-3">
               <span className="text-xs font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1 mb-1">
-                Input your birth date <ArrowRight size={12} aria-hidden="true" />
+                Enter a birthdate <ArrowRight size={12} aria-hidden="true" />
               </span>
               <div className="flex items-center gap-2">
                 <Calendar size={18} className="text-indigo-600" aria-hidden="true" />
@@ -83,21 +83,21 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePath
               <div className="flex gap-3">
                 <div className="mt-1 text-indigo-500"><Target size={18} aria-hidden="true" /></div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900 uppercase">Primary System Pressure</h4>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase">What the number asks of you</h4>
                   <p className="text-sm text-slate-600">{meaning.purpose}</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="mt-1 text-rose-500"><Heart size={18} aria-hidden="true" /></div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900 uppercase">Relational Dynamics</h4>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase">How the number sits in love</h4>
                   <p className="text-sm text-slate-600">{meaning.love}</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="mt-1 text-emerald-500"><Briefcase size={18} aria-hidden="true" /></div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900 uppercase">Professional Landscape</h4>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase">How the number sits in work</h4>
                   <p className="text-sm text-slate-600">{meaning.career}</p>
                 </div>
               </div>
@@ -107,9 +107,9 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePath
           <div className="bg-slate-900 rounded-2xl p-6 text-white relative overflow-hidden md:col-span-2">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500 rounded-full filter blur-3xl opacity-20 -mr-8 -mt-8"></div>
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Layers size={14} aria-hidden="true" /> The Reduction
+              <Layers size={14} aria-hidden="true" /> How the number is found
             </h3>
-            <p className="text-[10px] text-slate-400 mb-6">Simplifying complex inputs (birth date) into a single governing archetype.</p>
+            <p className="text-[10px] text-slate-400 mb-6">A birthdate. Added together. Reduced to a single digit. That is the whole of the math.</p>
 
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center text-[10px] text-slate-400 uppercase tracking-wider px-2">
@@ -171,7 +171,7 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePath
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-br from-white to-indigo-50/30 border-indigo-50">
           <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Star size={14} aria-hidden="true" /> Constructive Expression
+            <Star size={14} aria-hidden="true" /> When the number is well-met
           </h3>
           <ul className="space-y-3">
             {meaning.light.map((item, i) => (
@@ -185,7 +185,7 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePath
 
         <Card className="bg-slate-50 border-slate-100">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <ShieldAlert size={14} aria-hidden="true" /> Common Breakdown Patterns
+            <ShieldAlert size={14} aria-hidden="true" /> Where the number breaks
           </h3>
           <ul className="space-y-3">
             {meaning.shadows.map((item, i) => (
@@ -199,7 +199,7 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePath
 
         <Card className="bg-white border-slate-100">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Users size={16} aria-hidden="true" /> Famous Kindred Spirits
+            <Users size={16} aria-hidden="true" /> Some who walked this path
           </h3>
           <div className="flex flex-wrap gap-2">
             {meaning.famous.length > 0 ? (
@@ -212,7 +212,7 @@ export const LifePathView = ({ lifePathData, birthDate, setBirthDate }: LifePath
                 </span>
               ))
             ) : (
-              <span className="text-sm text-slate-400 italic">Famous figures for this type coming soon...</span>
+              <span className="text-sm text-slate-400 italic">No names recorded for this one yet.</span>
             )}
           </div>
         </Card>

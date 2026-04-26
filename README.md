@@ -1,9 +1,12 @@
 # Life Path Numbering
 
-A small web app that combines two self-reflection lenses:
+A small reader's tool for two old self-reflection systems. Numerology by birthdate. MBTI by type. Both are made up. Both are useful, in the way a good question is useful.
 
-- **Life Path number** — derived from your birth date using Pythagorean numerology, with a breakdown of the compound digits and master-number handling (11, 22, 33).
-- **MBTI archetype** — pick a type and see the archetype, cognitive function stack, and elemental flavor.
+- **Life Path number** — derived from a birthdate by Pythagorean numerology, with a breakdown of the compound digits and the older master numbers (11, 22, 33) preserved.
+- **MBTI archetype** — pick a type and see the archetype, the function stack in its usual order, and a few notes on where it tends to do well and where it tends to stumble.
+- **A reader's profile** — a small derived dashboard. Twenty-three facets, a temperament, adjacent types, and the places these old systems happen to point the same way.
+
+Built by someone who keeps going back to this stuff.
 
 ## Local development
 
@@ -46,9 +49,9 @@ public/          # favicons
 kit.config.ts    # per-app Stripe / brand / analytics config (see kit.config.example.ts)
 ```
 
-## Disclaimer
+## A note on what this is and is not
 
-This is a personal project for fun and self-reflection. Numerology and MBTI are not science, and nothing here is medical, psychological, or life advice. Use it as a journaling prompt, not a decision-making tool.
+A reader's tool, not a measurement. Numerology and MBTI are not psychology. Nothing here is medical, psychological, or life advice. Use it the way you would use a horoscope you read closely — as a prompt for reflection, not a verdict on who you are.
 
 ## License
 

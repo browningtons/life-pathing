@@ -79,11 +79,11 @@ function TraitBar({ trait, index, isExpanded, onToggle }: TraitBarProps) {
       {isExpanded && (
         <div style={{ marginTop: 8, padding: '10px 14px', background: meta.track, borderRadius: 8, fontSize: 13.5, lineHeight: 1.6, color: '#5A554E', fontFamily: "'Cormorant Garamond', serif" }}>
           <span style={{ color: meta.color, fontWeight: 700 }}>{trait.dominant}</span> at {trait.dominantPct}%
-          {diff <= 10 && ' — you shift between both sides fluidly. This is a tension, not a destination.'}
-          {diff > 10 && diff <= 25 && ' — a clear lean, but you can access the other side when needed.'}
-          {diff > 25 && diff <= 50 && ' — this colors how you show up. People notice it.'}
-          {diff > 50 && diff <= 70 && ' — this is a defining trait. It shapes your decisions and relationships.'}
-          {diff > 70 && " — this isn't a preference. It's an operating system."}
+          {diff <= 10 && ' — both sides come and go. A tension, not a place to land.'}
+          {diff > 10 && diff <= 25 && ' — a clear lean, with the other side available when needed.'}
+          {diff > 25 && diff <= 50 && ' — this tends to color the room. People notice.'}
+          {diff > 50 && diff <= 70 && ' — a defining trait. It shapes choices, and the company kept.'}
+          {diff > 70 && ' — not a preference. The way the wiring runs.'}
         </div>
       )}
     </div>
@@ -100,7 +100,7 @@ function SignatureTraits({ traits }: SignatureTraitsProps) {
   const balanced = sorted.filter((t) => Math.abs(t.leftPct - t.rightPct) <= 10);
   return (
     <div style={{ marginBottom: 28 }}>
-      <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginBottom: 12, fontWeight: 500 }}>Your Strongest Colors</div>
+      <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginBottom: 12, fontWeight: 500 }}>What shows up loudest</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
         {top5.map((t) => {
           const meta = categoryMeta[t.category];
@@ -113,7 +113,7 @@ function SignatureTraits({ traits }: SignatureTraitsProps) {
       </div>
       {balanced.length > 0 && (
         <>
-          <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginBottom: 10, fontWeight: 500 }}>Where You're Split</div>
+          <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginBottom: 10, fontWeight: 500 }}>Where you split</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {balanced.map((t) => (
               <div key={t.facet} style={{ padding: '6px 14px', borderRadius: 8, background: '#F0EBE3', border: '1px solid #DDD7CD', fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#7A756E' }}>
@@ -208,7 +208,7 @@ function ConvergenceSection({ themes, growth }: ConvergenceProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#7A756E', fontStyle: 'italic', lineHeight: 1.6, marginBottom: 4 }}>
-        Where MBTI, Big Five, Numerology, and Enneagram all point the same direction.
+        Where four old systems — MBTI, Big Five, numerology, Enneagram — happen to point the same way.
       </div>
       {themes.map((t, i) => (
         <div
@@ -226,7 +226,7 @@ function ConvergenceSection({ themes, growth }: ConvergenceProps) {
           <div style={{ fontSize: 13, fontFamily: "'Cormorant Garamond', serif", color: '#5A554E', lineHeight: 1.6 }}>{t.desc}</div>
         </div>
       ))}
-      <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginTop: 8, fontWeight: 500 }}>Growth Edges</div>
+      <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A09890', fontFamily: "'Source Sans 3', sans-serif", marginTop: 8, fontWeight: 500 }}>Where it tends to ask more of you</div>
       {growth.map((g, i) => (
         <div
           key={g.title}
@@ -326,7 +326,7 @@ export const PersonalityView = ({ mbtiType, lifePathNumber }: PersonalityViewPro
 
       <div style={{ maxWidth: 520, margin: '0 auto' }}>
         <div style={{ marginBottom: 36, textAlign: 'center', animation: 'fadeIn 0.5s ease both' }}>
-          <div style={{ fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#B5AFA6', marginBottom: 10, fontFamily: "'Source Sans 3', sans-serif" }}>Complete Personality Profile</div>
+          <div style={{ fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#B5AFA6', marginBottom: 10, fontFamily: "'Source Sans 3', sans-serif" }}>A Reader's Profile</div>
           <h1 style={{ fontSize: 40, fontWeight: 300, lineHeight: 1.1, marginBottom: 6, color: '#2E2A25', fontStyle: 'italic' }}>{mbtiType} · Life Path {lifePathNumber}</h1>
           <div style={{ fontSize: 14, color: '#9E9A94', fontStyle: 'italic', fontWeight: 300 }}>
             {mbtiData.title}{lpMeaning ? ` · ${lpMeaning.title}` : ''} · {temperament}
@@ -460,7 +460,7 @@ export const PersonalityView = ({ mbtiType, lifePathNumber }: PersonalityViewPro
         </div>
 
         <div style={{ marginTop: 40, paddingTop: 16, fontSize: 10.5, color: '#C0B8AD', fontFamily: "'Source Sans 3', sans-serif", textAlign: 'center', fontWeight: 400, fontStyle: 'italic' }}>
-          A journaling lens, not a measurement. Rendered for {mbtiType} · Life Path {lifePathNumber}.
+          A reader's tool. Not a measurement. Read it that way. {mbtiType} · Life Path {lifePathNumber}.
         </div>
       </div>
     </div>

@@ -43,12 +43,12 @@ export type Section = 'traits' | 'descriptors' | 'temperament' | 'types' | 'conv
 export const sections: Section[] = ['traits', 'descriptors', 'temperament', 'types', 'convergence', 'personas'];
 
 export const sectionLabels: Record<Section, string> = {
-  traits: '23 Facets',
-  descriptors: 'How Others See You',
+  traits: 'The Facets',
+  descriptors: 'How Others Tend to Read You',
   temperament: 'Temperament',
-  types: 'Type Matches',
-  convergence: 'Where Systems Converge',
-  personas: 'Inner Architecture',
+  types: 'Adjacent Types',
+  convergence: 'Where the Systems Agree',
+  personas: 'The Inner Cast',
 };
 
 export type TemperamentName = 'Empath' | 'Theorist' | 'Responder' | 'Preserver';
@@ -225,10 +225,10 @@ export interface TemperamentEntry {
 }
 
 const TEMPERAMENT_DESC: Record<TemperamentName, string> = {
-  Empath: 'Creative, compassionate, focused on possibilities for people',
-  Theorist: 'Analytical, questioning, focused on innovative ideas',
-  Responder: 'Adaptable, practical, focused on living in the moment',
-  Preserver: 'Sensible, organized, focused on upholding traditions',
+  Empath: 'Creative, compassionate, drawn to what is possible for people',
+  Theorist: 'Analytical, questioning, drawn to ideas before things',
+  Responder: 'Adaptable, practical, at home in the present',
+  Preserver: 'Sensible, organized, keeper of what works',
 };
 
 export function getTemperamentForMbti(mbti: string): TemperamentEntry[] {
@@ -339,28 +339,28 @@ export interface GrowthEdge {
 
 const CONVERGENCE_BY_TEMPERAMENT: Record<TemperamentName, ConvergenceTheme[]> = {
   Empath: [
-    { title: 'Empathy + Idealism', desc: "Your through-line is heart-first. You're motivated not just by what works but by what feels aligned with integrity and care.", color: '#9E6B9B' },
-    { title: 'Meaning-Making', desc: 'You instinctively see story in events. Turning chaos into narrative is your superpower — in relationships, work, or the way you describe your own life.', color: '#CD8245' },
-    { title: 'Imagination + People', desc: 'You combine visionary thinking with deep attunement to others. Few people hold both together — most pick one and lose the other.', color: '#4A7FB5' },
-    { title: 'Selective Intensity', desc: 'Context-dependent energy. Around the right people you light up; in draining environments you need withdrawal. Honor both.', color: '#5E9E58' },
+    { title: 'Empathy and Idealism', desc: 'The through-line is heart-first. The motive is rarely only what works — it is what feels right alongside.', color: '#9E6B9B' },
+    { title: 'Meaning-Making', desc: 'A natural instinct for finding story in events. Chaos rendered as narrative — in love, in work, in the telling of one\'s own life.', color: '#CD8245' },
+    { title: 'Imagination and People', desc: 'Visionary thinking paired with attunement to others. Most who reach for one let the other fall away. This temperament tends to keep both.', color: '#4A7FB5' },
+    { title: 'Selective Intensity', desc: 'Energy that depends on company. Among the right people, the lights come on. In draining rooms, retreat is medicine. Both are true.', color: '#5E9E58' },
   ],
   Theorist: [
-    { title: 'Pattern Recognition', desc: 'Your through-line is seeing systems. You spot the structure under the surface — in code, conversations, conflicts, markets.', color: '#4A7FB5' },
-    { title: 'Independence + Curiosity', desc: 'You learn by going deep, not wide. The people who try to manage you usually misread this as resistance to authority.', color: '#9E6B9B' },
-    { title: 'Long-View Calibration', desc: "You trade short-term comfort for long-term clarity. Most people can't tell the difference between you being patient and you being detached.", color: '#CD8245' },
-    { title: 'Skeptical Builder', desc: "You believe in things by interrogating them. Your faith in something is earned, not given — and that's why what you build tends to last.", color: '#5E9E58' },
+    { title: 'Pattern Recognition', desc: 'The through-line is seeing the structure under the surface — in code, in conflict, in markets, in conversation.', color: '#4A7FB5' },
+    { title: 'Independence and Curiosity', desc: 'Learning happens by going deep before going wide. Those who try to manage this temperament often mistake the depth for resistance.', color: '#9E6B9B' },
+    { title: 'The Long View', desc: 'Short-term comfort is traded for longer clarity. The patient and the detached can look the same from outside; the difference matters from within.', color: '#CD8245' },
+    { title: 'The Skeptical Builder', desc: 'Belief comes through interrogation. Faith is earned, not given — which is why what gets built tends to last.', color: '#5E9E58' },
   ],
   Responder: [
-    { title: 'Present-Moment Mastery', desc: 'Your through-line is responsiveness. You read the room faster than people who plan; you adjust faster than people who think.', color: '#CD8245' },
-    { title: 'Action as Thinking', desc: "You don't fully understand a thing until you've done it. Theory bores you; experience teaches you.", color: '#5E9E58' },
-    { title: 'Practical Optimism', desc: "You assume things will work out — and you make them work out. Less faith, more momentum.", color: '#9E6B9B' },
-    { title: 'Reading the Field', desc: 'You notice what others miss because you watch instead of plan. Your decisions feel improvised but they rest on sharp observation.', color: '#4A7FB5' },
+    { title: 'The Present Moment', desc: 'The through-line is responsiveness. Reading the room faster than the planners. Adjusting faster than the thinkers.', color: '#CD8245' },
+    { title: 'Action as Thinking', desc: 'A thing isn\'t fully understood until it has been done. Theory tires this temperament; experience teaches it.', color: '#5E9E58' },
+    { title: 'Practical Optimism', desc: 'Things will work out — and the work to make them work out is part of the assumption. Less faith. More momentum.', color: '#9E6B9B' },
+    { title: 'Reading the Field', desc: 'Things others miss are noticed, because watching comes before planning. Decisions look improvised. They rest on sharper observation than they appear to.', color: '#4A7FB5' },
   ],
   Preserver: [
-    { title: 'Stewardship', desc: 'Your through-line is care for what matters. You build the structures other people depend on, often without being seen doing it.', color: '#5E9E58' },
-    { title: 'Trust + Reliability', desc: "You earn trust by showing up the same way every time. People who don't notice you doing this notice immediately when you stop.", color: '#4A7FB5' },
-    { title: 'Lineage + Continuity', desc: "You see yourself as a link in a chain — receiving from before, passing on. That's a perspective most modern frameworks miss.", color: '#9E6B9B' },
-    { title: 'Quiet Competence', desc: 'You don\'t advertise effort. The work speaks; the credit follows when it follows. You\'re fine either way.', color: '#CD8245' },
+    { title: 'Stewardship', desc: 'The through-line is care for what matters. The structures others depend on get built quietly, often without notice.', color: '#5E9E58' },
+    { title: 'Trust and Reliability', desc: 'Trust is earned by showing up the same way every time. Those who fail to notice it while it lasts always notice when it stops.', color: '#4A7FB5' },
+    { title: 'Lineage and Continuity', desc: 'A sense of being a link in a chain — receiving from those before, passing to those after. A perspective most modern frameworks lose track of.', color: '#9E6B9B' },
+    { title: 'Quiet Competence', desc: 'Effort is not advertised. The work speaks; the credit follows when it follows. Either is fine.', color: '#CD8245' },
   ],
 };
 
@@ -370,20 +370,20 @@ export function getConvergenceForMbti(mbti: string): ConvergenceTheme[] {
 
 const GROWTH_BY_TEMPERAMENT: Record<TemperamentName, GrowthEdge[]> = {
   Empath: [
-    { title: 'Freedom vs. Structure', desc: "Big vision, messy trail. Don't impose heavy systems — use lightweight guardrails and one sticky ritual at a time." },
-    { title: 'Authenticity vs. Visibility', desc: "You're doing deep, meaningful work — but others won't see it unless you translate it into artifacts: decision logs, demos, shared updates." },
+    { title: 'Freedom and Structure', desc: 'Big vision, untidy trail. Heavy systems chafe. Lightweight guardrails and one sticky ritual at a time tend to work better.' },
+    { title: 'Inner Work and Visible Work', desc: 'Deep work is happening. Others will not see it unless it is translated into artifacts — decision logs, small demos, the occasional shared update.' },
   ],
   Theorist: [
-    { title: 'Insight vs. Execution', desc: 'You see further than you ship. The bottleneck is rarely understanding — it\'s converting understanding into something other people can use.' },
-    { title: 'Detachment vs. Connection', desc: "Your strength is critical distance, but the people in your life don't need a critic. They need a witness. Practice presence without analysis." },
+    { title: 'Insight and Execution', desc: 'Sight tends to outrun shipping. The bottleneck is rarely understanding. It is converting understanding into something others can use.' },
+    { title: 'Distance and Presence', desc: 'Critical distance is a strength. But the people close in do not need a critic. They need a witness. Practice presence without analysis.' },
   ],
   Responder: [
-    { title: 'Now vs. Later', desc: "You move on instinct, which is your gift — but big decisions sometimes need the slower track. When stakes are high, force yourself to wait one more day." },
-    { title: 'Activity vs. Reflection', desc: "You think by doing. That works until it doesn't. Schedule explicit pauses; without them you can run hard in the wrong direction." },
+    { title: 'Now and Later', desc: 'Instinct moves quickly, which is the gift. Larger decisions sometimes ask for the slower track. When the stakes are high, wait one more day.' },
+    { title: 'Action and Pause', desc: 'Thinking happens by doing. This works until it does not. Schedule the pauses; without them, the running can be in the wrong direction.' },
   ],
   Preserver: [
-    { title: 'Tradition vs. Innovation', desc: "Continuity is your gift, but the world keeps changing under your feet. Hold the structures lightly enough to update them." },
-    { title: 'Service vs. Self', desc: "You give first, often. The risk is forgetting what you'd want if no one was counting on you. Ask the question anyway." },
+    { title: 'Tradition and Change', desc: 'Continuity is the gift. The world keeps shifting underneath. Hold the structures lightly enough to update them when they ask to be updated.' },
+    { title: 'Service and Self', desc: 'Giving comes first, often. The risk is forgetting what one would want if no one were counting. Ask the question anyway.' },
   ],
 };
 
@@ -394,26 +394,26 @@ export function getGrowthEdgesForMbti(mbti: string): GrowthEdge[] {
 // ── Personas (generic framework, no names) ───────────────────────────
 
 export const personasFramework = {
-  intro: 'Three named internal personas — a framework for self-awareness and role clarity. Most people have at least three distinct modes they slip into. Naming them gives you a vocabulary for which one is showing up.',
+  intro: 'An old practice: name three internal figures. Most of us slip between at least that many distinct modes; giving them names gives us language for which one is in the room.',
   archetypes: [
     {
-      label: 'The Empathic Leader',
+      label: 'The Listener',
       role: 'Holds space',
-      desc: 'Listens to people. Creates emotional safety for others. Knows when to lean in.',
+      desc: 'Hears people. Builds quiet safety. Knows when to lean in and when to wait.',
       color: '#5E9E58',
     },
     {
-      label: 'The Illumined Architect',
-      role: 'Builds the frame',
-      desc: 'Listens to patterns. Makes freedom sustainable through structure. Sees the long arc.',
+      label: 'The Architect',
+      role: 'Holds the frame',
+      desc: 'Hears patterns. Makes freedom sustainable through structure. Watches the long arc.',
       color: '#4A7FB5',
     },
     {
-      label: 'The Shieldmate Monk',
+      label: 'The Steady One',
       role: 'Holds the center',
-      desc: 'Transforms reactivity into right action. The still point inside motion. Says no when needed.',
+      desc: 'Turns reactivity into right action. The still point inside motion. Says no when no is the work.',
       color: '#9E6B9B',
     },
   ],
-  prompt: "These are starter archetypes. Your three personas may have different names — and they should. Naming them yourself is part of the work.",
+  prompt: 'These are starter names — an offering. Your three figures will have other names, and they should. Naming them yourself is part of the work.',
 };
