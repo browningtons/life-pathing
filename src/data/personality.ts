@@ -391,6 +391,38 @@ export function getGrowthEdgesForMbti(mbti: string): GrowthEdge[] {
   return GROWTH_BY_TEMPERAMENT[temperamentForMbti(mbti)];
 }
 
+// ── Synthesis: a two-sentence "the read" ─────────────────────────────
+// One template per temperament. The first sentence names the through-line
+// the four lenses agree on; the second weaves in the MBTI title and Life
+// Path title and names what the combination tends to ask of those who
+// walk it. Voice: quiet-almanac, third-person.
+
+const SYNTHESIS_BY_TEMPERAMENT: Record<TemperamentName, string> = {
+  Empath:
+    'Across the four lenses, the through-line is heart-first — meaning before mechanism, attunement before argument. {INSIDE} asks the same thing of those who walk it: enough freedom for the depth to show, enough structure for it to land.',
+  Theorist:
+    'Across the four lenses, the through-line is the long view — pattern before persuasion, structure before action. {INSIDE} asks the same thing of those who walk it: see the system clearly before solving it, and ship the seeing before the system ever feels finished.',
+  Responder:
+    'Across the four lenses, the through-line is responsiveness — present moment over plan, action over theory. {INSIDE} asks the same thing of those who walk it: keep moving, but not so fast that the larger calls go unmade.',
+  Preserver:
+    'Across the four lenses, the through-line is stewardship — care for what works, attention to what lasts. {INSIDE} asks the same thing of those who walk it: hold the structures lightly enough to let them update when they ask to be updated.',
+};
+
+const stripThe = (s: string): string => s.replace(/^The\s+/i, '');
+
+export function getSynthesisForMbti(
+  mbti: string,
+  mbtiTitle: string,
+  lpTitle: string | null,
+): string {
+  const wiring = stripThe(mbtiTitle);
+  const arc = lpTitle ? stripThe(lpTitle) : null;
+  const inside = arc
+    ? `The ${wiring} wiring set inside the ${arc} arc`
+    : `The ${wiring} wiring`;
+  return SYNTHESIS_BY_TEMPERAMENT[temperamentForMbti(mbti)].replace('{INSIDE}', inside);
+}
+
 // ── Personas (generic framework, no names) ───────────────────────────
 
 export const personasFramework = {

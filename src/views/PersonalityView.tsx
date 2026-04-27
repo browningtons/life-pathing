@@ -12,6 +12,7 @@ import {
   Compass,
   ChevronDown,
   Star,
+  BookOpen,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Card } from '../components/Card';
@@ -22,6 +23,7 @@ import {
   getDescriptorsForMbti,
   getGrowthEdgesForMbti,
   getMbtiLetterDetails,
+  getSynthesisForMbti,
   getTemperamentForMbti,
   getTraitsForMbti,
   getTypeMatchesForMbti,
@@ -505,6 +507,10 @@ export const PersonalityView = ({ mbtiType, lifePathNumber }: PersonalityViewPro
   const mbtiData = useMemo(() => getMbtiData(mbtiType), [mbtiType]);
   const lpMeaning = LIFE_PATH_MEANINGS[lifePathNumber];
   const temperament = temperamentForMbti(mbtiType);
+  const synthesis = useMemo(
+    () => getSynthesisForMbti(mbtiType, mbtiData.title, lpMeaning?.title ?? null),
+    [mbtiType, mbtiData.title, lpMeaning?.title],
+  );
 
   const filtered = activeCategory === 'all' ? traits : traits.filter((t) => t.category === activeCategory);
 
@@ -549,6 +555,14 @@ export const PersonalityView = ({ mbtiType, lifePathNumber }: PersonalityViewPro
             ))}
           </div>
         </div>
+      </Card>
+
+      {/* THE READ — synthesis across all four lenses */}
+      <Card className="bg-white border-slate-100">
+        <h3 className="text-sm font-bold text-indigo-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <BookOpen size={14} aria-hidden="true" /> The read
+        </h3>
+        <p className="text-sm text-slate-700 leading-relaxed">{synthesis}</p>
       </Card>
 
       {/* SECTION TABS */}
