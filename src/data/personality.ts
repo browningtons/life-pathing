@@ -1,39 +1,33 @@
-// Personality data — derivation functions keyed off the user's MBTI type
-// and Life Path number. Originally a hand-tuned snapshot of one user's
-// profile; now generates "good-enough-for-journaling" content for any of
-// the 16 MBTI types via a small deterministic model.
+// Personality derivations for the Profile view.
 //
-// This isn't psychometrics. The disclaimer in the upgrade modal already
-// names the framing: a journaling tool, not psychological advice.
+// Two kinds of thing live here:
+//   1. Catalogs — the 23 facets, the descriptor words, the temperaments.
+//      Labels and groupings only; no scores.
+//   2. Derivations — functions that take the raw profile (facet scores,
+//      dimension scores) or a derived type code and return what a view
+//      needs. Nothing is stored per type; nothing is stored per view.
+//
+// This isn't psychometrics. The framing everywhere else in the app holds:
+// a journaling tool, not psychological advice.
 
-// ── Static types & catalog ────────────────────────────────────────────
+import type { Tone } from '../design/tokens';
+import { MBTI_TYPES, getMbtiNickname } from './mbti';
+import type { FacetScores } from './profile';
+
+// ── Categories ────────────────────────────────────────────────────────
 
 export type TraitCategory = 'Lifestyle' | 'Values' | 'Cognitive' | 'Energy';
 
-export interface Trait {
-  facet: string;
-  category: TraitCategory;
-  left: string;
-  right: string;
-  leftPct: number;
-  rightPct: number;
-  dominant: string;
-  dominantPct: number;
-}
-
 export interface CategoryMetaEntry {
   label: string;
-  color: string;
-  muted: string;
-  track: string;
-  icon: string;
+  tone: Tone;
 }
 
 export const categoryMeta: Record<TraitCategory, CategoryMetaEntry> = {
-  Cognitive: { label: 'How You Think', color: '#4A7FB5', muted: '#B8D0E4', track: '#E4EDF5', icon: '✦' },
-  Energy: { label: 'How You Recharge', color: '#5E9E58', muted: '#BCD9B8', track: '#E2F0E0', icon: '❋' },
-  Values: { label: 'What You Prioritize', color: '#9E6B9B', muted: '#D4B8D2', track: '#EDE0EC', icon: '✿' },
-  Lifestyle: { label: 'How You Move', color: '#CD8245', muted: '#E6C4A5', track: '#F5E6D5', icon: '❖' },
+  Cognitive: { label: 'How You Think', tone: 'sky' },
+  Energy: { label: 'How You Recharge', tone: 'emerald' },
+  Values: { label: 'What You Prioritize', tone: 'purple' },
+  Lifestyle: { label: 'How You Move', tone: 'amber' },
 };
 
 export const categories: TraitCategory[] = ['Cognitive', 'Energy', 'Values', 'Lifestyle'];
@@ -51,9 +45,7 @@ export const sectionLabels: Record<Section, string> = {
   personas: 'The Inner Cast',
 };
 
-export type TemperamentName = 'Empath' | 'Theorist' | 'Responder' | 'Preserver';
-
-// ── MBTI helpers ──────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────
 
 type MbtiLetter = 'E' | 'I' | 'N' | 'S' | 'T' | 'F' | 'J' | 'P';
 
@@ -66,16 +58,8 @@ function mbtiLetters(mbti: string): { ie: 'E' | 'I'; sn: 'N' | 'S'; tf: 'T' | 'F
   };
 }
 
-export function temperamentForMbti(mbti: string): TemperamentName {
-  const { sn, tf, jp } = mbtiLetters(mbti);
-  if (sn === 'N' && tf === 'F') return 'Empath';
-  if (sn === 'N' && tf === 'T') return 'Theorist';
-  if (sn === 'S' && jp === 'P') return 'Responder';
-  return 'Preserver'; // SJ
-}
-
-// Deterministic 32-bit hash. Used to give each (facet, mbti) pair stable
-// pseudo-random variance so percentages don't all clump on the same value.
+// Deterministic 32-bit hash. Gives type-derived percentages (descriptors,
+// temperament, adjacent types) stable variance so values don't all clump.
 function hash(s: string): number {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
@@ -89,65 +73,67 @@ function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
 
-// ── 23 facets ─────────────────────────────────────────────────────────
+// ── The 23 facets ─────────────────────────────────────────────────────
+// The catalog carries labels and grouping. Scores come from the profile,
+// keyed by the right-hand pole.
 
-interface FacetSpec {
+export interface FacetSpec {
+  /** Left pole label. */
+  left: string;
+  /** Right pole label — also the key into FacetScores. */
+  right: string;
+  category: TraitCategory;
+}
+
+export const FACET_CATALOG: FacetSpec[] = [
+  // Lifestyle
+  { left: 'Relaxed', right: 'Orderly', category: 'Lifestyle' },
+  { left: 'Spontaneous', right: 'Scheduled', category: 'Lifestyle' },
+  { left: 'Casual', right: 'Conscientious', category: 'Lifestyle' },
+  { left: 'Impulsive', right: 'Disciplined', category: 'Lifestyle' },
+  { left: 'Easygoing', right: 'Ambitious', category: 'Lifestyle' },
+  // Values
+  { left: 'Objective', right: 'Subjective', category: 'Values' },
+  { left: 'Rational', right: 'Compassionate', category: 'Values' },
+  { left: 'Challenging', right: 'Agreeable', category: 'Values' },
+  { left: 'Individualist', right: 'Helpful', category: 'Values' },
+  { left: 'Self-Reliant', right: 'Cooperative', category: 'Values' },
+  { left: 'Tough', right: 'Tolerant', category: 'Values' },
+  // Cognitive
+  { left: 'Realistic', right: 'Imaginative', category: 'Cognitive' },
+  { left: 'Concrete', right: 'Conceptual', category: 'Cognitive' },
+  { left: 'Traditional', right: 'Progressive', category: 'Cognitive' },
+  { left: 'Factual', right: 'Insightful', category: 'Cognitive' },
+  { left: 'Practical', right: 'Aesthetic', category: 'Cognitive' },
+  { left: 'Habitual', right: 'Adventurous', category: 'Cognitive' },
+  // Energy
+  { left: 'Placid', right: 'Energetic', category: 'Energy' },
+  { left: 'Reserved', right: 'Expressive', category: 'Energy' },
+  { left: 'Private', right: 'Prominent', category: 'Energy' },
+  { left: 'Calm', right: 'Joyful', category: 'Energy' },
+  { left: 'Aloof', right: 'Friendly', category: 'Energy' },
+  { left: 'Solitary', right: 'Engaged', category: 'Energy' },
+];
+
+export interface Trait {
   facet: string;
   category: TraitCategory;
   left: string;
   right: string;
-  /** The MBTI letter that aligns with the LEFT side. */
-  leftLetter: MbtiLetter;
+  leftPct: number;
+  rightPct: number;
+  dominant: string;
+  dominantPct: number;
 }
 
-const FACET_SPECS: FacetSpec[] = [
-  // Lifestyle (J/P-driven)
-  { facet: 'Relaxed vs Orderly', category: 'Lifestyle', left: 'Relaxed', right: 'Orderly', leftLetter: 'P' },
-  { facet: 'Spontaneous vs Scheduled', category: 'Lifestyle', left: 'Spontaneous', right: 'Scheduled', leftLetter: 'P' },
-  { facet: 'Casual vs Conscientious', category: 'Lifestyle', left: 'Casual', right: 'Conscientious', leftLetter: 'P' },
-  { facet: 'Impulsive vs Disciplined', category: 'Lifestyle', left: 'Impulsive', right: 'Disciplined', leftLetter: 'P' },
-  { facet: 'Easygoing vs Ambitious', category: 'Lifestyle', left: 'Easygoing', right: 'Ambitious', leftLetter: 'P' },
-  // Values (T/F-driven)
-  { facet: 'Objective vs Subjective', category: 'Values', left: 'Objective', right: 'Subjective', leftLetter: 'T' },
-  { facet: 'Rational vs Compassionate', category: 'Values', left: 'Rational', right: 'Compassionate', leftLetter: 'T' },
-  { facet: 'Challenging vs Agreeable', category: 'Values', left: 'Challenging', right: 'Agreeable', leftLetter: 'T' },
-  { facet: 'Individualist vs Helpful', category: 'Values', left: 'Individualist', right: 'Helpful', leftLetter: 'T' },
-  { facet: 'Self-Reliant vs Cooperative', category: 'Values', left: 'Self-Reliant', right: 'Cooperative', leftLetter: 'T' },
-  { facet: 'Tough vs Tolerant', category: 'Values', left: 'Tough', right: 'Tolerant', leftLetter: 'T' },
-  // Cognitive (S/N-driven)
-  { facet: 'Realistic vs Imaginative', category: 'Cognitive', left: 'Realistic', right: 'Imaginative', leftLetter: 'S' },
-  { facet: 'Concrete vs Conceptual', category: 'Cognitive', left: 'Concrete', right: 'Conceptual', leftLetter: 'S' },
-  { facet: 'Traditional vs Progressive', category: 'Cognitive', left: 'Traditional', right: 'Progressive', leftLetter: 'S' },
-  { facet: 'Factual vs Insightful', category: 'Cognitive', left: 'Factual', right: 'Insightful', leftLetter: 'S' },
-  { facet: 'Practical vs Aesthetic', category: 'Cognitive', left: 'Practical', right: 'Aesthetic', leftLetter: 'S' },
-  { facet: 'Habitual vs Adventurous', category: 'Cognitive', left: 'Habitual', right: 'Adventurous', leftLetter: 'S' },
-  // Energy (E/I-driven)
-  { facet: 'Placid vs Energetic', category: 'Energy', left: 'Placid', right: 'Energetic', leftLetter: 'I' },
-  { facet: 'Reserved vs Expressive', category: 'Energy', left: 'Reserved', right: 'Expressive', leftLetter: 'I' },
-  { facet: 'Private vs Prominent', category: 'Energy', left: 'Private', right: 'Prominent', leftLetter: 'I' },
-  { facet: 'Calm vs Joyful', category: 'Energy', left: 'Calm', right: 'Joyful', leftLetter: 'I' },
-  { facet: 'Aloof vs Friendly', category: 'Energy', left: 'Aloof', right: 'Friendly', leftLetter: 'I' },
-  { facet: 'Solitary vs Engaged', category: 'Energy', left: 'Solitary', right: 'Engaged', leftLetter: 'I' },
-];
-
-export function getTraitsForMbti(mbti: string): Trait[] {
-  const letters = mbtiLetters(mbti);
-  return FACET_SPECS.map((spec) => {
-    // Pick the user's letter on this spec's dimension.
-    let userLetter: MbtiLetter;
-    if (spec.leftLetter === 'P') userLetter = letters.jp;
-    else if (spec.leftLetter === 'T') userLetter = letters.tf;
-    else if (spec.leftLetter === 'S') userLetter = letters.sn;
-    else userLetter = letters.ie;
-
-    const userFavorsLeft = userLetter === spec.leftLetter;
-    // ±15 deterministic variance per (facet, mbti), centered at 65/35.
-    const variance = (hash(spec.facet + ':' + mbti) % 31) - 15;
-    const leftPct = clamp(userFavorsLeft ? 65 + variance : 35 + variance, 18, 88);
-    const rightPct = 100 - leftPct;
-    const leftDominant = leftPct >= rightPct;
+/** Join the catalog with the stored scores. A missing score reads as an even 50/50. */
+export function getTraits(facets: FacetScores): Trait[] {
+  return FACET_CATALOG.map((spec) => {
+    const rightPct = clamp(Math.round(facets[spec.right] ?? 50), 0, 100);
+    const leftPct = 100 - rightPct;
+    const leftDominant = leftPct > rightPct;
     return {
-      facet: spec.facet,
+      facet: `${spec.left} vs ${spec.right}`,
       category: spec.category,
       left: spec.left,
       right: spec.right,
@@ -162,7 +148,7 @@ export function getTraitsForMbti(mbti: string): Trait[] {
 // ── Descriptors (How Others See You) ──────────────────────────────────
 // Each descriptor leans toward one or two MBTI letters. We compute a
 // percentage by summing the weighted matches against the user's letters,
-// then add a tiny per-(descriptor, mbti) variance so types don't tie.
+// then add a tiny per-(descriptor, type) variance so types don't tie.
 
 interface DescriptorSpec {
   word: string;
@@ -198,12 +184,8 @@ const DESCRIPTOR_SPECS: DescriptorSpec[] = [
 ];
 
 export function getDescriptorsForMbti(mbti: string): { word: string; pct: number }[] {
-  const userLetters = new Set<MbtiLetter>([
-    mbti[0] === 'E' ? 'E' : 'I',
-    mbti[1] === 'S' ? 'S' : 'N',
-    mbti[2] === 'T' ? 'T' : 'F',
-    mbti[3] === 'P' ? 'P' : 'J',
-  ]);
+  const { ie, sn, tf, jp } = mbtiLetters(mbti);
+  const userLetters = new Set<MbtiLetter>([ie, sn, tf, jp]);
   return DESCRIPTOR_SPECS.map((spec) => {
     const matched = spec.favors.filter((f) => userLetters.has(f.letter));
     const score = matched.reduce((sum, f) => sum + f.weight, 0);
@@ -211,12 +193,29 @@ export function getDescriptorsForMbti(mbti: string): { word: string; pct: number
     // Match ratio in [0, 1], shifted to ~30–85% range.
     const ratio = totalWeight === 0 ? 0.5 : score / totalWeight;
     const variance = ((hash(spec.word + ':' + mbti) % 13) - 6) / 100; // ±6%
-    const pct = clamp(Math.round((30 + ratio * 55 + variance * 100) * 1) / 1, 20, 92);
+    const pct = clamp(Math.round(30 + ratio * 55 + variance * 100), 20, 92);
     return { word: spec.word, pct };
   }).sort((a, b) => b.pct - a.pct);
 }
 
 // ── Temperament ───────────────────────────────────────────────────────
+
+export type TemperamentName = 'Empath' | 'Theorist' | 'Responder' | 'Preserver';
+
+export const TEMPERAMENT_TONE: Record<TemperamentName, Tone> = {
+  Empath: 'purple',
+  Theorist: 'sky',
+  Responder: 'amber',
+  Preserver: 'emerald',
+};
+
+export function temperamentForMbti(mbti: string): TemperamentName {
+  const { sn, tf, jp } = mbtiLetters(mbti);
+  if (sn === 'N' && tf === 'F') return 'Empath';
+  if (sn === 'N' && tf === 'T') return 'Theorist';
+  if (sn === 'S' && jp === 'P') return 'Responder';
+  return 'Preserver'; // SJ
+}
 
 export interface TemperamentEntry {
   name: TemperamentName;
@@ -242,7 +241,7 @@ export function getTemperamentForMbti(mbti: string): TemperamentEntry[] {
   // Distribute remaining across the other three with small variance.
   const base = remaining / 3;
   const slots = others.map((name, i) => {
-    const v = ((hash(mbti + ':t' + i) % 11) - 5);
+    const v = (hash(mbti + ':t' + i) % 11) - 5;
     return { name, pct: Math.round(base + v) };
   });
   // Normalize so all four sum to exactly 100.
@@ -257,47 +256,10 @@ export function getTemperamentForMbti(mbti: string): TemperamentEntry[] {
   return entries.sort((a, b) => b.pct - a.pct);
 }
 
-// ── MBTI letter percentages (header detail) ───────────────────────────
-
-const LETTER_LABEL: Record<MbtiLetter, string> = {
-  E: 'Extraversion', I: 'Introversion',
-  N: 'Intuition',    S: 'Sensing',
-  F: 'Feeling',      T: 'Thinking',
-  P: 'Perceiving',   J: 'Judging',
-};
-const LETTER_COLOR: Record<MbtiLetter, string> = {
-  E: '#5E9E58', I: '#5E9E58',
-  N: '#4A7FB5', S: '#4A7FB5',
-  F: '#9E6B9B', T: '#9E6B9B',
-  P: '#CD8245', J: '#CD8245',
-};
-
-export function getMbtiLetterDetails(mbti: string): { letter: MbtiLetter; pct: number; label: string; color: string }[] {
-  const letters = [
-    mbti[0] === 'E' ? 'E' : 'I',
-    mbti[1] === 'S' ? 'S' : 'N',
-    mbti[2] === 'T' ? 'T' : 'F',
-    mbti[3] === 'P' ? 'P' : 'J',
-  ] as MbtiLetter[];
-  return letters.map((letter, i) => ({
-    letter,
-    // 55–80% lean toward the dominant letter, deterministic per (mbti, slot)
-    pct: 55 + (hash(mbti + ':L' + i) % 26),
-    label: LETTER_LABEL[letter],
-    color: LETTER_COLOR[letter],
-  }));
-}
-
-// ── Type matches ──────────────────────────────────────────────────────
+// ── Adjacent types ────────────────────────────────────────────────────
 // Distance is the number of letters that differ. Closer types get higher
 // match scores. Self is excluded so users see neighbors, not themselves.
-
-const ARCHETYPE_NAMES: Record<string, string> = {
-  ENFP: 'Champion', INFP: 'Healer', ENFJ: 'Teacher', INFJ: 'Counselor',
-  ENTP: 'Inventor', INTP: 'Architect', ENTJ: 'Commander', INTJ: 'Mastermind',
-  ESFP: 'Performer', ISFP: 'Composer', ESFJ: 'Provider', ISFJ: 'Protector',
-  ESTP: 'Promoter', ISTP: 'Crafter', ESTJ: 'Supervisor', ISTJ: 'Inspector',
-};
+// Nicknames come from the MBTI table — the one place they live.
 
 export interface TypeMatch {
   code: string;
@@ -306,9 +268,7 @@ export interface TypeMatch {
 }
 
 export function getTypeMatchesForMbti(mbti: string): TypeMatch[] {
-  const all = Object.keys(ARCHETYPE_NAMES);
-  return all
-    .filter((code) => code !== mbti)
+  return MBTI_TYPES.filter((code) => code !== mbti)
     .map((code) => {
       const distance =
         (mbti[0] !== code[0] ? 1 : 0) +
@@ -318,7 +278,7 @@ export function getTypeMatchesForMbti(mbti: string): TypeMatch[] {
       // 0=skip, 1→70-78, 2→48-58, 3→28-38, 4→14-22
       const base = distance === 1 ? 74 : distance === 2 ? 53 : distance === 3 ? 33 : 18;
       const variance = (hash(code + ':' + mbti) % 9) - 4;
-      return { code, name: ARCHETYPE_NAMES[code] ?? code, pct: clamp(base + variance, 12, 84) };
+      return { code, name: getMbtiNickname(code), pct: clamp(base + variance, 12, 84) };
     })
     .sort((a, b) => b.pct - a.pct)
     .slice(0, 6);
@@ -329,7 +289,7 @@ export function getTypeMatchesForMbti(mbti: string): TypeMatch[] {
 export interface ConvergenceTheme {
   title: string;
   desc: string;
-  color: string;
+  tone: Tone;
 }
 
 export interface GrowthEdge {
@@ -339,28 +299,28 @@ export interface GrowthEdge {
 
 const CONVERGENCE_BY_TEMPERAMENT: Record<TemperamentName, ConvergenceTheme[]> = {
   Empath: [
-    { title: 'Empathy and Idealism', desc: 'The through-line is heart-first. The motive is rarely only what works — it is what feels right alongside.', color: '#9E6B9B' },
-    { title: 'Meaning-Making', desc: 'A natural instinct for finding story in events. Chaos rendered as narrative — in love, in work, in the telling of one\'s own life.', color: '#CD8245' },
-    { title: 'Imagination and People', desc: 'Visionary thinking paired with attunement to others. Most who reach for one let the other fall away. This temperament tends to keep both.', color: '#4A7FB5' },
-    { title: 'Selective Intensity', desc: 'Energy that depends on company. Among the right people, the lights come on. In draining rooms, retreat is medicine. Both are true.', color: '#5E9E58' },
+    { title: 'Empathy and Idealism', desc: 'The through-line is heart-first. The motive is rarely only what works — it is what feels right alongside.', tone: 'purple' },
+    { title: 'Meaning-Making', desc: 'A natural instinct for finding story in events. Chaos rendered as narrative — in love, in work, in the telling of one\'s own life.', tone: 'amber' },
+    { title: 'Imagination and People', desc: 'Visionary thinking paired with attunement to others. Most who reach for one let the other fall away. This temperament tends to keep both.', tone: 'sky' },
+    { title: 'Selective Intensity', desc: 'Energy that depends on company. Among the right people, the lights come on. In draining rooms, retreat is medicine. Both are true.', tone: 'emerald' },
   ],
   Theorist: [
-    { title: 'Pattern Recognition', desc: 'The through-line is seeing the structure under the surface — in code, in conflict, in markets, in conversation.', color: '#4A7FB5' },
-    { title: 'Independence and Curiosity', desc: 'Learning happens by going deep before going wide. Those who try to manage this temperament often mistake the depth for resistance.', color: '#9E6B9B' },
-    { title: 'The Long View', desc: 'Short-term comfort is traded for longer clarity. The patient and the detached can look the same from outside; the difference matters from within.', color: '#CD8245' },
-    { title: 'The Skeptical Builder', desc: 'Belief comes through interrogation. Faith is earned, not given — which is why what gets built tends to last.', color: '#5E9E58' },
+    { title: 'Pattern Recognition', desc: 'The through-line is seeing the structure under the surface — in code, in conflict, in markets, in conversation.', tone: 'sky' },
+    { title: 'Independence and Curiosity', desc: 'Learning happens by going deep before going wide. Those who try to manage this temperament often mistake the depth for resistance.', tone: 'purple' },
+    { title: 'The Long View', desc: 'Short-term comfort is traded for longer clarity. The patient and the detached can look the same from outside; the difference matters from within.', tone: 'amber' },
+    { title: 'The Skeptical Builder', desc: 'Belief comes through interrogation. Faith is earned, not given — which is why what gets built tends to last.', tone: 'emerald' },
   ],
   Responder: [
-    { title: 'The Present Moment', desc: 'The through-line is responsiveness. Reading the room faster than the planners. Adjusting faster than the thinkers.', color: '#CD8245' },
-    { title: 'Action as Thinking', desc: 'A thing isn\'t fully understood until it has been done. Theory tires this temperament; experience teaches it.', color: '#5E9E58' },
-    { title: 'Practical Optimism', desc: 'Things will work out — and the work to make them work out is part of the assumption. Less faith. More momentum.', color: '#9E6B9B' },
-    { title: 'Reading the Field', desc: 'Things others miss are noticed, because watching comes before planning. Decisions look improvised. They rest on sharper observation than they appear to.', color: '#4A7FB5' },
+    { title: 'The Present Moment', desc: 'The through-line is responsiveness. Reading the room faster than the planners. Adjusting faster than the thinkers.', tone: 'amber' },
+    { title: 'Action as Thinking', desc: 'A thing isn\'t fully understood until it has been done. Theory tires this temperament; experience teaches it.', tone: 'emerald' },
+    { title: 'Practical Optimism', desc: 'Things will work out — and the work to make them work out is part of the assumption. Less faith. More momentum.', tone: 'purple' },
+    { title: 'Reading the Field', desc: 'Things others miss are noticed, because watching comes before planning. Decisions look improvised. They rest on sharper observation than they appear to.', tone: 'sky' },
   ],
   Preserver: [
-    { title: 'Stewardship', desc: 'The through-line is care for what matters. The structures others depend on get built quietly, often without notice.', color: '#5E9E58' },
-    { title: 'Trust and Reliability', desc: 'Trust is earned by showing up the same way every time. Those who fail to notice it while it lasts always notice when it stops.', color: '#4A7FB5' },
-    { title: 'Lineage and Continuity', desc: 'A sense of being a link in a chain — receiving from those before, passing to those after. A perspective most modern frameworks lose track of.', color: '#9E6B9B' },
-    { title: 'Quiet Competence', desc: 'Effort is not advertised. The work speaks; the credit follows when it follows. Either is fine.', color: '#CD8245' },
+    { title: 'Stewardship', desc: 'The through-line is care for what matters. The structures others depend on get built quietly, often without notice.', tone: 'emerald' },
+    { title: 'Trust and Reliability', desc: 'Trust is earned by showing up the same way every time. Those who fail to notice it while it lasts always notice when it stops.', tone: 'sky' },
+    { title: 'Lineage and Continuity', desc: 'A sense of being a link in a chain — receiving from those before, passing to those after. A perspective most modern frameworks lose track of.', tone: 'purple' },
+    { title: 'Quiet Competence', desc: 'Effort is not advertised. The work speaks; the credit follows when it follows. Either is fine.', tone: 'amber' },
   ],
 };
 
@@ -410,42 +370,45 @@ const SYNTHESIS_BY_TEMPERAMENT: Record<TemperamentName, string> = {
 
 const stripThe = (s: string): string => s.replace(/^The\s+/i, '');
 
-export function getSynthesisForMbti(
-  mbti: string,
-  mbtiTitle: string,
-  lpTitle: string | null,
-): string {
+export function getSynthesisForMbti(mbti: string, mbtiTitle: string, lpTitle: string | null): string {
   const wiring = stripThe(mbtiTitle);
   const arc = lpTitle ? stripThe(lpTitle) : null;
-  const inside = arc
-    ? `The ${wiring} wiring set inside the ${arc} arc`
-    : `The ${wiring} wiring`;
+  const inside = arc ? `The ${wiring} wiring set inside the ${arc} arc` : `The ${wiring} wiring`;
   return SYNTHESIS_BY_TEMPERAMENT[temperamentForMbti(mbti)].replace('{INSIDE}', inside);
 }
 
 // ── Personas (generic framework, no names) ───────────────────────────
 
-export const personasFramework = {
-  intro: 'An old practice: name three internal figures. Most of us slip between at least that many distinct modes; giving them names gives us language for which one is in the room.',
+export interface PersonaArchetype {
+  label: string;
+  role: string;
+  desc: string;
+  tone: Tone;
+}
+
+export const personasFramework: { intro: string; archetypes: PersonaArchetype[]; prompt: string } = {
+  intro:
+    'An old practice: name three internal figures. Most of us slip between at least that many distinct modes; giving them names gives us language for which one is in the room.',
   archetypes: [
     {
       label: 'The Listener',
       role: 'Holds space',
       desc: 'Hears people. Builds quiet safety. Knows when to lean in and when to wait.',
-      color: '#5E9E58',
+      tone: 'emerald',
     },
     {
       label: 'The Architect',
       role: 'Holds the frame',
       desc: 'Hears patterns. Makes freedom sustainable through structure. Watches the long arc.',
-      color: '#4A7FB5',
+      tone: 'sky',
     },
     {
       label: 'The Steady One',
       role: 'Holds the center',
       desc: 'Turns reactivity into right action. The still point inside motion. Says no when no is the work.',
-      color: '#9E6B9B',
+      tone: 'purple',
     },
   ],
-  prompt: 'These are starter names — an offering. Your three figures will have other names, and they should. Naming them yourself is part of the work.',
+  prompt:
+    'These are starter names — an offering. Your three figures will have other names, and they should. Naming them yourself is part of the work.',
 };

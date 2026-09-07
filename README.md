@@ -34,13 +34,19 @@ Requires Node 20+.
 
 ```
 src/
-  App.tsx        # root app
+  App.tsx        # root app — mounts <ProfileProvider> and the three tabs
   main.tsx       # React entry point — wraps App in <KitProvider>
   index.css      # Tailwind directives
-  views/         # LifePathView, ArchetypesView, PersonalityView
-  data/          # numerology + MBTI + personality content
-  lib/           # calculateLifePath + tests
-  components/    # local UI primitives
+  views/         # LifePathView, ArchetypesView, PersonalityView (read from useProfile)
+  store/         # ProfileProvider + useProfile — the shared profile store
+  data/
+    profile.ts       # THE source of truth: birthdate, 4 dimension %, 23 facet %
+    mbti.ts          # type → nickname / stack / description / famous lookup tables
+    personality.ts   # facet catalog + derivations for the Profile view
+    lifePathMeanings.ts, compoundMeanings.ts
+  lib/           # calculateLifePath, deriveType (+ tests)
+  design/        # tokens.ts — shared colours, typography, card + badge recipes
+  components/    # Card, HeroCard, SectionHeading, Chip, TypeCode, BorderlineBadge
   kit/           # appkit — paywall + entitlement plumbing (shared across apps)
   assets/        # logo
 
@@ -48,6 +54,22 @@ api/             # Vercel serverless functions (verify-purchase)
 public/          # favicons
 kit.config.ts    # per-app Stripe / brand / analytics config (see kit.config.example.ts)
 ```
+
+## Data model
+
+One profile, raw inputs only, in `src/data/profile.ts`:
+
+- `birthDate` — ISO date.
+- `dimensions` — `{ e, n, f, p }` as percentages toward E / N / F / P. Letters are never stored.
+- `facets` — the 23 TypeFinder facet scores, keyed by the right-hand pole.
+
+Everything else is derived at render time and looked up, never stored:
+
+- **Type code** from `dimensions` (`deriveTypeCode`), with a **borderline** flag on any dimension inside 45–55%. Borderline letters are marked everywhere a type code appears.
+- **Nickname, function stack, description, famous names** from the type code via `MBTI_DATA`.
+- **Life Path number** and its reduction from `birthDate` via `calculateLifePath`.
+
+Change a number in the profile and all three views follow. A test (`src/views/noHardcodedPersonality.test.ts`) fails if a view ever grows a hardcoded type code, nickname, stack, or name.
 
 ## A note on what this is and is not
 

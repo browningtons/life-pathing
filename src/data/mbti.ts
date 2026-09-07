@@ -1,4 +1,9 @@
-import type { MbtiEntry } from '../types';
+// MBTI lookup tables — the only place a type code maps to a nickname,
+// a function stack, a description, or a list of famous names. Views never
+// carry these; they derive a type code and look it up here.
+
+import type { Tone } from '../design/tokens';
+import type { MbtiDimension, MbtiEntry } from '../types';
 
 export const MBTI_DATA: Record<string, MbtiEntry> = {
   INFP: {
@@ -50,7 +55,7 @@ export const MBTI_DATA: Record<string, MbtiEntry> = {
     famous: ["Albert Einstein", "Bill Gates", "Kristen Stewart", "Avicii", "Descartes"],
   },
   ENFP: {
-    title: "The Campaigner",
+    title: "The Champion",
     archetype: "The Inspirer",
     drive: "Connection & Possibility",
     stack: ["Ne", "Fi", "Te", "Si"],
@@ -195,12 +200,62 @@ export const MBTI_DATA: Record<string, MbtiEntry> = {
   },
 };
 
-export const DIMENSION_TOOLTIPS: Record<string, string> = {
-  ie: "Energy Source: Introverts (I) recharge in solitude; Extroverts (E) recharge through social interaction.",
-  sn: "Information Processing: Sensors (S) focus on facts & details; Intuitives (N) focus on ideas & possibilities.",
-  tf: "Decision Making: Thinkers (T) prioritize logic & objectivity; Feelers (F) prioritize values & harmony.",
-  jp: "Structure: Judgers (J) prefer plans & closure; Perceivers (P) prefer flexibility & spontaneity.",
+export interface DimensionPole {
+  letter: string;
+  name: string;
+}
+
+export interface DimensionMeta {
+  /** Short card label: Energy / Mind / Nature / Tactics. */
+  label: string;
+  /**
+   * Left and right poles. The stored score in the profile is the percent
+   * toward the RIGHT pole (E, N, F, P).
+   */
+  poles: { left: DimensionPole; right: DimensionPole };
+  tooltip: string;
+  tone: Tone;
+}
+
+/** Type-code order: I/E, S/N, T/F, J/P. */
+export const DIMENSION_ORDER: MbtiDimension[] = ['ie', 'sn', 'tf', 'jp'];
+
+export const DIMENSIONS: Record<MbtiDimension, DimensionMeta> = {
+  ie: {
+    label: 'Energy',
+    poles: { left: { letter: 'I', name: 'Introversion' }, right: { letter: 'E', name: 'Extraversion' } },
+    tooltip:
+      'Energy Source: Introverts (I) recharge in solitude; Extroverts (E) recharge through social interaction.',
+    tone: 'emerald',
+  },
+  sn: {
+    label: 'Mind',
+    poles: { left: { letter: 'S', name: 'Sensing' }, right: { letter: 'N', name: 'Intuition' } },
+    tooltip:
+      'Information Processing: Sensors (S) focus on facts & details; Intuitives (N) focus on ideas & possibilities.',
+    tone: 'sky',
+  },
+  tf: {
+    label: 'Nature',
+    poles: { left: { letter: 'T', name: 'Thinking' }, right: { letter: 'F', name: 'Feeling' } },
+    tooltip: 'Decision Making: Thinkers (T) prioritize logic & objectivity; Feelers (F) prioritize values & harmony.',
+    tone: 'purple',
+  },
+  jp: {
+    label: 'Tactics',
+    poles: { left: { letter: 'J', name: 'Judging' }, right: { letter: 'P', name: 'Perceiving' } },
+    tooltip: 'Structure: Judgers (J) prefer plans & closure; Perceivers (P) prefer flexibility & spontaneity.',
+    tone: 'amber',
+  },
 };
+
+/** All sixteen type codes, in table order. */
+export const MBTI_TYPES: string[] = Object.keys(MBTI_DATA);
+
+const stripThe = (s: string): string => s.replace(/^The\s+/i, '');
+
+/** Nickname without the leading "The" — "Champion" for ENFP. */
+export const getMbtiNickname = (type: string): string => stripThe(getMbtiData(type).title);
 
 const FALLBACK_MBTI: MbtiEntry = {
   title: "The Personality",
