@@ -69,7 +69,16 @@ Everything else is derived at render time and looked up, never stored:
 - **Nickname, function stack, description, famous names** from the type code via `MBTI_DATA`.
 - **Life Path number** and its reduction from `birthDate` via `calculateLifePath`.
 
-Change a number in the profile and all three views follow. A test (`src/views/noHardcodedPersonality.test.ts`) fails if a view ever grows a hardcoded type code, nickname, stack, or name.
+Change a number in the profile and all views follow. A test (`src/views/noHardcodedPersonality.test.ts`) fails if a view ever grows a hardcoded type code, nickname, stack, or name.
+
+### Your Data (intake)
+
+The bundled profile is a sample. The **Your Data** tab lets a reader replace it with their own:
+
+- **Paste a report** — any text with "Label 94%" pairs. `src/lib/parseReport.ts` recognises TypeFinder facet poles and TypeFinder / 16personalities dimension words (`Extraverted 51%`, `Observant 40%`, `E 51`), reading each percentage toward the label it sits beside.
+- **Per-field controls** — birthdate, the four dimensions, and the 23 facets, each as a pole picker plus a percentage.
+
+The profile persists to localStorage through the kit's namespaced `load`/`save` (key `lp_profile`), only once it differs from the sample. Anything loaded back is run through `src/lib/normalizeProfile.ts`, so a stale or hand-edited entry cannot break a render. A banner on the other tabs marks the sample until the reader enters their own numbers.
 
 ## A note on what this is and is not
 

@@ -23,7 +23,13 @@ const FUNCTIONS = ['Fi', 'Fe', 'Ti', 'Te', 'Ni', 'Ne', 'Si', 'Se'];
 
 describe('source files under guard', () => {
   it('covers the three views and the app shell', () => {
-    expect(FILES).toEqual(['../App.tsx', './ArchetypesView.tsx', './LifePathView.tsx', './PersonalityView.tsx']);
+    expect(FILES).toEqual([
+      '../App.tsx',
+      './ArchetypesView.tsx',
+      './IntakeView.tsx',
+      './LifePathView.tsx',
+      './PersonalityView.tsx',
+    ]);
   });
 });
 

@@ -1,19 +1,30 @@
 import { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import logo from './assets/logo.png';
 import { LifePathView } from './views/LifePathView';
 import { ArchetypesView } from './views/ArchetypesView';
 import { PersonalityView } from './views/PersonalityView';
+import { IntakeView } from './views/IntakeView';
 import { captureUtmParams } from './kit';
 import { ProfileProvider } from './store/ProfileProvider';
+import { useProfile } from './store/useProfile';
 import { FOCUS_RING, FONT, PAGE_BG, PAGE_TEXT } from './design/tokens';
 
-type View = 'lifepath' | 'archetypes' | 'profile';
+type View = 'lifepath' | 'archetypes' | 'profile' | 'intake';
 
 const TABS: { id: View; label: string }[] = [
   { id: 'lifepath', label: 'Life Path' },
   { id: 'archetypes', label: 'Archetypes' },
   { id: 'profile', label: 'Profile' },
+  { id: 'intake', label: 'Your Data' },
 ];
+
+const VIEWS: Record<View, () => React.JSX.Element> = {
+  lifepath: LifePathView,
+  archetypes: ArchetypesView,
+  profile: PersonalityView,
+  intake: IntakeView,
+};
 
 export default function SoulCompassApp() {
   // Capture UTMs once per session. Inside the component body so that
@@ -31,12 +42,14 @@ export default function SoulCompassApp() {
 
 function Shell() {
   const [view, setView] = useState<View>('lifepath');
+  const { isSample } = useProfile();
+  const Active = VIEWS[view];
 
   return (
     <div className={`min-h-screen ${PAGE_BG} ${FONT} ${PAGE_TEXT} pb-12`}>
       <header>
         <nav aria-label="Primary" className="bg-white border-b border-slate-200 sticky top-0 z-30 mb-8">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between gap-4">
             <button
               type="button"
               onClick={() => setView('lifepath')}
@@ -76,23 +89,25 @@ function Shell() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6">
-        {view === 'lifepath' && (
-          <div role="tabpanel" id="panel-lifepath" aria-labelledby="tab-lifepath">
-            <LifePathView />
+        {isSample && view !== 'intake' && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-2.5 text-xs text-indigo-800">
+            <span>
+              <span className="font-bold">Reading a sample profile.</span> The numbers here belong to the person who built
+              this.
+            </span>
+            <button
+              type="button"
+              onClick={() => setView('intake')}
+              className={`inline-flex items-center gap-1 rounded-md font-bold text-indigo-700 hover:text-indigo-900 ${FOCUS_RING}`}
+            >
+              Enter your own scores <ArrowRight size={12} aria-hidden="true" />
+            </button>
           </div>
         )}
 
-        {view === 'archetypes' && (
-          <div role="tabpanel" id="panel-archetypes" aria-labelledby="tab-archetypes">
-            <ArchetypesView />
-          </div>
-        )}
-
-        {view === 'profile' && (
-          <div role="tabpanel" id="panel-profile" aria-labelledby="tab-profile">
-            <PersonalityView />
-          </div>
-        )}
+        <div role="tabpanel" id={`panel-${view}`} aria-labelledby={`tab-${view}`}>
+          <Active />
+        </div>
       </main>
     </div>
   );
