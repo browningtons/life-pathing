@@ -70,6 +70,7 @@ Everything else is derived at render time and looked up, never stored:
 - **Life Path number** and its reduction from `birthDate` via `calculateLifePath`.
 - **Descriptors** ("How others tend to read you") as weighted blends of facet poles, so they move with the reader's facets.
 - **Temperament** as the N×F / N×T / S×P / S×J split of the dimension scores, four whole numbers summing to 100. The leading temperament drives convergence, growth edges, and the synthesis.
+- **Adjacent types** as 100 minus the reader's decisiveness (distance from 50, doubled) on every letter a type differs on. A dead-even letter costs nothing, so borderline splits surface as near-100 neighbours.
 
 Change a number in the profile and all views follow. A test (`src/views/noHardcodedPersonality.test.ts`) fails if a view ever grows a hardcoded type code, nickname, stack, or name.
 

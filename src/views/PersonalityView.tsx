@@ -30,7 +30,7 @@ import {
   getSynthesis,
   getTemperaments,
   getTraits,
-  getTypeMatchesForMbti,
+  getTypeMatches,
   personasFramework,
   sections,
   sectionLabels,
@@ -262,12 +262,16 @@ function TemperamentSection({ temperaments }: { temperaments: TemperamentEntry[]
 function TypeMatchSection({ matches }: { matches: TypeMatch[] }) {
   return (
     <Card>
-      <SectionHeading icon={Users} className="!mb-6">
+      <SectionHeading icon={Users} className="!mb-3">
         Types that sit closest
       </SectionHeading>
+      <p className={`${ASIDE} mb-6`}>
+        A type's score is a hundred minus how decided you are on each letter it differs on. A dead-even letter costs
+        nothing; a strong one costs a lot. Types at ninety or above differ only where you already split.
+      </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {matches.map((t) => {
-          const isTop = t.pct >= 68;
+          const isTop = t.pct >= 90;
           return (
             <div
               key={t.code}
@@ -278,6 +282,9 @@ function TypeMatchSection({ matches }: { matches: TypeMatch[] }) {
               <div className={`text-xl font-bold ${isTop ? 'text-indigo-600' : 'text-slate-600'}`}>{t.code}</div>
               <div className="text-[11px] text-slate-400 mt-0.5 leading-tight">{t.name}</div>
               <div className={`text-2xl font-light mt-2 ${isTop ? 'text-indigo-600' : 'text-slate-400'}`}>{t.pct}%</div>
+              <div className={`${MICRO_LABEL} !font-medium mt-1`}>
+                {t.apart} letter{t.apart === 1 ? '' : 's'} apart
+              </div>
             </div>
           );
         })}
@@ -382,7 +389,7 @@ export const PersonalityView = () => {
   const descriptors = useMemo(() => getDescriptors(profile.facets), [profile.facets]);
   const temperaments = useMemo(() => getTemperaments(profile.dimensions), [profile.dimensions]);
   const temperament = temperaments[0].name;
-  const typeMatches = useMemo(() => getTypeMatchesForMbti(typeCode), [typeCode]);
+  const typeMatches = useMemo(() => getTypeMatches(profile.dimensions), [profile.dimensions]);
   const convergence = useMemo(() => getConvergence(temperament), [temperament]);
   const growth = useMemo(() => getGrowthEdges(temperament), [temperament]);
   const mbtiData = useMemo(() => getMbtiData(typeCode), [typeCode]);

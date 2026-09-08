@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PROFILE } from './profile';
 import { getMbtiData, MBTI_DATA } from './mbti';
-import { FACET_CATALOG, getTraits, getTypeMatchesForMbti } from './personality';
+import { FACET_CATALOG, getTraits, getTypeMatches } from './personality';
 import { calculateLifePath } from '../lib/calculateLifePath';
 import { deriveTypeCode, dimensionDetails } from '../lib/deriveType';
 
@@ -70,7 +70,7 @@ describe('derived type', () => {
   });
 
   it('names adjacent types from the shared MBTI table', () => {
-    const infp = getTypeMatchesForMbti(typeCode).find((m) => m.code === 'INFP');
+    const infp = getTypeMatches(DEFAULT_PROFILE.dimensions).find((m) => m.code === 'INFP');
     expect(infp?.name).toBe('Healer');
   });
 });

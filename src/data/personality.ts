@@ -56,18 +56,6 @@ function mbtiLetters(mbti: string): { ie: 'E' | 'I'; sn: 'N' | 'S'; tf: 'T' | 'F
   };
 }
 
-// Deterministic 32-bit hash. Gives the adjacent-type match percentages
-// stable variance so values don't all clump. (Descriptors and temperament
-// no longer use it — they derive from the stored scores.)
-function hash(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
@@ -336,31 +324,50 @@ export function dominantTemperament(d: DimensionScores): TemperamentName {
 }
 
 // ── Adjacent types ────────────────────────────────────────────────────
-// Distance is the number of letters that differ. Closer types get higher
-// match scores. Self is excluded so users see neighbors, not themselves.
-// Nicknames come from the MBTI table — the one place they live.
+// How close each of the other fifteen types sits, from the dimension
+// scores. A type's score is 100 minus the reader's *decisiveness* on
+// every letter where the two differ, where decisiveness is how far the
+// score sits from the 50 midline, doubled (E 51 → 2, N 73 → 46, J 80 →
+// 60). A dead-even letter costs nothing, so at F 50 an ENFP reads as
+// ENTP at 100 — the borderline story told a second way. Self is excluded;
+// nicknames come from the MBTI table, the one place they live.
 
 export interface TypeMatch {
   code: string;
   name: string;
+  /** 0–100. 100 means the type differs only on dead-even letters. */
   pct: number;
+  /** How many letters differ from the reader's derived type. */
+  apart: number;
 }
 
-export function getTypeMatchesForMbti(mbti: string): TypeMatch[] {
-  return MBTI_TYPES.filter((code) => code !== mbti)
+/** Percent toward the right-hand pole (E, N, F, P), by type-code position. */
+const DIM_BY_POSITION: (keyof DimensionScores)[] = ['e', 'n', 'f', 'p'];
+const RIGHT_LETTERS = ['E', 'N', 'F', 'P'];
+
+/** How far a score sits from the midline, on a 0–100 scale. */
+export const decisiveness = (pct: number): number => Math.abs(2 * clamp(pct, 0, 100) - 100);
+
+export function getTypeMatches(d: DimensionScores, limit = 6): TypeMatch[] {
+  const self = letterCode(d);
+  return MBTI_TYPES.filter((code) => code !== self)
     .map((code) => {
-      const distance =
-        (mbti[0] !== code[0] ? 1 : 0) +
-        (mbti[1] !== code[1] ? 1 : 0) +
-        (mbti[2] !== code[2] ? 1 : 0) +
-        (mbti[3] !== code[3] ? 1 : 0);
-      // 0=skip, 1→70-78, 2→48-58, 3→28-38, 4→14-22
-      const base = distance === 1 ? 74 : distance === 2 ? 53 : distance === 3 ? 33 : 18;
-      const variance = (hash(code + ':' + mbti) % 9) - 4;
-      return { code, name: getMbtiNickname(code), pct: clamp(base + variance, 12, 84) };
+      let cost = 0;
+      let apart = 0;
+      for (let i = 0; i < 4; i++) {
+        const pct = d[DIM_BY_POSITION[i]];
+        const readerLetter = pct >= 50 ? RIGHT_LETTERS[i] : null;
+        const typeIsRight = code[i] === RIGHT_LETTERS[i];
+        const differs = (readerLetter !== null) !== typeIsRight;
+        if (differs) {
+          apart += 1;
+          cost += decisiveness(pct);
+        }
+      }
+      return { code, name: getMbtiNickname(code), pct: clamp(Math.round(100 - cost), 0, 100), apart };
     })
-    .sort((a, b) => b.pct - a.pct)
-    .slice(0, 6);
+    .sort((a, b) => b.pct - a.pct || a.apart - b.apart || a.code.localeCompare(b.code))
+    .slice(0, limit);
 }
 
 // ── Convergence themes & growth edges (per temperament) ──────────────

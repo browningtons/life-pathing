@@ -4,11 +4,13 @@
 
 import { describe, expect, it } from 'vitest';
 import {
+  decisiveness,
   DESCRIPTOR_SPECS,
   dominantTemperament,
   FACET_POLES,
   getDescriptors,
   getTemperaments,
+  getTypeMatches,
   poleScore,
   TEMPERAMENT_ORDER,
 } from './personality';
@@ -129,5 +131,73 @@ describe('getTemperaments', () => {
   it('moves with the dimensions — more Sensing shifts weight off Empath', () => {
     const [top] = getTemperaments({ ...sample.dimensions, n: 40 });
     expect(top.name).toBe('Responder');
+  });
+});
+
+describe('decisiveness', () => {
+  it('is distance from the midline, doubled', () => {
+    expect(decisiveness(50)).toBe(0);
+    expect(decisiveness(51)).toBe(2);
+    expect(decisiveness(73)).toBe(46);
+    expect(decisiveness(20)).toBe(60);
+    expect(decisiveness(100)).toBe(100);
+    expect(decisiveness(0)).toBe(100);
+  });
+});
+
+describe('getTypeMatches', () => {
+  const matches = getTypeMatches(sample.dimensions, 15);
+  const pct = Object.fromEntries(matches.map((m) => [m.code, m.pct]));
+
+  it('excludes the reader\'s own type and lists the other fifteen', () => {
+    expect(matches).toHaveLength(15);
+    expect(pct.ENFP).toBeUndefined();
+  });
+
+  it('scores each type as 100 minus decisiveness on the differing letters', () => {
+    // Sample: E 51 (2), N 73 (46), F 50 (0), P 63 (26)
+    expect(pct.ENTP).toBe(100); // differs on F only, dead even
+    expect(pct.INFP).toBe(98); // differs on E
+    expect(pct.INTP).toBe(98); // E + F
+    expect(pct.ENFJ).toBe(74); // P
+    expect(pct.ISTJ).toBe(26); // all four differ; F costs 0 at a dead-even 50
+    expect(pct.ESTJ).toBe(28); // N + P
+  });
+
+  it('counts how many letters differ', () => {
+    const byCode = Object.fromEntries(matches.map((m) => [m.code, m.apart]));
+    expect(byCode.ENTP).toBe(1);
+    expect(byCode.INTP).toBe(2);
+    expect(byCode.ISTJ).toBe(4);
+  });
+
+  it('sorts high to low, then fewer letters apart, then by code', () => {
+    expect(matches.slice(0, 3).map((m) => m.code)).toEqual(['ENTP', 'INFP', 'INTP']);
+    for (let i = 1; i < matches.length; i++) {
+      expect(matches[i - 1].pct).toBeGreaterThanOrEqual(matches[i].pct);
+    }
+  });
+
+  it('names types from the shared MBTI table', () => {
+    expect(matches.find((m) => m.code === 'INFP')?.name).toBe('Healer');
+  });
+
+  it('returns six by default', () => {
+    expect(getTypeMatches(sample.dimensions)).toHaveLength(6);
+  });
+
+  it('gives a fully decided reader zero overlap with the opposite type', () => {
+    const decided = getTypeMatches({ e: 100, n: 100, f: 100, p: 100 }, 15);
+    expect(decided.find((m) => m.code === 'ISTJ')?.pct).toBe(0);
+    expect(decided.find((m) => m.code === 'INFP')?.pct).toBe(0);
+  });
+
+  it('reads an all-50 reader as equally close to every type', () => {
+    for (const m of getTypeMatches({ e: 50, n: 50, f: 50, p: 50 }, 15)) expect(m.pct).toBe(100);
+  });
+
+  it('moves with the dimensions', () => {
+    const shifted = getTypeMatches({ ...sample.dimensions, f: 90 }, 15);
+    expect(shifted.find((m) => m.code === 'ENTP')?.pct).toBe(20);
   });
 });
