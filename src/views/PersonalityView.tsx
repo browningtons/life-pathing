@@ -24,19 +24,19 @@ import { DIMENSIONS, getMbtiData } from '../data/mbti';
 import {
   categories,
   categoryMeta,
-  getConvergenceForMbti,
-  getDescriptorsForMbti,
-  getGrowthEdgesForMbti,
-  getSynthesisForMbti,
-  getTemperamentForMbti,
+  getConvergence,
+  getDescriptors,
+  getGrowthEdges,
+  getSynthesis,
+  getTemperaments,
   getTraits,
   getTypeMatchesForMbti,
   personasFramework,
   sections,
   sectionLabels,
-  temperamentForMbti,
   TEMPERAMENT_TONE,
   type ConvergenceTheme,
+  type Descriptor,
   type GrowthEdge,
   type Section,
   type TemperamentEntry,
@@ -194,12 +194,15 @@ function SignatureTraits({ traits }: { traits: Trait[] }) {
   );
 }
 
-function DescriptorBars({ descriptors }: { descriptors: { word: string; pct: number }[] }) {
+function DescriptorBars({ descriptors }: { descriptors: Descriptor[] }) {
   return (
     <Card>
-      <SectionHeading icon={Eye} className="!mb-6">
+      <SectionHeading icon={Eye} className="!mb-3">
         How others tend to read you
       </SectionHeading>
+      <p className={`${ASIDE} mb-6`}>
+        Each word is a blend of a few facets. Change a facet on the Your Data tab and the words move with it.
+      </p>
       <div className="flex flex-col gap-3">
         {descriptors.map((d) => {
           const colorClass = d.pct >= 70 ? 'bg-indigo-500' : d.pct >= 50 ? 'bg-emerald-500' : 'bg-slate-300';
@@ -225,9 +228,13 @@ function DescriptorBars({ descriptors }: { descriptors: { word: string; pct: num
 function TemperamentSection({ temperaments }: { temperaments: TemperamentEntry[] }) {
   return (
     <Card>
-      <SectionHeading icon={Flame} className="!mb-6">
+      <SectionHeading icon={Flame} className="!mb-3">
         The four temperaments
       </SectionHeading>
+      <p className={`${ASIDE} mb-6`}>
+        Split from the Sensing–Intuition score first, then Thinking–Feeling on the intuitive side and Judging–Perceiving
+        on the sensing side. The four always add to a hundred.
+      </p>
       <div className="flex flex-col gap-5">
         {temperaments.map((t) => {
           const palette = toneFor(TEMPERAMENT_TONE[t.name]);
@@ -372,17 +379,17 @@ export const PersonalityView = () => {
   const [expandedTrait, setExpandedTrait] = useState<string | null>(null);
 
   const traits = useMemo(() => getTraits(profile.facets), [profile.facets]);
-  const descriptors = useMemo(() => getDescriptorsForMbti(typeCode), [typeCode]);
-  const temperaments = useMemo(() => getTemperamentForMbti(typeCode), [typeCode]);
+  const descriptors = useMemo(() => getDescriptors(profile.facets), [profile.facets]);
+  const temperaments = useMemo(() => getTemperaments(profile.dimensions), [profile.dimensions]);
+  const temperament = temperaments[0].name;
   const typeMatches = useMemo(() => getTypeMatchesForMbti(typeCode), [typeCode]);
-  const convergence = useMemo(() => getConvergenceForMbti(typeCode), [typeCode]);
-  const growth = useMemo(() => getGrowthEdgesForMbti(typeCode), [typeCode]);
+  const convergence = useMemo(() => getConvergence(temperament), [temperament]);
+  const growth = useMemo(() => getGrowthEdges(temperament), [temperament]);
   const mbtiData = useMemo(() => getMbtiData(typeCode), [typeCode]);
   const lpMeaning = LIFE_PATH_MEANINGS[lifePathNumber];
-  const temperament = temperamentForMbti(typeCode);
   const synthesis = useMemo(
-    () => getSynthesisForMbti(typeCode, mbtiData.title, lpMeaning?.title ?? null),
-    [typeCode, mbtiData.title, lpMeaning?.title],
+    () => getSynthesis(temperament, mbtiData.title, lpMeaning?.title ?? null),
+    [temperament, mbtiData.title, lpMeaning?.title],
   );
 
   const filtered = activeCategory === 'all' ? traits : traits.filter((t) => t.category === activeCategory);

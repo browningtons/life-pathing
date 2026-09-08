@@ -68,6 +68,8 @@ Everything else is derived at render time and looked up, never stored:
 - **Type code** from `dimensions` (`deriveTypeCode`), with a **borderline** flag on any dimension inside 45–55%. Borderline letters are marked everywhere a type code appears.
 - **Nickname, function stack, description, famous names** from the type code via `MBTI_DATA`.
 - **Life Path number** and its reduction from `birthDate` via `calculateLifePath`.
+- **Descriptors** ("How others tend to read you") as weighted blends of facet poles, so they move with the reader's facets.
+- **Temperament** as the N×F / N×T / S×P / S×J split of the dimension scores, four whole numbers summing to 100. The leading temperament drives convergence, growth edges, and the synthesis.
 
 Change a number in the profile and all views follow. A test (`src/views/noHardcodedPersonality.test.ts`) fails if a view ever grows a hardcoded type code, nickname, stack, or name.
 
