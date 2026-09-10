@@ -32,20 +32,24 @@ export const KIT_CONFIG: KitConfig = {
     productIdHint: 'prod_UP4Yk3jJmpXpAi',
   },
 
+  // The split itself lives in src/data/tiers.ts. This is the sales copy
+  // for it, and it only promises what the app ships today. Add a line
+  // here the day the feature is live, not before.
   upgrade: {
-    headerTitle: 'See the whole map.',
-    headerSubtitle: 'One payment. Yours forever.',
+    headerTitle: 'See the whole profile.',
+    headerSubtitle: 'One payment. Yours on this device, for good.',
     price: '$29',
     priceCaption: 'One-time purchase',
     features: [
-      'Full Life Path interpretation — patterns, breakdown modes, kindred spirits',
-      'Full Archetype detail — strengths, shadows, growth tips',
-      'Personality dashboard — 23 facets, descriptors, temperament',
-      'Convergence analysis — where your numerology and type point the same direction',
-      'Personal Compass PDF you can keep, print, or share',
+      'All twenty-three facets by category, each with a reading of how strongly it runs',
+      'How others tend to read you — twenty-five words, ranked',
+      'The four temperaments, split to a hundred',
+      'The types that sit closest, and which letters separate you',
+      'Where four old systems agree, and where they ask more of you',
+      'The inner cast',
     ],
     trustLine:
-      'Secure payment via Stripe. 30-day refund. No subscription. This is a journaling tool, not psychological or life advice.',
+      'Secure payment via Stripe. 30-day refund. No subscription, no account. A reader\'s tool, not psychological or life advice.',
   },
 
   analytics: {

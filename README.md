@@ -83,6 +83,23 @@ The bundled profile is a sample. The **Your Data** tab lets a reader replace it 
 
 The profile persists to localStorage through the kit's namespaced `load`/`save` (key `lp_profile`), only once it differs from the sample. Anything loaded back is run through `src/lib/normalizeProfile.ts`, so a stale or hand-edited entry cannot break a render. A banner on the other tabs marks the sample until the reader enters their own numbers.
 
+## Free and paid
+
+The split is decided in one place, `src/data/tiers.ts`, and the rule is: **the systems are free, the reading of you is paid.**
+
+| | Free | Paid (one-time, via Stripe) |
+|---|---|---|
+| Life Path by birthdate, all twelve numbers, compound meanings | ✓ | |
+| Archetypes, all sixteen types, stack, strengths, shadows | ✓ | |
+| Your Data intake, saved on device | ✓ | |
+| Profile hero, "The read", the five facets that show up loudest | ✓ | |
+| All twenty-three facets by category | | ✓ |
+| How others read you, temperament, adjacent types, convergence, the inner cast | | ✓ |
+
+Views wrap paid content in `<ProGate>` (`src/components/ProGate.tsx`). Free readers see an honest teaser — the real component fed a slice of the data — and a card naming what is behind the line. The gate's copy lives beside the split in `tiers.ts`; the modal's sales copy lives in `kit.config.ts` and only promises what ships.
+
+Entitlement is a local flag set by `/api/verify-purchase` after a Stripe Checkout redirect (`#session_id=cs_…`), or by email restore. There is no client-side unlock token. Admin preview: tap the logo five times, then toggle **Free User** in the bar to see the free experience.
+
 ## A note on what this is and is not
 
 A reader's tool, not a measurement. Numerology and MBTI are not psychology. Nothing here is medical, psychological, or life advice. Use it the way you would use a horoscope you read closely — as a prompt for reflection, not a verdict on who you are.
