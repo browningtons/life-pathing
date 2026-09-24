@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Reading wireframe</title>
+<style>
+body{font:14px/1.45 -apple-system,system-ui,sans-serif;color:#222;background:#fafafa;margin:0;padding:24px}
+.row{display:flex;gap:24px;align-items:flex-start}
+.screen{width:360px;border:1.5px solid #999;border-radius:6px;background:#fff;padding:16px;box-shadow:2px 2px 0 #ddd}
+.screen h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#777;margin:0 0 12px}
+.box{border:1px dashed #aaa;border-radius:4px;padding:10px;margin:8px 0}
+.btn{display:inline-block;border:1.5px solid #333;border-radius:4px;padding:6px 12px;font-weight:700;margin-top:6px}
+.muted{color:#888;font-size:12px}
+.pair{display:flex;gap:6px}.pair span{flex:1;border:1px solid #bbb;border-radius:4px;padding:6px;text-align:center}
+.pill{display:inline-block;border:1px solid #bbb;border-radius:999px;padding:1px 8px;font-size:11px;margin-right:4px}
+p{margin:6px 0}
+.note{font-size:11px;color:#666;margin-top:12px;border-top:1px solid #eee;padding-top:8px}
+</style></head><body>
+<!-- Rough wireframe, three states of the Reading path. Not a mockup. -->
+<div class="row">
+<div class="screen"><h2>1 · Arrive with a birthdate</h2>
+ <div class="box"><b>Life Path 7 · The Seeker</b><p class="muted">The reduction, shown (free, exists today).</p></div>
+ <div class="box"><b>Your Reading</b><p class="muted">One document, written for a 7 who is also a … we need four letters for that.</p>
+  <p>Do you know your type? <span class="muted">(shown while the letters are still the sample's)</span></p>
+  <span class="btn">I know it: ____</span> <span class="btn">Two-minute quiz</span></div>
+ <p class="note">Design note: the ask is placed right after the first free result, not before it. Typed letters write 70/30.</p>
+</div>
+<div class="screen"><h2>2 · Quiz (12 forced choices)</h2>
+ <div class="box"><p class="muted">Question 4 of 12</p><p>After a long week you would rather…</p>
+  <div class="pair"><span>see people</span><span>see no one</span></div></div>
+ <div class="box"><p class="muted">Progress ▮▮▮▮▯▯▯▯▯▯▯▯ · three questions per letter</p></div>
+ <p class="note">Design note: produces letters only, never facets. Borderline (2 of 3) is flagged the way the app already flags 45–55%.</p>
+</div>
+<div class="screen"><h2>3 · Reading: free opening, then the line</h2>
+ <div class="box"><span class="pill">INFJ</span><span class="pill">Life Path 7</span><span class="pill">Theorist</span>
+  <p><b>The Reading</b></p><p>Across the four lenses, the through-line is the long view. The Advocate wiring set inside the Seeker arc … <i>(opening paragraph, free, generated)</i></p></div>
+ <div class="box" style="background:#f3f3f3"><p class="muted">BEHIND THE LINE</p><p><b>Five more sections, written for this number and this type.</b><br>The Number · The Type · Where they agree · Where they pull · A closing line</p>
+  <span class="btn">Read the whole thing · $19</span> <span class="muted">one-time</span></div>
+ <div class="box"><p class="muted">After purchase: full text on this page + <b>Print / Save as PDF</b>. Saved to this device; Restore by email elsewhere.</p></div>
+</div>
+</div>
+</body></html>

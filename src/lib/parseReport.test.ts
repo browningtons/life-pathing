@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseReport } from './parseReport';
+import { FACET_CATALOG } from '../data/personality';
+import { DEFAULT_PROFILE } from '../data/profile';
+import { parseReport, pastePatch } from './parseReport';
 
 describe('parseReport', () => {
   it('reads a TypeFinder-style facet list toward the labelled pole', () => {
@@ -50,5 +52,43 @@ describe('parseReport', () => {
 
   it('returns empty results for empty text', () => {
     expect(parseReport('')).toEqual({ dimensions: {}, facets: {}, matched: 0 });
+  });
+});
+
+describe('pastePatch', () => {
+  const partial = parseReport('Insightful 81%\nAesthetic 64%\nSolitary 70%');
+
+  it('fills facets the paste did not carry with an even 50 while they are still the sample', () => {
+    const { patch, filledEven } = pastePatch(DEFAULT_PROFILE, partial);
+    expect(filledEven).toBe(true);
+    expect(patch.facetSource).toBe('report');
+    expect(patch.dimensionSource).toBeUndefined();
+    expect(patch.facets).toMatchObject({ Insightful: 81, Aesthetic: 64, Engaged: 30, Friendly: 50, Conceptual: 50 });
+    expect(Object.keys(patch.facets!)).toHaveLength(23);
+  });
+
+  it('keeps facets that are already the reader own', () => {
+    const own = { ...DEFAULT_PROFILE, facetSource: 'report' as const };
+    const { patch, filledEven } = pastePatch(own, partial);
+    expect(filledEven).toBe(false);
+    expect(patch.facets).toEqual(partial.facets);
+  });
+
+  it('fills dimensions the same way, and leaves facets alone when the paste has none', () => {
+    const { patch, filledEven } = pastePatch(DEFAULT_PROFILE, parseReport('Extraverted 30%'));
+    expect(filledEven).toBe(true);
+    expect(patch.dimensions).toEqual({ e: 30, n: 50, f: 50, p: 50 });
+    expect(patch.dimensionSource).toBe('report');
+    expect(patch.facets).toEqual({});
+    expect(patch.facetSource).toBeUndefined();
+  });
+
+  it('does not report an even fill when a full report replaces everything', () => {
+    const full = parseReport(
+      ['Extraverted 51', 'Intuitive 73', 'Feeling 50', 'Prospecting 63'].join('\n') +
+        '\n' +
+        FACET_CATALOG.map((f) => `${f.right} 40%`).join('\n'),
+    );
+    expect(pastePatch(DEFAULT_PROFILE, full).filledEven).toBe(false);
   });
 });

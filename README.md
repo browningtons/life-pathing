@@ -62,6 +62,10 @@ One profile, raw inputs only, in `src/data/profile.ts`:
 - `birthDate` — ISO date.
 - `dimensions` — `{ e, n, f, p }` as percentages toward E / N / F / P. Letters are never stored.
 - `facets` — the 23 TypeFinder facet scores, keyed by the right-hand pole.
+- `dimensionSource` — where the dimensions came from: `sample`, `quiz`, `typed`, or `report`.
+- `facetSource` — where the facets came from: `sample` or `report`.
+
+The two sources exist because the sample's numbers look like anyone else's. Without them the app cannot tell a reader who gave their letters from one who typed a birthdate while the letters are still the builder's. Profiles saved before the fields existed are migrated in `normalizeProfile`: anything that differs from the sample reads as `report`.
 
 Everything else is derived at render time and looked up, never stored:
 
@@ -81,7 +85,18 @@ The bundled profile is a sample. The **Your Data** tab lets a reader replace it 
 - **Paste a report** — any text with "Label 94%" pairs. `src/lib/parseReport.ts` recognises TypeFinder facet poles and TypeFinder / 16personalities dimension words (`Extraverted 51%`, `Observant 40%`, `E 51`), reading each percentage toward the label it sits beside.
 - **Per-field controls** — birthdate, the four dimensions, and the 23 facets, each as a pole picker plus a percentage.
 
-The profile persists to localStorage through the kit's namespaced `load`/`save` (key `lp_profile`), only once it differs from the sample. Anything loaded back is run through `src/lib/normalizeProfile.ts`, so a stale or hand-edited entry cannot break a render. A banner on the other tabs marks the sample until the reader enters their own numbers.
+Both mark what they touched as the reader's own (`report`). A paste onto values that are still the sample's fills anything it did not carry with an even 50, so a three-facet paste never leaves twenty of the builder's facets standing in for the reader's (`pastePatch` in `parseReport.ts`).
+
+### The letters ask (Life Path tab)
+
+The reader most likely to arrive has a birthdate and nothing else. Once their own birthdate is in and the letters are still the sample's, a card under the Life Path asks for four letters, two ways:
+
+- **Typed** — any code from any test, suffixes like `-T` dropped. Stored as 70 / 30 toward each letter: a stated type is a clear lean, never borderline.
+- **Twelve quick questions** — `src/data/quiz.ts`, three forced choices per dimension. A 3-to-0 answer stores 80 / 20; a 2-to-1 stores 55 / 45, inside the borderline band, so it is flagged like any near-even score. Letters only, never facets.
+
+Either way the reader is handed to the Profile, which then reads their number and their type together. A reader with letters but no facets sees "No facet scores yet" in place of the two facet sections, never the sample's facets.
+
+The profile persists to localStorage through the kit's namespaced `load`/`save` (key `lp_profile`), only once it differs from the sample. Anything loaded back is run through `src/lib/normalizeProfile.ts`, so a stale or hand-edited entry cannot break a render. A banner marks whose numbers are showing: the whole sample, or the reader's number with the sample's type. Its button goes to the next missing input.
 
 ## Free and paid
 
@@ -92,6 +107,7 @@ The split is decided in one place, `src/data/tiers.ts`, and the rule is: **the s
 | Life Path by birthdate, all twelve numbers, compound meanings | ✓ | |
 | Archetypes, all sixteen types, stack, strengths, shadows | ✓ | |
 | Your Data intake, saved on device | ✓ | |
+| The letters ask: typed letters or the twelve-question quiz | ✓ | |
 | Profile hero, "The read", the five facets that show up loudest | ✓ | |
 | All twenty-three facets by category | | ✓ |
 | How others read you, temperament, adjacent types, convergence, the inner cast | | ✓ |

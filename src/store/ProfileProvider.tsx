@@ -4,7 +4,7 @@
 // read from `useProfile()` and never keep their own copy.
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { DEFAULT_PROFILE, type Profile } from '../data/profile';
+import { DEFAULT_PROFILE, type DimensionScores, type Profile } from '../data/profile';
 import { load, save } from '../kit';
 import { calculateLifePath } from '../lib/calculateLifePath';
 import {
@@ -48,21 +48,34 @@ export function ProfileProvider({ children, initialProfile }: ProfileProviderPro
   const dimensions = useMemo(() => dimensionDetails(profile.dimensions), [profile.dimensions]);
   const lifePath = useMemo(() => calculateLifePath(profile.birthDate), [profile.birthDate]);
   const isSample = useMemo(() => profilesEqual(profile, DEFAULT_PROFILE), [profile]);
+  const ownBirthDate = profile.birthDate !== DEFAULT_PROFILE.birthDate;
+  const lettersKnown = profile.dimensionSource !== 'sample';
+  const facetsMissing = lettersKnown && profile.facetSource === 'sample';
 
   const setBirthDate = useCallback((birthDate: string) => {
     setProfile((p) => ({ ...p, birthDate }));
   }, []);
 
+  // Exploring letters on the Archetypes tab is not supplying them, so the
+  // source is left as it was.
   const toggleDimension = useCallback((dim: MbtiDimension) => {
     setProfile((p) => ({ ...p, dimensions: toggleDimensionPure(p.dimensions, dim) }));
   }, []);
 
   const setDimensionScore = useCallback((dim: MbtiDimension, pct: number) => {
-    setProfile((p) => ({ ...p, dimensions: setDimensionScorePure(p.dimensions, dim, pct) }));
+    setProfile((p) => ({ ...p, dimensions: setDimensionScorePure(p.dimensions, dim, pct), dimensionSource: 'report' }));
   }, []);
 
   const setFacetScore = useCallback((rightPole: string, pct: number) => {
-    setProfile((p) => ({ ...p, facets: { ...p.facets, [rightPole]: clampPct(pct, p.facets[rightPole] ?? 50) } }));
+    setProfile((p) => ({
+      ...p,
+      facets: { ...p.facets, [rightPole]: clampPct(pct, p.facets[rightPole] ?? 50) },
+      facetSource: 'report',
+    }));
+  }, []);
+
+  const setLetters = useCallback((dimensions: DimensionScores, source: 'quiz' | 'typed') => {
+    setProfile((p) => normalizeProfile({ ...p, dimensions, dimensionSource: source }, p));
   }, []);
 
   const updateProfile = useCallback((patch: ProfilePatch) => {
@@ -72,6 +85,8 @@ export function ProfileProvider({ children, initialProfile }: ProfileProviderPro
           birthDate: patch.birthDate ?? p.birthDate,
           dimensions: { ...p.dimensions, ...patch.dimensions },
           facets: { ...p.facets, ...patch.facets },
+          dimensionSource: patch.dimensionSource ?? p.dimensionSource,
+          facetSource: patch.facetSource ?? p.facetSource,
         },
         p,
       ),
@@ -90,10 +105,14 @@ export function ProfileProvider({ children, initialProfile }: ProfileProviderPro
       dimensions,
       lifePath,
       isSample,
+      ownBirthDate,
+      lettersKnown,
+      facetsMissing,
       setBirthDate,
       toggleDimension,
       setDimensionScore,
       setFacetScore,
+      setLetters,
       updateProfile,
       resetProfile,
     }),
@@ -103,10 +122,14 @@ export function ProfileProvider({ children, initialProfile }: ProfileProviderPro
       dimensions,
       lifePath,
       isSample,
+      ownBirthDate,
+      lettersKnown,
+      facetsMissing,
       setBirthDate,
       toggleDimension,
       setDimensionScore,
       setFacetScore,
+      setLetters,
       updateProfile,
       resetProfile,
     ],

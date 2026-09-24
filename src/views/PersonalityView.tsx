@@ -14,6 +14,8 @@ import {
   Star,
   BookOpen,
   Lock,
+  ClipboardPaste,
+  ArrowRight,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { BorderlineBadge } from '../components/BorderlineBadge';
@@ -65,6 +67,7 @@ import {
   toneFor,
 } from '../design/tokens';
 import { useGate } from '../store/useGate';
+import { useNav } from '../store/useNav';
 import { useProfile } from '../store/useProfile';
 
 const CATEGORY_ICONS: Record<TraitCategory, LucideIcon> = {
@@ -158,6 +161,37 @@ function TraitBar({ trait, isExpanded, onToggle }: TraitBarProps) {
         </div>
       )}
     </button>
+  );
+}
+
+/** Sections that read the facet scores. Everything else reads the four letters and the birthdate. */
+const FACET_SECTIONS: Section[] = ['traits', 'descriptors'];
+
+/**
+ * Shown in place of a facet section when the reader has their own letters
+ * but no facet scores: the facets on file are the sample's, and showing
+ * them would describe someone else.
+ */
+function FacetsMissing() {
+  const { go } = useNav();
+  return (
+    <Card variant="tinted">
+      <SectionHeading icon={ClipboardPaste} tone="indigo" className="!mb-3">
+        No facet scores yet
+      </SectionHeading>
+      <p className={`${BODY} max-w-2xl`}>
+        The twenty-three facets come from a full type report, the kind TypeFinder or 16personalities gives at the end of
+        its test. Four letters are enough for the rest of this page. The facets need the report. Paste one on the Your
+        Data tab and this section fills in.
+      </p>
+      <button
+        type="button"
+        onClick={() => go('intake')}
+        className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 ${FOCUS_RING}`}
+      >
+        Paste a report <ArrowRight size={14} aria-hidden="true" />
+      </button>
+    </Card>
   );
 }
 
@@ -388,11 +422,12 @@ function PersonaSection({ lifePathNumber }: { lifePathNumber: number }) {
 }
 
 export const PersonalityView = () => {
-  const { profile, typeCode, dimensions, lifePath } = useProfile();
+  const { profile, typeCode, dimensions, lifePath, facetsMissing } = useProfile();
   const { isPro } = useGate();
   const lifePathNumber = lifePath.number;
 
-  const [activeSection, setActiveSection] = useState<Section>('traits');
+  // A reader with letters but no facets opens on the first section that is about them.
+  const [activeSection, setActiveSection] = useState<Section>(facetsMissing ? 'temperament' : 'traits');
   const [activeCategory, setActiveCategory] = useState<'all' | TraitCategory>('all');
   const [expandedTrait, setExpandedTrait] = useState<string | null>(null);
 
@@ -481,7 +516,9 @@ export const PersonalityView = () => {
               >
                 <Icon size={14} aria-hidden="true" />
                 {sectionLabels[s]}
-                {!isPro && isPaidSection(s) && <Lock size={11} className="opacity-60" aria-label="Paid section" />}
+                {!isPro && isPaidSection(s) && !(facetsMissing && FACET_SECTIONS.includes(s)) && (
+                  <Lock size={11} className="opacity-60" aria-label="Paid section" />
+                )}
               </button>
             );
           })}
@@ -490,7 +527,8 @@ export const PersonalityView = () => {
 
       {/* CONTENT */}
       <div className="animate-in fade-in duration-300" key={activeSection}>
-        {activeSection === 'traits' && (
+        {activeSection === 'traits' && facetsMissing && <FacetsMissing />}
+        {activeSection === 'traits' && !facetsMissing && (
           <div className="space-y-4">
             <SignatureTraits traits={traits} />
 
@@ -551,7 +589,8 @@ export const PersonalityView = () => {
         {/* Paid sections. Each teaser is the real component fed a slice of
             the data — an honest preview, never a blurred copy. The split
             itself is decided in data/tiers.ts. */}
-        {activeSection === 'descriptors' && (
+        {activeSection === 'descriptors' && facetsMissing && <FacetsMissing />}
+        {activeSection === 'descriptors' && !facetsMissing && (
           <ProGate gate="descriptors" teaser={<DescriptorBars descriptors={descriptors.slice(0, 3)} />}>
             <DescriptorBars descriptors={descriptors} />
           </ProGate>
