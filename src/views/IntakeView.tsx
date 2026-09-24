@@ -26,7 +26,7 @@ import {
   type Tone,
 } from '../design/tokens';
 import { isBorderline, rawScore } from '../lib/deriveType';
-import { parseReport } from '../lib/parseReport';
+import { parseReport, pastePatch } from '../lib/parseReport';
 import { useProfile } from '../store/useProfile';
 import type { MbtiDimension } from '../types';
 
@@ -59,9 +59,12 @@ export const IntakeView = () => {
       setPasteNote('Nothing recognised yet. Paste lines like "Insightful 94%" or "Extraverted 51%".');
       return;
     }
-    updateProfile({ dimensions: parsed.dimensions, facets: parsed.facets });
+    const { patch, filledEven } = pastePatch(profile, parsed);
+    updateProfile(patch);
     setPasteNote(
-      `Read ${parsedDims} of 4 dimensions and ${parsedFacets} of 23 facets. Anything not found kept its current value.`,
+      `Read ${parsedDims} of 4 dimensions and ${parsedFacets} of 23 facets. ${
+        filledEven ? 'Anything not found was set to an even 50.' : 'Anything not found kept its current value.'
+      }`,
     );
     setPasted('');
   };

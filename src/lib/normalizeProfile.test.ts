@@ -14,6 +14,8 @@ describe('normalizeProfile', () => {
       birthDate: '1990-01-15',
       dimensions: { e: 30, n: 40, f: 80, p: 20 },
       facets: { ...DEFAULT_PROFILE.facets, Insightful: 12 },
+      dimensionSource: 'report' as const,
+      facetSource: 'report' as const,
     };
     expect(normalizeProfile(stored)).toEqual(stored);
   });
@@ -50,5 +52,37 @@ describe('profilesEqual', () => {
     expect(
       profilesEqual(DEFAULT_PROFILE, { ...DEFAULT_PROFILE, facets: { ...DEFAULT_PROFILE.facets, Joyful: 57 } }),
     ).toBe(false);
+  });
+});
+
+describe('source fields', () => {
+  const own = { birthDate: '1990-01-15', dimensions: { e: 30, n: 40, f: 80, p: 20 } };
+
+  it('keeps a stored source', () => {
+    expect(normalizeProfile({ ...own, dimensionSource: 'quiz', facetSource: 'sample' })).toMatchObject({
+      dimensionSource: 'quiz',
+      facetSource: 'sample',
+    });
+  });
+
+  it('reads a pre-source saved profile with its own dimensions as a report', () => {
+    const out = normalizeProfile(own);
+    expect(out.dimensionSource).toBe('report');
+    expect(out.facetSource).toBe('sample');
+  });
+
+  it('reads a pre-source saved profile with its own facets as a report', () => {
+    const out = normalizeProfile({ facets: { ...DEFAULT_PROFILE.facets, Insightful: 12 } });
+    expect(out.dimensionSource).toBe('sample');
+    expect(out.facetSource).toBe('report');
+  });
+
+  it('falls back to the base for an unknown source value', () => {
+    expect(normalizeProfile({ ...own, dimensionSource: 'guess' }).dimensionSource).toBe('sample');
+  });
+
+  it('counts a source-only change as a different profile, so it persists', () => {
+    expect(profilesEqual(DEFAULT_PROFILE, { ...DEFAULT_PROFILE, dimensionSource: 'typed' })).toBe(false);
+    expect(profilesEqual(DEFAULT_PROFILE, { ...DEFAULT_PROFILE, facetSource: 'report' })).toBe(false);
   });
 });

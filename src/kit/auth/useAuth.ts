@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { load, save } from '../persistence';
 import { useKitConfig } from '../use-kit-config';
 import { trackProPurchase, trackRestoreAttempt } from '../analytics';
+import { parseActivation } from './activation';
 
 const JUST_PURCHASED_KEY = 'just_purchased';
 
@@ -14,10 +15,12 @@ const JUST_PURCHASED_KEY = 'just_purchased';
  *   upgrade modal with attribution. Use this everywhere — never check
  *   `isPro` inline before calling a premium action.
  *
- * URL activation paths (handled once on mount):
- *   #pro=1                   → instant unlock (used by Stripe Payment Link)
+ * URL activation paths (handled once on mount; see ./activation.ts):
  *   #session_id=cs_...       → verified unlock via /api/verify-purchase
  *   #admin                   → flips admin on
+ *
+ * There is no client-side instant-unlock token. Entitlement comes only
+ * from a Stripe session the server has verified, or from email restore.
  *
  * Hidden admin: tap the logo `logoTapsToToggle` times within `tapWindowMs`.
  */
@@ -68,19 +71,10 @@ export function useAuth() {
 
   // One-time URL activation on mount.
   useEffect(() => {
-    const raw = `${window.location.hash}${window.location.search}`;
-    const tokens = raw.replace(/^[#?]/, '').split(/[#?&]/).filter(Boolean);
-    const hasProFlag = tokens.includes('pro=1');
-    const sessionToken = tokens.find((t) => t.startsWith('session_id='));
-    const sessionId = sessionToken?.slice('session_id='.length);
+    const { sessionId, admin } = parseActivation(window.location.hash, window.location.search);
 
-    if (hasProFlag) {
-      setIsProReal(true);
-      save('pro', true);
-      markJustPurchased();
+    if (sessionId) {
       window.history.replaceState(null, '', window.location.pathname);
-    }
-    if (sessionId && sessionId.startsWith('cs_')) {
       fetch(`/api/verify-purchase?session_id=${encodeURIComponent(sessionId)}`)
         .then((r) => (r.ok ? r.json() : null))
         .then((data: { verified?: boolean } | null) => {
@@ -96,7 +90,7 @@ export function useAuth() {
           /* network — swallow; restore flow covers the gap */
         });
     }
-    if (tokens.includes('admin')) {
+    if (admin) {
       setIsAdmin(true);
       save('admin', true);
       window.history.replaceState(null, '', window.location.pathname);

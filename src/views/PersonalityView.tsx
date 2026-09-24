@@ -13,12 +13,16 @@ import {
   ChevronDown,
   Star,
   BookOpen,
+  Lock,
+  ClipboardPaste,
+  ArrowRight,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { BorderlineBadge } from '../components/BorderlineBadge';
 import { Card } from '../components/Card';
 import { HeroCard } from '../components/HeroCard';
 import { SectionHeading } from '../components/SectionHeading';
+import { ProGate } from '../components/ProGate';
 import { TypeCode } from '../components/TypeCode';
 import { DIMENSIONS, getMbtiData } from '../data/mbti';
 import {
@@ -45,6 +49,7 @@ import {
   type TypeMatch,
 } from '../data/personality';
 import { LIFE_PATH_MEANINGS } from '../data/lifePathMeanings';
+import { FACET_DETAIL_GATE, isPaidSection } from '../data/tiers';
 import {
   ASIDE,
   BODY,
@@ -61,6 +66,8 @@ import {
   TAB_IDLE,
   toneFor,
 } from '../design/tokens';
+import { useGate } from '../store/useGate';
+import { useNav } from '../store/useNav';
 import { useProfile } from '../store/useProfile';
 
 const CATEGORY_ICONS: Record<TraitCategory, LucideIcon> = {
@@ -109,12 +116,16 @@ function TraitBar({ trait, isExpanded, onToggle }: TraitBarProps) {
     >
       <div className="flex justify-between items-baseline mb-2">
         <div className="flex items-baseline gap-2">
-          <span className={`text-sm ${leftDominant ? 'font-bold text-slate-800' : 'text-slate-400'}`}>{trait.left}</span>
+          <span className={`text-sm ${leftDominant ? 'font-bold text-slate-800' : 'text-slate-400'}`}>
+            {trait.left}
+          </span>
           {leftDominant && <span className={`text-xs font-bold ${style.text}`}>{trait.leftPct}%</span>}
         </div>
         <div className="flex items-baseline gap-2">
           {!leftDominant && <span className={`text-xs font-bold ${style.text}`}>{trait.rightPct}%</span>}
-          <span className={`text-sm ${!leftDominant ? 'font-bold text-slate-800' : 'text-slate-400'}`}>{trait.right}</span>
+          <span className={`text-sm ${!leftDominant ? 'font-bold text-slate-800' : 'text-slate-400'}`}>
+            {trait.right}
+          </span>
         </div>
       </div>
 
@@ -150,6 +161,37 @@ function TraitBar({ trait, isExpanded, onToggle }: TraitBarProps) {
         </div>
       )}
     </button>
+  );
+}
+
+/** Sections that read the facet scores. Everything else reads the four letters and the birthdate. */
+const FACET_SECTIONS: Section[] = ['traits', 'descriptors'];
+
+/**
+ * Shown in place of a facet section when the reader has their own letters
+ * but no facet scores: the facets on file are the sample's, and showing
+ * them would describe someone else.
+ */
+function FacetsMissing() {
+  const { go } = useNav();
+  return (
+    <Card variant="tinted">
+      <SectionHeading icon={ClipboardPaste} tone="indigo" className="!mb-3">
+        No facet scores yet
+      </SectionHeading>
+      <p className={`${BODY} max-w-2xl`}>
+        The twenty-three facets come from a full type report, the kind TypeFinder or 16personalities gives at the end of
+        its test. Four letters are enough for the rest of this page. The facets need the report. Paste one on the Your
+        Data tab and this section fills in.
+      </p>
+      <button
+        type="button"
+        onClick={() => go('intake')}
+        className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 ${FOCUS_RING}`}
+      >
+        Paste a report <ArrowRight size={14} aria-hidden="true" />
+      </button>
+    </Card>
   );
 }
 
@@ -319,19 +361,21 @@ function ConvergenceSection({ themes, growth }: { themes: ConvergenceTheme[]; gr
         </div>
       </Card>
 
-      <Card variant="warm">
-        <SectionHeading icon={Compass} tone="amber">
-          Where it tends to ask more of you
-        </SectionHeading>
-        <div className="flex flex-col gap-3">
-          {growth.map((g) => (
-            <div key={g.title} className="p-4 rounded-xl bg-white border border-amber-100">
-              <div className="text-sm font-bold text-amber-700 mb-1">{g.title}</div>
-              <p className={BODY}>{g.desc}</p>
-            </div>
-          ))}
-        </div>
-      </Card>
+      {growth.length > 0 && (
+        <Card variant="warm">
+          <SectionHeading icon={Compass} tone="amber">
+            Where it tends to ask more of you
+          </SectionHeading>
+          <div className="flex flex-col gap-3">
+            {growth.map((g) => (
+              <div key={g.title} className="p-4 rounded-xl bg-white border border-amber-100">
+                <div className="text-sm font-bold text-amber-700 mb-1">{g.title}</div>
+                <p className={BODY}>{g.desc}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
@@ -378,10 +422,12 @@ function PersonaSection({ lifePathNumber }: { lifePathNumber: number }) {
 }
 
 export const PersonalityView = () => {
-  const { profile, typeCode, dimensions, lifePath } = useProfile();
+  const { profile, typeCode, dimensions, lifePath, facetsMissing } = useProfile();
+  const { isPro } = useGate();
   const lifePathNumber = lifePath.number;
 
-  const [activeSection, setActiveSection] = useState<Section>('traits');
+  // A reader with letters but no facets opens on the first section that is about them.
+  const [activeSection, setActiveSection] = useState<Section>(facetsMissing ? 'temperament' : 'traits');
   const [activeCategory, setActiveCategory] = useState<'all' | TraitCategory>('all');
   const [expandedTrait, setExpandedTrait] = useState<string | null>(null);
 
@@ -470,6 +516,9 @@ export const PersonalityView = () => {
               >
                 <Icon size={14} aria-hidden="true" />
                 {sectionLabels[s]}
+                {!isPro && isPaidSection(s) && !(facetsMissing && FACET_SECTIONS.includes(s)) && (
+                  <Lock size={11} className="opacity-60" aria-label="Paid section" />
+                )}
               </button>
             );
           })}
@@ -478,68 +527,94 @@ export const PersonalityView = () => {
 
       {/* CONTENT */}
       <div className="animate-in fade-in duration-300" key={activeSection}>
-        {activeSection === 'traits' && (
+        {activeSection === 'traits' && facetsMissing && <FacetsMissing />}
+        {activeSection === 'traits' && !facetsMissing && (
           <div className="space-y-4">
             <SignatureTraits traits={traits} />
 
-            <Card className="!p-3">
-              <div className="flex flex-wrap gap-1 sm:gap-2 justify-center">
-                <button
-                  type="button"
-                  onClick={() => setActiveCategory('all')}
-                  className={`${TAB_BASE} ${FOCUS_RING} ${
-                    activeCategory === 'all' ? 'bg-slate-900 text-white shadow-sm' : TAB_IDLE
-                  }`}
-                >
-                  All
-                </button>
-                {categories.map((cat) => {
-                  const Icon = CATEGORY_ICONS[cat];
-                  const style = categoryTone(cat);
-                  const active = activeCategory === cat;
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setActiveCategory(cat)}
-                      className={`${TAB_BASE} ${FOCUS_RING} ${active ? `${style.bg} text-white shadow-sm` : TAB_IDLE}`}
-                    >
-                      <Icon size={14} aria-hidden="true" />
+            <ProGate gate={FACET_DETAIL_GATE}>
+              <Card className="!p-3">
+                <div className="flex flex-wrap gap-1 sm:gap-2 justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory('all')}
+                    className={`${TAB_BASE} ${FOCUS_RING} ${
+                      activeCategory === 'all' ? 'bg-slate-900 text-white shadow-sm' : TAB_IDLE
+                    }`}
+                  >
+                    All
+                  </button>
+                  {categories.map((cat) => {
+                    const Icon = CATEGORY_ICONS[cat];
+                    const style = categoryTone(cat);
+                    const active = activeCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setActiveCategory(cat)}
+                        className={`${TAB_BASE} ${FOCUS_RING} ${active ? `${style.bg} text-white shadow-sm` : TAB_IDLE}`}
+                      >
+                        <Icon size={14} aria-hidden="true" />
+                        {categoryMeta[cat].label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Card>
+              {(activeCategory === 'all' ? categories : [activeCategory]).map((cat) => {
+                const catTraits = filtered.filter((t) => t.category === cat);
+                return (
+                  <Card key={cat}>
+                    <SectionHeading icon={CATEGORY_ICONS[cat]} tone={categoryMeta[cat].tone} className="!mb-3">
                       {categoryMeta[cat].label}
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
-
-            {(activeCategory === 'all' ? categories : [activeCategory]).map((cat) => {
-              const catTraits = filtered.filter((t) => t.category === cat);
-              return (
-                <Card key={cat}>
-                  <SectionHeading icon={CATEGORY_ICONS[cat]} tone={categoryMeta[cat].tone} className="!mb-3">
-                    {categoryMeta[cat].label}
-                  </SectionHeading>
-                  <div>
-                    {catTraits.map((trait) => (
-                      <TraitBar
-                        key={trait.facet}
-                        trait={trait}
-                        isExpanded={expandedTrait === trait.facet}
-                        onToggle={() => setExpandedTrait(expandedTrait === trait.facet ? null : trait.facet)}
-                      />
-                    ))}
-                  </div>
-                </Card>
-              );
-            })}
+                    </SectionHeading>
+                    <div>
+                      {catTraits.map((trait) => (
+                        <TraitBar
+                          key={trait.facet}
+                          trait={trait}
+                          isExpanded={expandedTrait === trait.facet}
+                          onToggle={() => setExpandedTrait(expandedTrait === trait.facet ? null : trait.facet)}
+                        />
+                      ))}
+                    </div>
+                  </Card>
+                );
+              })}
+            </ProGate>
           </div>
         )}
 
-        {activeSection === 'descriptors' && <DescriptorBars descriptors={descriptors} />}
-        {activeSection === 'temperament' && <TemperamentSection temperaments={temperaments} />}
-        {activeSection === 'types' && <TypeMatchSection matches={typeMatches} />}
-        {activeSection === 'convergence' && <ConvergenceSection themes={convergence} growth={growth} />}
-        {activeSection === 'personas' && <PersonaSection lifePathNumber={lifePathNumber} />}
+        {/* Paid sections. Each teaser is the real component fed a slice of
+            the data — an honest preview, never a blurred copy. The split
+            itself is decided in data/tiers.ts. */}
+        {activeSection === 'descriptors' && facetsMissing && <FacetsMissing />}
+        {activeSection === 'descriptors' && !facetsMissing && (
+          <ProGate gate="descriptors" teaser={<DescriptorBars descriptors={descriptors.slice(0, 3)} />}>
+            <DescriptorBars descriptors={descriptors} />
+          </ProGate>
+        )}
+        {activeSection === 'temperament' && (
+          <ProGate gate="temperament" teaser={<TemperamentSection temperaments={temperaments.slice(0, 1)} />}>
+            <TemperamentSection temperaments={temperaments} />
+          </ProGate>
+        )}
+        {activeSection === 'types' && (
+          <ProGate gate="types" teaser={<TypeMatchSection matches={typeMatches.slice(0, 1)} />}>
+            <TypeMatchSection matches={typeMatches} />
+          </ProGate>
+        )}
+        {activeSection === 'convergence' && (
+          <ProGate gate="convergence" teaser={<ConvergenceSection themes={convergence.slice(0, 1)} growth={[]} />}>
+            <ConvergenceSection themes={convergence} growth={growth} />
+          </ProGate>
+        )}
+        {activeSection === 'personas' && (
+          <ProGate gate="personas">
+            <PersonaSection lifePathNumber={lifePathNumber} />
+          </ProGate>
+        )}
       </div>
 
       <p className="text-center text-xs text-slate-400 italic pt-4">

@@ -7,7 +7,8 @@
 // "Relaxed 66" and "Orderly 34" both store Orderly: 34.
 
 import { FACET_CATALOG } from '../data/personality';
-import type { DimensionScores, FacetScores } from '../data/profile';
+import type { DimensionScores, FacetScores, Profile } from '../data/profile';
+import type { ProfilePatch } from '../store/context-internal';
 
 type DimKey = keyof DimensionScores;
 
@@ -98,4 +99,43 @@ export function parseReport(text: string): ParsedReport {
   }
 
   return { dimensions, facets, matched };
+}
+
+const EVEN_DIMENSIONS: DimensionScores = { e: 50, n: 50, f: 50, p: 50 };
+const EVEN_FACETS: FacetScores = Object.fromEntries(FACET_CATALOG.map((f) => [f.right, 50]));
+
+export interface PastePatch {
+  patch: ProfilePatch;
+  /**
+   * True when something the paste did not carry was set to an even 50,
+   * because the value it would otherwise keep was the sample's.
+   */
+  filledEven: boolean;
+}
+
+/**
+ * How a parsed paste lands on the current profile.
+ *
+ * Whatever the paste carried becomes the reader's own. Whatever it did not
+ * carry keeps its current value if that value is already the reader's; if
+ * it is still the sample's, it becomes an even 50 instead. Otherwise a
+ * three-facet paste would mark all twenty-three as the reader's while
+ * twenty of them still described the person who built the app.
+ */
+export function pastePatch(profile: Profile, parsed: ParsedReport): PastePatch {
+  const hasDims = Object.keys(parsed.dimensions).length > 0;
+  const hasFacets = Object.keys(parsed.facets).length > 0;
+  const evenDims = hasDims && profile.dimensionSource === 'sample';
+  const evenFacets = hasFacets && profile.facetSource === 'sample';
+  return {
+    patch: {
+      dimensions: evenDims ? { ...EVEN_DIMENSIONS, ...parsed.dimensions } : parsed.dimensions,
+      facets: evenFacets ? { ...EVEN_FACETS, ...parsed.facets } : parsed.facets,
+      ...(hasDims && { dimensionSource: 'report' as const }),
+      ...(hasFacets && { facetSource: 'report' as const }),
+    },
+    filledEven:
+      (evenDims && Object.keys(parsed.dimensions).length < 4) ||
+      (evenFacets && Object.keys(parsed.facets).length < FACET_CATALOG.length),
+  };
 }

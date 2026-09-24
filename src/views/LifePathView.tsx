@@ -1,7 +1,9 @@
 import { Layers, Star, Users, Gem, Briefcase, Target, Heart, ArrowRight, ShieldAlert, Calendar, Compass } from 'lucide-react';
+import { useEffect } from 'react';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
 import { HeroCard } from '../components/HeroCard';
+import { LettersAsk } from '../components/LettersAsk';
 import { SectionHeading } from '../components/SectionHeading';
 import { COMPOUND_MEANINGS } from '../data/compoundMeanings';
 import { LIFE_PATH_MEANINGS } from '../data/lifePathMeanings';
@@ -17,6 +19,7 @@ import {
   toneFor,
   type Tone,
 } from '../design/tokens';
+import { trackLifePathShown } from '../lib/funnel';
 import { useProfile } from '../store/useProfile';
 import type { LifePathEntry } from '../types';
 
@@ -32,11 +35,19 @@ const FALLBACK_MEANING: LifePathEntry = {
   famous: [],
 };
 
+/** The hero's date input, so the sample banner can send a reader straight to it. */
+export const BIRTHDATE_INPUT_ID = 'lifepath-birthdate';
+
 export const LifePathView = () => {
-  const { profile, lifePath, setBirthDate } = useProfile();
+  const { profile, lifePath, ownBirthDate, setBirthDate } = useProfile();
   const meaning = LIFE_PATH_MEANINGS[lifePath.number] ?? FALLBACK_MEANING;
   const { breakdown, compound } = lifePath;
   const compoundMeaning = COMPOUND_MEANINGS[compound] ?? null;
+
+  // The top of the funnel: a reader's own birthdate produced a number.
+  useEffect(() => {
+    if (ownBirthDate && lifePath.number > 0) trackLifePathShown(lifePath.number);
+  }, [ownBirthDate, lifePath.number]);
 
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
@@ -56,6 +67,7 @@ export const LifePathView = () => {
               <span className="flex items-center gap-2">
                 <Calendar size={18} className="text-indigo-300" aria-hidden="true" />
                 <input
+                  id={BIRTHDATE_INPUT_ID}
                   type="date"
                   aria-label="Birth date"
                   value={profile.birthDate}
@@ -114,6 +126,9 @@ export const LifePathView = () => {
           </div>
         </div>
       </HeroCard>
+
+      {/* THE OTHER HALF — four letters, asked for right after the number */}
+      <LettersAsk />
 
       {/* WHAT THE NUMBER ASKS */}
       <Card>

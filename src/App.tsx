@@ -1,16 +1,17 @@
-import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowRight, PartyPopper, X } from 'lucide-react';
 import logo from './assets/logo.png';
-import { LifePathView } from './views/LifePathView';
+import { BIRTHDATE_INPUT_ID, LifePathView } from './views/LifePathView';
 import { ArchetypesView } from './views/ArchetypesView';
 import { PersonalityView } from './views/PersonalityView';
 import { IntakeView } from './views/IntakeView';
-import { captureUtmParams } from './kit';
+import { AdminBar, ProBadge, UpgradeModal, captureUtmParams, trackTabView, useAuth } from './kit';
+import { LETTERS_ASK_ID } from './components/LettersAsk';
+import { GateContext, type Gate } from './store/gate-internal';
+import { NavContext, type Nav, type View } from './store/nav-internal';
 import { ProfileProvider } from './store/ProfileProvider';
 import { useProfile } from './store/useProfile';
 import { FOCUS_RING, FONT, PAGE_BG, PAGE_TEXT } from './design/tokens';
-
-type View = 'lifepath' | 'archetypes' | 'profile' | 'intake';
 
 const TABS: { id: View; label: string }[] = [
   { id: 'lifepath', label: 'Life Path' },
@@ -41,74 +42,178 @@ export default function SoulCompassApp() {
 }
 
 function Shell() {
-  const [view, setView] = useState<View>('lifepath');
-  const { isSample } = useProfile();
+  const [view, setViewState] = useState<View>('lifepath');
+  // An anchor to land on after a programmatic nav. A ref, bumped by a tick
+  // so a nav to the tab already showing still scrolls.
+  const pendingAnchor = useRef<string | null>(null);
+  const [navTick, setNavTick] = useState(0);
+  const { isSample, ownBirthDate, lettersKnown } = useProfile();
+  const auth = useAuth();
   const Active = VIEWS[view];
 
+  const setView = useCallback((next: View) => {
+    setViewState(next);
+    trackTabView(next);
+  }, []);
+
+  // Programmatic navigation from inside a view. Lands at the top of the
+  // new tab, or on an anchor once it has rendered.
+  const nav = useMemo<Nav>(
+    () => ({
+      go: (next, anchor) => {
+        setView(next);
+        pendingAnchor.current = anchor ?? null;
+        setNavTick((t) => t + 1);
+        if (!anchor) window.scrollTo({ top: 0 });
+      },
+    }),
+    [setView],
+  );
+
+  // Effects run after commit, so the new tab (and the anchor in it) is
+  // already in the DOM here.
+  useEffect(() => {
+    const id = pendingAnchor.current;
+    if (!id) return;
+    pendingAnchor.current = null;
+    const el = document.getElementById(id);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el?.focus({ preventScroll: true });
+  }, [navTick]);
+
+  // What the banner above each tab says about whose numbers are showing:
+  //   sample   nothing is the reader's yet
+  //   letters  the birthdate is theirs, the type is still the sample's
+  const banner: 'sample' | 'letters' | null =
+    view === 'intake' ? null : isSample ? 'sample' : ownBirthDate && !lettersKnown ? 'letters' : null;
+
+  // The single entitlement instance, published to the views. Admins
+  // viewing-as-user see the free experience; see kit/auth/useAuth.
+  const gate = useMemo<Gate>(
+    () => ({ isPro: auth.isPro, openUpgrade: auth.openUpgrade }),
+    [auth.isPro, auth.openUpgrade],
+  );
+
   return (
-    <div className={`min-h-screen ${PAGE_BG} ${FONT} ${PAGE_TEXT} pb-12`}>
-      <header>
-        <nav aria-label="Primary" className="bg-white border-b border-slate-200 sticky top-0 z-30 mb-8">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between gap-4">
-            <button
-              type="button"
-              onClick={() => setView('lifepath')}
-              aria-label="Life Number Pathing — go to Life Path"
-              className={`flex items-center gap-3 rounded-md ${FOCUS_RING}`}
-            >
-              <img src={logo} alt="" aria-hidden="true" className="h-20 w-auto sm:h-20 object-contain" />
-              <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">
-                Life Number Pathing
-              </span>
-            </button>
-
-            <div
-              role="tablist"
-              aria-label="Sections"
-              className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1 rounded-lg border border-slate-100 overflow-x-auto"
-            >
-              {TABS.map((tab) => (
+    <NavContext.Provider value={nav}>
+      <GateContext.Provider value={gate}>
+        <div className={`min-h-screen ${PAGE_BG} ${FONT} ${PAGE_TEXT} pb-12`}>
+          {auth.isAdmin && (
+            <AdminBar isPro={auth.isPro} viewAs={auth.viewAs} setViewAs={auth.setViewAs} setIsAdmin={auth.setIsAdmin} />
+          )}
+          <header>
+            <nav aria-label="Primary" className="bg-white border-b border-slate-200 sticky top-0 z-30 mb-8">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between gap-4">
                 <button
-                  key={tab.id}
                   type="button"
-                  role="tab"
-                  id={`tab-${tab.id}`}
-                  aria-selected={view === tab.id}
-                  aria-controls={`panel-${tab.id}`}
-                  onClick={() => setView(tab.id)}
-                  className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap ${FOCUS_RING} ${
-                    view === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                  }`}
+                  onClick={() => {
+                    auth.handleLogoTap();
+                    setView('lifepath');
+                  }}
+                  aria-label="Life Number Pathing — go to Life Path"
+                  className={`flex items-center gap-3 rounded-md ${FOCUS_RING}`}
                 >
-                  {tab.label}
+                  <img src={logo} alt="" aria-hidden="true" className="h-20 w-auto sm:h-20 object-contain" />
+                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">
+                    Life Number Pathing
+                  </span>
+                  {auth.isPro && <ProBadge />}
                 </button>
-              ))}
+
+                <div
+                  role="tablist"
+                  aria-label="Sections"
+                  className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1 rounded-lg border border-slate-100 overflow-x-auto"
+                >
+                  {TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      role="tab"
+                      id={`tab-${tab.id}`}
+                      aria-selected={view === tab.id}
+                      aria-controls={`panel-${tab.id}`}
+                      onClick={() => setView(tab.id)}
+                      className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap ${FOCUS_RING} ${
+                        view === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </nav>
+          </header>
+
+          <main className="max-w-4xl mx-auto px-4 sm:px-6">
+            {auth.justPurchased && (
+              <div
+                role="status"
+                className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs text-emerald-800"
+              >
+                <span className="flex items-center gap-2">
+                  <PartyPopper size={14} aria-hidden="true" />
+                  <span>
+                    <span className="font-bold">The whole profile is open.</span> Saved to this browser; use Restore on
+                    another device.
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={auth.dismissJustPurchased}
+                  aria-label="Dismiss"
+                  className={`rounded-md p-1 text-emerald-700 hover:bg-emerald-100 ${FOCUS_RING}`}
+                >
+                  <X size={14} aria-hidden="true" />
+                </button>
+              </div>
+            )}
+
+            {banner && (
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-2.5 text-xs text-indigo-800">
+                {banner === 'sample' ? (
+                  <span>
+                    <span className="font-bold">Reading a sample profile.</span> The numbers here belong to the person
+                    who built this.
+                  </span>
+                ) : (
+                  <span>
+                    <span className="font-bold">Your number, the sample's type.</span> The four letters on these pages
+                    still belong to the person who built this.
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() =>
+                    banner === 'letters'
+                      ? nav.go('lifepath', LETTERS_ASK_ID)
+                      : view === 'lifepath'
+                        ? nav.go('lifepath', BIRTHDATE_INPUT_ID)
+                        : setView('intake')
+                  }
+                  className={`inline-flex items-center gap-1 rounded-md font-bold text-indigo-700 hover:text-indigo-900 ${FOCUS_RING}`}
+                >
+                  {banner === 'letters'
+                    ? 'Add your four letters'
+                    : view === 'lifepath'
+                      ? 'Start with your birthdate'
+                      : 'Enter your own scores'}{' '}
+                  <ArrowRight size={12} aria-hidden="true" />
+                </button>
+              </div>
+            )}
+
+            <div role="tabpanel" id={`panel-${view}`} aria-labelledby={`tab-${view}`}>
+              <Active />
             </div>
-          </div>
-        </nav>
-      </header>
+          </main>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6">
-        {isSample && view !== 'intake' && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-2.5 text-xs text-indigo-800">
-            <span>
-              <span className="font-bold">Reading a sample profile.</span> The numbers here belong to the person who built
-              this.
-            </span>
-            <button
-              type="button"
-              onClick={() => setView('intake')}
-              className={`inline-flex items-center gap-1 rounded-md font-bold text-indigo-700 hover:text-indigo-900 ${FOCUS_RING}`}
-            >
-              Enter your own scores <ArrowRight size={12} aria-hidden="true" />
-            </button>
-          </div>
-        )}
-
-        <div role="tabpanel" id={`panel-${view}`} aria-labelledby={`tab-${view}`}>
-          <Active />
+          {auth.upgradeSource && (
+            <UpgradeModal source={auth.upgradeSource} onClose={auth.closeUpgrade} onRestore={auth.handleRestore} />
+          )}
         </div>
-      </main>
-    </div>
+      </GateContext.Provider>
+    </NavContext.Provider>
   );
 }

@@ -27,11 +27,29 @@ export interface DimensionScores {
  */
 export type FacetScores = Record<string, number>;
 
+/**
+ * Where the four dimension scores came from. The sample's dimensions look
+ * exactly like anyone else's, so without this nothing can tell "the reader
+ * gave us letters" from "the reader typed a birthdate and the letters are
+ * still the builder's".
+ *
+ *   sample  the bundled sample; the reader has not supplied letters
+ *   quiz    the twelve-question quiz on the Life Path tab
+ *   typed   four letters typed in
+ *   report  a pasted report, or the per-field controls on Your Data
+ */
+export type DimensionSource = 'sample' | 'quiz' | 'typed' | 'report';
+
+/** Where the facet scores came from. Facets only arrive from a report. */
+export type FacetSource = 'sample' | 'report';
+
 export interface Profile {
   /** ISO date, YYYY-MM-DD. */
   birthDate: string;
   dimensions: DimensionScores;
   facets: FacetScores;
+  dimensionSource: DimensionSource;
+  facetSource: FacetSource;
 }
 
 export const DEFAULT_PROFILE: Profile = {
@@ -71,4 +89,7 @@ export const DEFAULT_PROFILE: Profile = {
     Friendly: 78,
     Engaged: 13, // Solitary 87
   },
+
+  dimensionSource: 'sample',
+  facetSource: 'sample',
 };
