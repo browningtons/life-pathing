@@ -6,6 +6,7 @@ import { ASIDE, BODY, FOCUS_RING, MICRO_LABEL } from '../design/tokens';
 import type { DimensionScores } from '../data/profile';
 import type { QuizPole } from '../data/quiz';
 import type { DimensionDetail } from '../lib/deriveType';
+import { useTapGuard } from '../kit';
 import { trackLettersEntered, trackQuizStarted } from '../lib/funnel';
 import { parseTypeCode, scoresFromQuiz, scoresFromTypeCode, type QuizAnswers } from '../lib/letters';
 import { useNav } from '../store/useNav';
@@ -174,6 +175,9 @@ const Quiz = ({ onCancel, onDone }: { onCancel: () => void; onDone: (answers: Qu
   const promptRef = useRef<HTMLHeadingElement>(null);
   const total = QUIZ_QUESTIONS.length;
   const question = QUIZ_QUESTIONS[index];
+  // A double-tap on "Twelve quick questions" or on an answer must not also
+  // answer the question it just revealed.
+  const tooEarly = useTapGuard(index);
 
   // Move focus to each new question so keyboard and screen-reader users
   // follow the quiz without hunting for it.
@@ -221,7 +225,9 @@ const Quiz = ({ onCancel, onDone }: { onCancel: () => void; onDone: (answers: Qu
               key={option.text}
               type="button"
               aria-pressed={chosen}
-              onClick={() => answer(option.toward)}
+              onClick={(e) => {
+                if (!tooEarly(e)) answer(option.toward);
+              }}
               className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${FOCUS_RING} ${
                 chosen
                   ? 'border-indigo-400 bg-indigo-50 text-indigo-900'
