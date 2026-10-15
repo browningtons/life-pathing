@@ -71,34 +71,87 @@ for (const spec of FACET_CATALOG) {
 // hyphenated (Self-Reliant). Single letters count so "E 51%" works.
 const PAIR = /([A-Za-z][A-Za-z-]*)\s*[:=()\-–—]*\s*(\d{1,3})\s*%?/g;
 
+export interface ReadLine {
+  /** The label as the reader wrote it, e.g. "Extraverted". */
+  label: string;
+  value: number;
+}
+
+export interface IgnoredLine {
+  /** The line as pasted, trimmed and shortened. */
+  text: string;
+  /** Why it was passed over: a bare number, or a label that is not one of ours. */
+  reason: 'no label' | 'unknown label';
+}
+
 export interface ParsedReport {
   dimensions: Partial<DimensionScores>;
   facets: FacetScores;
   /** How many recognised label/number pairs were read. */
   matched: number;
+  /** Each recognised pair, in paste order. */
+  read: ReadLine[];
+  /** Lines that carried a number but nothing we could use. */
+  ignored: IgnoredLine[];
 }
+
+const MAX_IGNORED_TEXT = 32;
 
 export function parseReport(text: string): ParsedReport {
   const dimensions: Partial<DimensionScores> = {};
   const facets: FacetScores = {};
+  const read: ReadLine[] = [];
+  const ignored: IgnoredLine[] = [];
   let matched = 0;
 
-  for (const m of text.matchAll(PAIR)) {
-    const label = m[1].toLowerCase();
-    const n = Number(m[2]);
-    if (n > 100) continue;
-    const target = TARGETS.get(label);
-    if (!target) continue;
-    const towardRight = target.isRight ? n : 100 - n;
-    if (target.kind === 'dimension') {
-      dimensions[target.key as DimKey] = towardRight;
-    } else {
-      facets[target.key] = towardRight;
+  for (const line of text.split(/\r?\n/)) {
+    let lineMatched = 0;
+    for (const m of line.matchAll(PAIR)) {
+      const label = m[1].toLowerCase();
+      const n = Number(m[2]);
+      if (n > 100) continue;
+      const target = TARGETS.get(label);
+      if (!target) continue;
+      const towardRight = target.isRight ? n : 100 - n;
+      if (target.kind === 'dimension') {
+        dimensions[target.key as DimKey] = towardRight;
+      } else {
+        facets[target.key] = towardRight;
+      }
+      read.push({ label: m[1], value: n });
+      lineMatched++;
+      matched++;
     }
-    matched++;
+    const trimmed = line.trim();
+    if (lineMatched === 0 && /\d/.test(trimmed)) {
+      const short = trimmed.length > MAX_IGNORED_TEXT ? `${trimmed.slice(0, MAX_IGNORED_TEXT - 1)}…` : trimmed;
+      ignored.push({ text: short, reason: /^[\d\s%.]+$/.test(trimmed) ? 'no label' : 'unknown label' });
+    }
   }
 
-  return { dimensions, facets, matched };
+  return { dimensions, facets, matched, read, ignored };
+}
+
+const LIST_CAP = 4;
+
+/**
+ * One line saying what a paste read and what it passed over, e.g.
+ * "Read: Extraverted 61, Imaginative 77 and 3 more · Ignored: '48%' (no label), 'page 3 of 12'".
+ * Both lists are capped at a handful; the rest are counted.
+ */
+export function describeReport(parsed: ParsedReport): string {
+  const capped = (items: string[]) =>
+    items.length > LIST_CAP
+      ? `${items.slice(0, LIST_CAP).join(', ')} and ${items.length - LIST_CAP} more`
+      : items.join(', ');
+  const parts: string[] = [];
+  if (parsed.read.length > 0) parts.push(`Read: ${capped(parsed.read.map((r) => `${r.label} ${r.value}`))}`);
+  if (parsed.ignored.length > 0) {
+    parts.push(
+      `Ignored: ${capped(parsed.ignored.map((i) => (i.reason === 'no label' ? `'${i.text}' (no label)` : `'${i.text}'`)))}`,
+    );
+  }
+  return parts.join(' · ');
 }
 
 const EVEN_DIMENSIONS: DimensionScores = { e: 50, n: 50, f: 50, p: 50 };

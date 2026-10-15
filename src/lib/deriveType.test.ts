@@ -3,6 +3,8 @@ import {
   deriveTypeCode,
   dimensionDetails,
   isBorderline,
+  letterFor,
+  poleScore,
   setDimensionScore,
   toggleDimension,
   typeCodeLetters,
@@ -111,5 +113,22 @@ describe('setDimensionScore', () => {
     expect(setDimensionScore({ e: 51, n: 73, f: 50, p: 63 }, 'ie', 120).e).toBe(100);
     expect(setDimensionScore({ e: 51, n: 73, f: 50, p: 63 }, 'ie', -3).e).toBe(0);
     expect(setDimensionScore({ e: 51, n: 73, f: 50, p: 63 }, 'jp', 40.6).p).toBe(41);
+  });
+});
+
+describe('poleScore', () => {
+  it('clamps the strength to 50–100 toward the named pole', () => {
+    expect(poleScore('right', 70)).toBe(70);
+    expect(poleScore('left', 70)).toBe(30);
+    expect(poleScore('left', 150)).toBe(0);
+    expect(poleScore('right', -5)).toBe(50);
+    expect(poleScore('right', Number.NaN)).toBe(50);
+  });
+
+  it('keeps the chosen pole at a dead-even strength', () => {
+    expect(letterFor('ie', poleScore('right', 50))).toBe('E');
+    expect(letterFor('ie', poleScore('left', 50))).toBe('I');
+    expect(letterFor('ie', poleScore('left', 30))).toBe('I');
+    expect(letterFor('ie', poleScore('left', Number.NaN))).toBe('I');
   });
 });
