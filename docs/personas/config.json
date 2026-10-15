@@ -1,0 +1,11 @@
+{
+  "_why": "Serve the production build (npm ci && npm run build; the app reads no VITE_ public env vars, so no build env is needed). The bundle carries the live Stripe publishable key and a live Payment Link, so everything off-origin stays blocked: no allowHosts. /api/verify-purchase is mocked to {verified:true} for both GET (post-checkout #session_id=cs_… redirect) and POST (email restore), so the unlock completes on screen without touching Stripe. paidState mirrors what useAuth leaves behind after a verified purchase: lp_pro, lp_stripe_session_id, and the one-time lp_just_purchased banner flag. Ports 5188/7311 are the defaults; agents pass APP_PORT/CTRL_PORT to get their own pair. The repo has no Playwright: run the harness with NODE_PATH pointing at a sibling repo's node_modules (see brief.md).",
+  "serve": "dist",
+  "blockApi": "/api/",
+  "mock": [
+    { "match": "/api/verify-purchase", "method": "GET", "status": 200, "body": { "verified": true } },
+    { "match": "/api/verify-purchase", "method": "POST", "status": 200, "body": { "verified": true } }
+  ],
+  "allowHosts": [],
+  "paidState": "localStorage.setItem('lp_pro','true'); localStorage.setItem('lp_stripe_session_id','\"cs_test_persona\"'); sessionStorage.setItem('lp_just_purchased','1');"
+}
