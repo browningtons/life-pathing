@@ -40,14 +40,24 @@ export const KIT_CONFIG: KitConfig = {
     headerSubtitle: 'One payment. Yours on this device, for good.',
     price: '$29',
     priceCaption: 'One-time purchase',
+    //
+    // `features` is what a birthdate and four letters open. The facet
+    // sections read the twenty-three facet scores, which only a pasted
+    // report supplies, so they sit under their own line: a reader with
+    // letters only learns that before paying, not after.
     features: [
-      'All twenty-three facets by category, each with a reading of how strongly it runs',
-      'How others tend to read you — twenty-five words, ranked',
       'The four temperaments, split to a hundred',
       'The types that sit closest, and which letters separate you',
-      'Where four old systems agree, and where they ask more of you',
+      'Where the letters and the Life Path agree, and where they ask more of you',
       'The inner cast',
     ],
+    conditionalFeatures: {
+      heading: 'Needs a pasted TypeFinder or 16personalities report',
+      features: [
+        'All twenty-three facets by category, each with a reading of how strongly it runs',
+        'How others tend to read you — twenty-five words, ranked',
+      ],
+    },
     trustLine:
       'Secure payment via Stripe. 30-day refund. No subscription, no account. A reader\'s tool, not psychological or life advice.',
   },

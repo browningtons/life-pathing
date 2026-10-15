@@ -26,7 +26,19 @@ export interface KitConfig {
     headerSubtitle: string;
     price: string;
     priceCaption: string;
+    /** What every buyer gets, as is. */
     features: string[];
+    /**
+     * Optional. Features that only fill in once the buyer supplies
+     * something (an import, a report, an upload). The modal lists them
+     * after `features`, under `heading`, so the condition is read before
+     * the buy rather than discovered after it.
+     */
+    conditionalFeatures?: {
+      /** Names the condition, e.g. "With a pasted report". */
+      heading: string;
+      features: string[];
+    };
     trustLine: string;
   };
   analytics: {
