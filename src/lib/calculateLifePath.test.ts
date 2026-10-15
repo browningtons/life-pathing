@@ -1,5 +1,42 @@
 import { describe, expect, it } from 'vitest';
-import { calculateLifePath } from './calculateLifePath';
+import { birthDateNote, calculateLifePath, reductionSteps } from './calculateLifePath';
+
+describe('reductionSteps', () => {
+  it('shows every step of 1984-11-29 and keeps the master numbers', () => {
+    const r = calculateLifePath('1984-11-29');
+    expect([r.breakdown.y, r.breakdown.m, r.breakdown.d]).toEqual([22, 11, 11]);
+    expect(r.compound).toBe(44);
+    expect(r.number).toBe(8);
+    expect(reductionSteps('1984')).toEqual({ steps: ['1+9+8+4 = 22'], keptMaster: false });
+    expect(reductionSteps('11')).toEqual({ steps: ['1+1 = 2'], keptMaster: true });
+    expect(reductionSteps('29')).toEqual({ steps: ['2+9 = 11'], keptMaster: false });
+    expect(reductionSteps(44)).toEqual({ steps: ['4+4 = 8'], keptMaster: false });
+  });
+
+  it('keeps 11 for 2001-04-04', () => {
+    const r = calculateLifePath('2001-04-04');
+    expect(r.number).toBe(11);
+    expect(r.compound).toBe(11);
+    expect(reductionSteps(r.compound).keptMaster).toBe(true);
+  });
+
+  it('writes out multi-step reductions and nothing for single digits', () => {
+    expect(reductionSteps('1999').steps).toEqual(['1+9+9+9 = 28', '2+8 = 10', '1+0 = 1']);
+    expect(reductionSteps('08').steps).toEqual([]);
+    expect(reductionSteps(12).steps).toEqual(['1+2 = 3']);
+  });
+});
+
+describe('birthDateNote', () => {
+  const today = new Date(2026, 9, 15);
+  it('flags the future and pre-1900 years, and nothing else', () => {
+    expect(birthDateNote('2030-01-01', today)).toBe("That date hasn't happened yet.");
+    expect(birthDateNote('1899-12-31', today)).toBe('Check the year.');
+    expect(birthDateNote('1984-11-29', today)).toBeNull();
+    expect(birthDateNote('2026-10-15', today)).toBeNull();
+    expect(birthDateNote('', today)).toBeNull();
+  });
+});
 
 describe('calculateLifePath', () => {
   it('reduces a typical birth date to a single digit', () => {

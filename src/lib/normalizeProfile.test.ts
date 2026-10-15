@@ -33,6 +33,12 @@ describe('normalizeProfile', () => {
     expect(out.dimensions).toEqual({ e: 100, n: 0, f: 61, p: DEFAULT_PROFILE.dimensions.p });
   });
 
+  it('keeps an empty birthdate rather than restoring the sample date', () => {
+    expect(normalizeProfile({ birthDate: '' }).birthDate).toBe('');
+    expect(normalizeProfile(JSON.parse(JSON.stringify({ ...DEFAULT_PROFILE, birthDate: '' }))).birthDate).toBe('');
+    expect(profilesEqual(DEFAULT_PROFILE, { ...DEFAULT_PROFILE, birthDate: '' })).toBe(false);
+  });
+
   it('rejects a malformed birthdate', () => {
     expect(normalizeProfile({ birthDate: '08/09/1986' }).birthDate).toBe(DEFAULT_PROFILE.birthDate);
     expect(normalizeProfile({ birthDate: 19860809 }).birthDate).toBe(DEFAULT_PROFILE.birthDate);

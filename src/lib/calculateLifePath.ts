@@ -54,3 +54,39 @@ export const calculateLifePath = (dateString: string): LifePathData => {
     },
   };
 };
+
+/**
+ * Every step from a number to where it stops, written out. 1999 becomes
+ * ["1+9+9+9 = 28", "2+8 = 10", "1+0 = 1"]. A number already at a single digit,
+ * or already a master number, has no steps. `keptMaster` is true when the
+ * number itself is 11, 22 or 33 and is kept rather than reduced.
+ */
+export const reductionSteps = (raw: string | number): { steps: string[]; keptMaster: boolean } => {
+  const text = String(raw);
+  let n = parseInt(text, 10);
+  if (Number.isNaN(n)) return { steps: [], keptMaster: false };
+  const keptMaster = MASTER_NUMBERS.has(n);
+  const steps: string[] = [];
+  let current = String(n);
+  if (current.length < 2) return { steps, keptMaster };
+  // A leading-zero day or month ("08") reads as the digit it is: no steps.
+  while (current.length > 1) {
+    const sum = digitSum(current);
+    steps.push(`${current.split('').join('+')} = ${sum}`);
+    if (MASTER_NUMBERS.has(sum) && sum !== n) break;
+    current = String(sum);
+    n = sum;
+  }
+  return { steps, keptMaster };
+};
+
+/** A one-line note for a date that is probably a typo. It still computes. */
+export const birthDateNote = (dateString: string, today: Date = new Date()): string | null => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
+  if (!m) return null;
+  const pad = (v: number) => String(v).padStart(2, '0');
+  const todayIso = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  if (dateString > todayIso) return "That date hasn't happened yet.";
+  if (Number(m[1]) < 1900) return 'Check the year.';
+  return null;
+};
