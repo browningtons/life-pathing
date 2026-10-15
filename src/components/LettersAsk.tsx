@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from 'react';
 import { ArrowLeft, ArrowRight, Keyboard, ListChecks, RotateCcw } from 'lucide-react';
 import { getMbtiData } from '../data/mbti';
 import { QUIZ_QUESTIONS } from '../data/quiz';
@@ -8,6 +8,7 @@ import type { QuizPole } from '../data/quiz';
 import type { DimensionDetail } from '../lib/deriveType';
 import { useTapGuard } from '../kit';
 import { trackLettersEntered, trackQuizStarted } from '../lib/funnel';
+import { resultLeanCopy, resultRetakeLabel } from '../lib/letterSource';
 import { parseTypeCode, scoresFromQuiz, scoresFromTypeCode, type QuizAnswers } from '../lib/letters';
 import { useNav } from '../store/useNav';
 import { useProfile } from '../store/useProfile';
@@ -255,10 +256,20 @@ interface ResultProps {
 
 const Result = ({ typeCode, dimensions, onContinue, onRetake }: ResultProps) => {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const source = useProfile().profile.dimensionSource;
   const title = getMbtiData(typeCode).title;
   const borderline = dimensions.filter((d) => d.borderline);
+  const typed = source === 'typed';
 
-  useEffect(() => headingRef.current?.focus(), []);
+  // The card replaces the form under the pointer, so the second half of a
+  // double-click on "Read it" would land on these buttons and skip the card.
+  const shownAt = useRef(0);
+  const settled = (e: MouseEvent) => e.timeStamp - shownAt.current > 400;
+
+  useEffect(() => {
+    shownAt.current = performance.now();
+    headingRef.current?.focus();
+  }, []);
 
   return (
     <div aria-live="polite">
@@ -267,17 +278,24 @@ const Result = ({ typeCode, dimensions, onContinue, onRetake }: ResultProps) => 
         <TypeCode letters={dimensions} /> <span className="text-lg font-medium text-indigo-600">· {title}</span>
       </h3>
       <p className={`${BODY} mt-2 max-w-2xl`}>
-        {borderline.length > 0
-          ? `The underlined ${borderline.length === 1 ? 'letter is' : 'letters are'} a two-to-one lean, close enough to go either way. The other pages mark ${borderline.length === 1 ? 'it' : 'them'} the same way.`
-          : 'A clear lean on all four letters.'}{' '}
-        Your number and your type are now read together on the Profile.
+        {resultLeanCopy(source, borderline.length)} Your number and your type are now read together on the Profile.
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button type="button" className={PRIMARY} onClick={onContinue}>
+        <button type="button" className={PRIMARY} onClick={(e) => settled(e) && onContinue()}>
           See the two read together <ArrowRight size={14} aria-hidden="true" />
         </button>
-        <button type="button" className={QUIET} onClick={onRetake}>
-          <RotateCcw size={12} aria-hidden="true" /> Take the questions again
+        <button
+          type="button"
+          className={QUIET}
+          onClick={(e) => {
+            if (!settled(e)) return;
+            // For a typed reader this is a first quiz, not a retake.
+            if (typed) trackQuizStarted();
+            onRetake();
+          }}
+        >
+          {typed ? <ListChecks size={12} aria-hidden="true" /> : <RotateCcw size={12} aria-hidden="true" />}{' '}
+          {resultRetakeLabel(source)}
         </button>
       </div>
     </div>

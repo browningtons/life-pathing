@@ -49,6 +49,13 @@ import {
   type TypeMatch,
 } from '../data/personality';
 import { LIFE_PATH_MEANINGS } from '../data/lifePathMeanings';
+import {
+  showsDimensionPercent,
+  TYPED_MARKER,
+  TYPED_MARKER_TITLE,
+  TYPED_MATCHES_NOTE,
+  TYPED_TEMPERAMENT_NOTE,
+} from '../lib/letterSource';
 import { FACET_DETAIL_GATE, isPaidSection } from '../data/tiers';
 import { defaultProfileSection } from '../lib/provenance';
 import {
@@ -271,7 +278,16 @@ function DescriptorBars({ descriptors }: { descriptors: Descriptor[] }) {
   );
 }
 
-function TemperamentSection({ temperaments }: { temperaments: TemperamentEntry[] }) {
+/** One line under a section's explainer when the numbers rest on typed letters, not scores. */
+function TypedNote({ children }: { children: string }) {
+  return (
+    <p className="-mt-3 mb-6 text-xs leading-relaxed text-amber-800 bg-amber-50/60 border border-amber-100 rounded-lg px-3 py-2">
+      {children}
+    </p>
+  );
+}
+
+function TemperamentSection({ temperaments, typed }: { temperaments: TemperamentEntry[]; typed: boolean }) {
   return (
     <Card>
       <SectionHeading icon={Flame} className="!mb-3">
@@ -281,6 +297,7 @@ function TemperamentSection({ temperaments }: { temperaments: TemperamentEntry[]
         Split from the Sensing–Intuition score first, then Thinking–Feeling on the intuitive side and Judging–Perceiving
         on the sensing side. The four always add to a hundred.
       </p>
+      {typed && <TypedNote>{TYPED_TEMPERAMENT_NOTE}</TypedNote>}
       <div className="flex flex-col gap-5">
         {temperaments.map((t) => {
           const palette = toneFor(TEMPERAMENT_TONE[t.name]);
@@ -305,7 +322,7 @@ function TemperamentSection({ temperaments }: { temperaments: TemperamentEntry[]
   );
 }
 
-function TypeMatchSection({ matches }: { matches: TypeMatch[] }) {
+function TypeMatchSection({ matches, typed }: { matches: TypeMatch[]; typed: boolean }) {
   return (
     <Card>
       <SectionHeading icon={Users} className="!mb-3">
@@ -315,6 +332,7 @@ function TypeMatchSection({ matches }: { matches: TypeMatch[] }) {
         A type's score is a hundred minus how decided you are on each letter it differs on. A dead-even letter costs
         nothing; a strong one costs a lot. Types at ninety or above differ only where you already split.
       </p>
+      {typed && <TypedNote>{TYPED_MATCHES_NOTE}</TypedNote>}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {matches.map((t) => {
           const isTop = t.pct >= 90;
@@ -429,6 +447,9 @@ export const PersonalityView = () => {
   const { profile, typeCode, dimensions, lifePath, facetsMissing } = useProfile();
   const { isPro } = useGate();
   const lifePathNumber = lifePath.number;
+  // Typed letters are stored as a 70/30 default, not a score: no percentages on the hero.
+  const showPct = showsDimensionPercent(profile.dimensionSource);
+  const lettersTyped = !showPct;
 
   // A reader with letters but no facets opens on the first section that is
   // about them; see lib/provenance.
@@ -489,7 +510,16 @@ export const PersonalityView = () => {
               return (
                 <div key={d.dim} className={`text-center p-3 ${HERO_TILE}`} title={d.tooltip}>
                   <div className={`text-3xl font-bold leading-none ${tone.textOnDark}`}>{d.letter}</div>
-                  <div className="text-xs font-bold text-white/70 mt-2">{d.pct}%</div>
+                  {showPct ? (
+                    <div className="text-xs font-bold text-white/70 mt-2">{d.pct}%</div>
+                  ) : (
+                    <div
+                      className="text-[10px] font-bold uppercase tracking-wider text-white/60 mt-2"
+                      title={TYPED_MARKER_TITLE}
+                    >
+                      {TYPED_MARKER}
+                    </div>
+                  )}
                   <div className="text-[10px] text-white/40 mt-1">{d.name}</div>
                   {d.borderline && (
                     <div className="mt-1.5 flex justify-center">
@@ -608,13 +638,16 @@ export const PersonalityView = () => {
           </ProGate>
         )}
         {activeSection === 'temperament' && (
-          <ProGate gate="temperament" teaser={<TemperamentSection temperaments={temperaments.slice(0, 1)} />}>
-            <TemperamentSection temperaments={temperaments} />
+          <ProGate
+            gate="temperament"
+            teaser={<TemperamentSection temperaments={temperaments.slice(0, 1)} typed={lettersTyped} />}
+          >
+            <TemperamentSection temperaments={temperaments} typed={lettersTyped} />
           </ProGate>
         )}
         {activeSection === 'types' && (
-          <ProGate gate="types" teaser={<TypeMatchSection matches={typeMatches.slice(0, 1)} />}>
-            <TypeMatchSection matches={typeMatches} />
+          <ProGate gate="types" teaser={<TypeMatchSection matches={typeMatches.slice(0, 1)} typed={lettersTyped} />}>
+            <TypeMatchSection matches={typeMatches} typed={lettersTyped} />
           </ProGate>
         )}
         {activeSection === 'convergence' && (
