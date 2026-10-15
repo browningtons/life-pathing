@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { X, Zap, Check, ExternalLink } from 'lucide-react';
 import { useKitConfig } from '../use-kit-config';
 import { stripeUrlWithUtm, trackUpgradeShown } from '../analytics';
+import { useTapGuard } from '../tap-guard';
 
 /**
  * The Buy Button web component requires a Stripe-dashboard-created Buy
@@ -31,13 +32,43 @@ interface UpgradeModalProps {
 export default function UpgradeModal({ onClose, onRestore, source }: UpgradeModalProps) {
   const { stripe, upgrade } = useKitConfig();
 
+  // The tap that opened the modal can double: its second half lands where
+  // the Buy link now is. Pointer clicks on the CTA are ignored for a moment.
+  const tooEarly = useTapGuard();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
   useEffect(() => {
     trackUpgradeShown(source);
   }, [source]);
 
+  // Escape closes; focus moves in on open and returns to the opener on close.
+  useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.focus({ preventScroll: true });
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCloseRef.current();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden max-h-[95vh] overflow-y-auto">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={upgrade.headerTitle}
+        tabIndex={-1}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden max-h-[95vh] overflow-y-auto outline-none"
+      >
         {/* Header */}
         <div className="bg-gradient-to-br from-emerald-700 to-emerald-900 p-6 text-white text-center relative">
           <button
@@ -82,6 +113,9 @@ export default function UpgradeModal({ onClose, onRestore, source }: UpgradeModa
           ) : (
             <a
               href={stripeUrlWithUtm(stripe.paymentUrl)}
+              onClick={(e) => {
+                if (tooEarly(e)) e.preventDefault();
+              }}
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold rounded-lg shadow-md transition-colors"
             >
               Buy now — {upgrade.price}

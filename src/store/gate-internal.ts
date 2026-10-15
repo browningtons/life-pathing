@@ -8,6 +8,8 @@ export interface Gate {
   isPro: boolean;
   /** Open the upgrade modal, tagged with where it was triggered from. */
   openUpgrade: (source: string) => void;
+  /** Restore a purchase by checkout email (the kit's flow). */
+  restore: () => void;
 }
 
 export const GateContext = createContext<Gate | null>(null);

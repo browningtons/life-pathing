@@ -12,6 +12,7 @@ export { default as UpgradeModal } from './components/UpgradeModal';
 export { default as LockedOverlay } from './components/LockedOverlay';
 export { default as ProBadge } from './components/ProBadge';
 export { default as AdminBar } from './components/AdminBar';
+export { useTapGuard, isEarlyPointerTap, TAP_GUARD_MS } from './tap-guard';
 export { load, save } from './persistence';
 export {
   captureUtmParams,

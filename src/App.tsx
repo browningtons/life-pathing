@@ -90,8 +90,8 @@ function Shell() {
   // The single entitlement instance, published to the views. Admins
   // viewing-as-user see the free experience; see kit/auth/useAuth.
   const gate = useMemo<Gate>(
-    () => ({ isPro: auth.isPro, openUpgrade: auth.openUpgrade }),
-    [auth.isPro, auth.openUpgrade],
+    () => ({ isPro: auth.isPro, openUpgrade: auth.openUpgrade, restore: auth.handleRestore }),
+    [auth.isPro, auth.openUpgrade, auth.handleRestore],
   );
 
   return (
@@ -155,8 +155,8 @@ function Shell() {
                 <span className="flex items-center gap-2">
                   <PartyPopper size={14} aria-hidden="true" />
                   <span>
-                    <span className="font-bold">The whole profile is open.</span> Saved to this browser; use Restore on
-                    another device.
+                    <span className="font-bold">The whole profile is open.</span> The unlock is saved to this browser. On
+                    another device, use Restore, then enter your own birthdate and letters again.
                   </span>
                 </span>
                 <button

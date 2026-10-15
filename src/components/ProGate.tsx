@@ -24,7 +24,7 @@ interface ProGateProps {
  * plain words, what is behind the line and what it costs.
  */
 export const ProGate = ({ gate, children, teaser }: ProGateProps) => {
-  const { isPro, openUpgrade } = useGate();
+  const { isPro, openUpgrade, restore } = useGate();
   const { upgrade } = useKitConfig();
   const copy = GATE_COPY[gate];
   const source = `profile_${gate}`;
@@ -59,6 +59,13 @@ export const ProGate = ({ gate, children, teaser }: ProGateProps) => {
             <span className="text-xs text-slate-500">
               {upgrade.price} · {upgrade.priceCaption.toLowerCase()}
             </span>
+            <button
+              type="button"
+              onClick={restore}
+              className={`rounded text-[11px] text-slate-400 underline underline-offset-2 hover:text-slate-600 ${FOCUS_RING}`}
+            >
+              Already purchased? Restore
+            </button>
           </div>
         </div>
       </Card>
