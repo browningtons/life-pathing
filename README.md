@@ -94,6 +94,8 @@ The reader most likely to arrive has a birthdate and nothing else. Once their ow
 - **Typed** — any code from any test, suffixes like `-T` dropped. Stored as 70 / 30 toward each letter: a stated type is a clear lean, never borderline.
 - **Twelve quick questions** — `src/data/quiz.ts`, three forced choices per dimension. A 3-to-0 answer stores 80 / 20; a 2-to-1 stores 55 / 45, inside the borderline band, so it is flagged like any near-even score. Letters only, never facets.
 
+A quiz result with a two-to-one letter also offers "Not you? Type your four letters.", which opens the typed form in place; Back returns to the quiz result, and a 3-to-0 sweep on all four letters does not show the link.
+
 Either way the reader is handed to the Profile, which then reads their number and their type together. A reader with letters but no facets sees "No facet scores yet" in place of the two facet sections, never the sample's facets.
 
 The profile persists to localStorage through the kit's namespaced `load`/`save` (key `lp_profile`), only once it differs from the sample. Anything loaded back is run through `src/lib/normalizeProfile.ts`, so a stale or hand-edited entry cannot break a render. A banner marks whose numbers are showing: the whole sample, or the reader's number with the sample's type. Its button goes to the next missing input.

@@ -28,6 +28,13 @@ export function resultLeanCopy(source: DimensionSource, borderlineCount: number)
 export const resultRetakeLabel = (source: DimensionSource): string =>
   source === 'typed' ? 'Take the twelve questions' : 'Take the questions again';
 
+/** Offered on a quiz result with a two-to-one letter: the quiz may have misread, so let the reader say so. */
+export const offersTypedCorrection = (source: DimensionSource, borderlineCount: number): boolean =>
+  source === 'quiz' && borderlineCount > 0;
+
+/** The link that opens the typed-letters form from a borderline quiz result. */
+export const NOT_YOU_LABEL = 'Not you? Type your four letters.';
+
 /** Stands in for the percentage on a hero tile when the letters were typed. */
 export const TYPED_MARKER = 'Typed';
 
