@@ -65,56 +65,12 @@ export const LifePathView = () => {
     if (ownBirthDate && lifePath.number > 0) trackLifePathShown(lifePath.number);
   }, [ownBirthDate, lifePath.number]);
 
-  return (
-    <div className="space-y-4 animate-in fade-in duration-500">
-      {/* HERO */}
-      <HeroCard>
-        <div className="grid md:grid-cols-5 gap-8 items-start">
-          <div className="md:col-span-3">
-            <div className="flex items-center gap-3 mb-3 opacity-80">
-              <Compass size={20} aria-hidden="true" />
-              <span className={EYEBROW}>Reading a Life Path</span>
-            </div>
-
-            <label className="flex flex-wrap items-center gap-3 mb-5">
-              <span className={`${EYEBROW} text-indigo-200/80 flex items-center gap-1`}>
-                Enter a birthdate <ArrowRight size={12} aria-hidden="true" />
-              </span>
-              <span className="flex items-center gap-2">
-                <Calendar size={18} className="text-indigo-300" aria-hidden="true" />
-                <input
-                  id={BIRTHDATE_INPUT_ID}
-                  type="date"
-                  aria-label="Birth date"
-                  value={profile.birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  className={`bg-white/10 border border-white/10 rounded-md px-2 py-1 text-white font-bold text-base cursor-pointer [color-scheme:dark] ${FOCUS_RING_ON_DARK}`}
-                />
-              </span>
-            </label>
-            {dateNote && (
-              <p className="-mt-3 mb-4 text-xs text-amber-200" role="status">
-                {dateNote}
-              </p>
-            )}
-
-            <div aria-live="polite" aria-atomic="true">
-              <h2 className={HERO_TITLE}>{isEmpty ? 'Add a birthdate' : `Life Path ${lifePath.number}`}</h2>
-              {!isEmpty && <h3 className={HERO_SUBTITLE}>{meaning.title}</h3>}
-            </div>
-            {!isEmpty && compound >= 10 && (
-              <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 rounded-lg text-indigo-100">
-                <Gem size={14} className="text-indigo-300" aria-hidden="true" />
-                <span className="text-xs font-bold uppercase tracking-wide">
-                  {compound} / {lifePath.number}
-                  {compoundMeaning ? `: ${compoundMeaning}` : ''}
-                </span>
-              </div>
-            )}
-            <p className={HERO_BODY}>{meaning.description}</p>
-          </div>
-
-          <div className={`${HERO_PANEL} md:col-span-2`}>
+  // A reader's own birthdate puts the letters ask first: the reduction table
+  // drops out of the hero to sit under the ask, so the ask lands on the first
+  // screen. The sample profile keeps the table beside the number.
+  const panelBelow = ownBirthDate && !isEmpty;
+  const reductionPanel = (
+          <div className={`${HERO_PANEL} ${panelBelow ? '' : 'md:col-span-2'}`}>
             <h3 className={`${EYEBROW} text-indigo-200/80 mb-2 flex items-center gap-2`}>
               <Layers size={14} aria-hidden="true" /> How the number is found
             </h3>
@@ -161,11 +117,70 @@ export const LifePathView = () => {
               </div>
             )}
           </div>
+  );
+
+  return (
+    <div className="space-y-4 animate-in fade-in duration-500">
+      {/* HERO */}
+      <HeroCard>
+        <div className={`grid md:grid-cols-5 ${panelBelow ? 'gap-4 md:gap-8' : 'gap-8'} items-start`}>
+          <div className="md:col-span-3">
+            <div className="flex items-center gap-3 mb-3 opacity-80">
+              <Compass size={20} aria-hidden="true" />
+              <span className={EYEBROW}>Reading a Life Path</span>
+            </div>
+
+            <label className="flex flex-wrap items-center gap-3 mb-5">
+              <span className={`${EYEBROW} text-indigo-200/80 flex items-center gap-1`}>
+                Enter a birthdate <ArrowRight size={12} aria-hidden="true" />
+              </span>
+              <span className="flex items-center gap-2">
+                <Calendar size={18} className="text-indigo-300" aria-hidden="true" />
+                <input
+                  id={BIRTHDATE_INPUT_ID}
+                  type="date"
+                  aria-label="Birth date"
+                  value={profile.birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  className={`bg-white/10 border border-white/10 rounded-md px-2 py-1 text-white font-bold text-base cursor-pointer [color-scheme:dark] ${FOCUS_RING_ON_DARK}`}
+                />
+              </span>
+            </label>
+            {dateNote && (
+              <p className="-mt-3 mb-4 text-xs text-amber-200" role="status">
+                {dateNote}
+              </p>
+            )}
+
+            <div aria-live="polite" aria-atomic="true">
+              <h2 className={HERO_TITLE}>{isEmpty ? 'Add a birthdate' : `Life Path ${lifePath.number}`}</h2>
+              {!isEmpty && <h3 className={HERO_SUBTITLE}>{meaning.title}</h3>}
+            </div>
+            {!isEmpty && compound >= 10 && (
+              <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 rounded-lg text-indigo-100">
+                <Gem size={14} className="text-indigo-300" aria-hidden="true" />
+                <span className="text-xs font-bold uppercase tracking-wide">
+                  {compound} / {lifePath.number}
+                  {compoundMeaning ? `: ${compoundMeaning}` : ''}
+                </span>
+              </div>
+            )}
+            {!panelBelow && <p className={HERO_BODY}>{meaning.description}</p>}
+          </div>
+
+          {panelBelow ? (
+            <p className={`${HERO_BODY} md:col-span-2 md:self-end`}>{meaning.description}</p>
+          ) : (
+            reductionPanel
+          )}
         </div>
       </HeroCard>
 
       {/* THE OTHER HALF — four letters, asked for right after the number */}
       <LettersAsk />
+
+      {/* HOW THE NUMBER IS FOUND: under the ask when the ask is the next thing to do */}
+      {panelBelow && <HeroCard>{reductionPanel}</HeroCard>}
 
       {isEmpty ? null : (
         <>

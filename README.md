@@ -89,7 +89,7 @@ Both mark what they touched as the reader's own (`report`). A paste onto values 
 
 ### The letters ask (Life Path tab)
 
-The reader most likely to arrive has a birthdate and nothing else. Once their own birthdate is in and the letters are still the sample's, a card under the Life Path asks for four letters, two ways:
+The reader most likely to arrive has a birthdate and nothing else. Once their own birthdate is in and the letters are still the sample's, a card directly under the Life Path hero asks for four letters (the "How the number is found" table moves below the card to make room; the sample profile keeps it beside the number), two ways:
 
 - **Typed** — any code from any test, suffixes like `-T` dropped. Stored as 70 / 30 toward each letter: a stated type is a clear lean, never borderline.
 - **Twelve quick questions** — `src/data/quiz.ts`, three forced choices per dimension. A 3-to-0 answer stores 80 / 20; a 2-to-1 stores 55 / 45, inside the borderline band, so it is flagged like any near-even score. Letters only, never facets.
