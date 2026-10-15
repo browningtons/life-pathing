@@ -6,16 +6,16 @@ Retire or add a persona only with a dated note saying why.
 ## Scoreboard
 | Persona | 2026-10-14 |
 |---|---|
-| Maya (phone, 11pm, TikTok) | |
-| Dave (desktop, checks the math) | |
-| Priya (tablet, Truity report owner) | |
-| Linda (laptop 1366×700, reads every word) | |
-| Sam (shared laptop, privacy-first) | |
-| Carlos (desktop, ChatGPT daily) | |
-| Rachel (desktop, coach evaluator) | |
-| Tom (desktop, edge-case data) | |
-| Aisha (phone → laptop, second device) | |
-| Kevin (phone, shared link, breaks things) | |
+| Maya (phone, 11pm, TikTok) | WOULDN'T PAY: paid part needs a pasted report; nothing about love |
+| Dave (desktop, checks the math) | WOULDN'T PAY (close): master-number rows contradict; typed 70% |
+| Priya (tablet, Truity report owner) | WOULDN'T PAY (leaning): per-facet line is a template |
+| Linda (laptop 1366×700, reads every word) | WOULDN'T PAY: sent to TypeFinder for facets; jargon |
+| Sam (shared laptop, privacy-first) | WOULDN'T PAY: no privacy/refund page; reset keeps unlock |
+| Carlos (desktop, ChatGPT daily) | WOULDN'T PAY: 2 of 6 promises empty; ties at 60% |
+| Rachel (desktop, coach evaluator) | WOULDN'T RECOMMEND: invented percentages; Archetypes overwrote type |
+| Tom (desktop, edge-case data) | WOULDN'T PAY (yet): Life Path 0 on cleared date |
+| Aisha (phone → laptop, second device) | WOULDN'T PAY: paid facets empty; Restore hidden |
+| Kevin (phone, shared link, breaks things) | WOULDN'T PAY: double-tap reaches Buy; free already felt like the product |
 
 ## Cards
 
