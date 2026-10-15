@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Star, Users, Brain, HelpCircle, Ghost } from 'lucide-react';
 import { BorderlineBadge } from '../components/BorderlineBadge';
 import { Card } from '../components/Card';
@@ -18,15 +19,46 @@ import {
   HERO_TITLE,
   MICRO_LABEL,
 } from '../design/tokens';
-import type { DimensionDetail } from '../lib/deriveType';
+import type { DimensionScores } from '../data/profile';
+import { togglesWriteToProfile } from '../lib/archetypeBrowse';
+import {
+  deriveTypeCode,
+  dimensionDetails,
+  toggleDimension as toggleDimensionPure,
+  type DimensionDetail,
+} from '../lib/deriveType';
+import { TYPED_MARKER, TYPED_MARKER_TITLE, showsDimensionPercent } from '../lib/letterSource';
 import { useProfile } from '../store/useProfile';
 import type { MbtiDimension } from '../types';
 
 const STACK_LABELS = ['First', 'Second', 'Third', 'Last'];
 
 export const ArchetypesView = () => {
-  const { typeCode, dimensions, toggleDimension } = useProfile();
+  const { profile, typeCode: ownCode, dimensions: ownDimensions, toggleDimension } = useProfile();
+  // Sample profile: toggles write to it, so a first-time reader can pick a type
+  // and see the rest of the app follow. Own letters: toggles only move a
+  // view-only type held here, and the saved profile is never touched.
+  const writesToProfile = togglesWriteToProfile(profile.dimensionSource);
+  const [browsed, setBrowsed] = useState<DimensionScores | null>(null);
+  const viewScores = writesToProfile ? null : browsed;
+  const browsedCode = viewScores ? deriveTypeCode(viewScores) : null;
+  const browsing = viewScores !== null && browsedCode !== ownCode;
+  const typeCode = browsing && browsedCode ? browsedCode : ownCode;
+  // A browsed type has no score behind it, so it carries no percentages or borderline marks.
+  const dimensions =
+    browsing && viewScores ? dimensionDetails(viewScores).map((d) => ({ ...d, borderline: false })) : ownDimensions;
+  const showPct = !browsing && showsDimensionPercent(profile.dimensionSource);
+  const typedMarker = !browsing && profile.dimensionSource === 'typed';
   const data = getMbtiData(typeCode);
+
+  const onToggle = (dim: MbtiDimension) => {
+    if (writesToProfile) {
+      toggleDimension(dim);
+      return;
+    }
+    const next = toggleDimensionPure(browsed ?? profile.dimensions, dim);
+    setBrowsed(deriveTypeCode(next) === ownCode ? null : next);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -42,11 +74,32 @@ export const ArchetypesView = () => {
             </h2>
             <h3 className={HERO_SUBTITLE}>{data.title}</h3>
             <p className={HERO_BODY}>{data.desc}</p>
+            {!writesToProfile && (
+              <div className="mt-3 text-xs">
+                {browsing ? (
+                  <button
+                    type="button"
+                    onClick={() => setBrowsed(null)}
+                    className={`underline underline-offset-2 opacity-80 hover:opacity-100 rounded ${FOCUS_RING_ON_DARK}`}
+                  >
+                    Back to your type: {ownCode}
+                  </button>
+                ) : (
+                  <span className="opacity-70">This is you.</span>
+                )}
+              </div>
+            )}
           </div>
 
           <div className={`${HERO_PANEL} grid grid-cols-2 gap-4`}>
             {dimensions.map((detail) => (
-              <DimensionToggle key={detail.dim} detail={detail} onToggle={toggleDimension} />
+              <DimensionToggle
+                key={detail.dim}
+                detail={detail}
+                showPct={showPct}
+                typedMarker={typedMarker}
+                onToggle={onToggle}
+              />
             ))}
           </div>
         </div>
@@ -145,10 +198,14 @@ export const ArchetypesView = () => {
 
 interface DimensionToggleProps {
   detail: DimensionDetail;
+  /** False when the percentage is not a measurement (typed letters, a browsed type). */
+  showPct: boolean;
+  /** Show the "Typed" marker where the percentage would be. */
+  typedMarker: boolean;
   onToggle: (dim: MbtiDimension) => void;
 }
 
-const DimensionToggle = ({ detail, onToggle }: DimensionToggleProps) => {
+const DimensionToggle = ({ detail, showPct, typedMarker, onToggle }: DimensionToggleProps) => {
   const { dim, label, left, right, letter, pct, borderline, tooltip } = detail;
   const favorsLeft = letter === left.letter;
   const other = favorsLeft ? right.letter : left.letter;
@@ -157,7 +214,7 @@ const DimensionToggle = ({ detail, onToggle }: DimensionToggleProps) => {
     <button
       type="button"
       onClick={() => onToggle(dim)}
-      aria-label={`${label}: ${letter} at ${pct}%${borderline ? ', borderline' : ''}. Click to toggle to ${other}.`}
+      aria-label={`${label}: ${letter}${showPct ? ` at ${pct}%` : ''}${borderline ? ', borderline' : ''}. Click to toggle to ${other}.`}
       title={tooltip}
       className={`flex flex-col items-center p-3 ${HERO_TILE} hover:bg-black/30 transition-colors relative ${FOCUS_RING_ON_DARK}`}
     >
@@ -186,9 +243,15 @@ const DimensionToggle = ({ detail, onToggle }: DimensionToggleProps) => {
       </div>
       <div className="mt-2 flex items-center gap-1.5 text-[11px]">
         <span className="font-bold text-white/80">
-          {letter} {pct}%
+          {showPct ? `${letter} ${pct}%` : letter}
+          {typedMarker && (
+            <span className="font-normal text-white/50" title={TYPED_MARKER_TITLE}>
+              {' '}
+              {TYPED_MARKER}
+            </span>
+          )}
         </span>
-        {borderline && <BorderlineBadge onDark pct={pct} />}
+        {borderline && <BorderlineBadge onDark pct={showPct ? pct : undefined} />}
       </div>
     </button>
   );
