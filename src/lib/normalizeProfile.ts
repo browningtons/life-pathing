@@ -44,6 +44,9 @@ export function normalizeFacets(raw: unknown, base: FacetScores = DEFAULT_PROFIL
 }
 
 export function normalizeBirthDate(raw: unknown, base: string = DEFAULT_PROFILE.birthDate): string {
+  // An empty string is a real state (the reader cleared the date); it must
+  // survive a reload rather than falling back to the sample's date.
+  if (raw === '') return '';
   return typeof raw === 'string' && ISO_DATE.test(raw) ? raw : base;
 }
 

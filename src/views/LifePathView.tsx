@@ -1,4 +1,16 @@
-import { Layers, Star, Users, Gem, Briefcase, Target, Heart, ArrowRight, ShieldAlert, Calendar, Compass } from 'lucide-react';
+import {
+  Layers,
+  Star,
+  Users,
+  Gem,
+  Briefcase,
+  Target,
+  Heart,
+  ArrowRight,
+  ShieldAlert,
+  Calendar,
+  Compass,
+} from 'lucide-react';
 import { useEffect } from 'react';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
@@ -19,14 +31,15 @@ import {
   toneFor,
   type Tone,
 } from '../design/tokens';
+import { birthDateNote, reductionSteps } from '../lib/calculateLifePath';
 import { trackLifePathShown } from '../lib/funnel';
 import { useProfile } from '../store/useProfile';
 import type { LifePathEntry } from '../types';
 
 const FALLBACK_MEANING: LifePathEntry = {
-  title: 'Unknown Path',
+  title: '',
   keywords: '',
-  description: 'Enter a birth date to reveal the path.',
+  description: 'Add a birthdate above and the path appears here.',
   purpose: '',
   love: '',
   career: '',
@@ -43,6 +56,9 @@ export const LifePathView = () => {
   const meaning = LIFE_PATH_MEANINGS[lifePath.number] ?? FALLBACK_MEANING;
   const { breakdown, compound } = lifePath;
   const compoundMeaning = COMPOUND_MEANINGS[compound] ?? null;
+  const isEmpty = lifePath.number === 0;
+  const dateNote = birthDateNote(profile.birthDate);
+  const totalSteps = reductionSteps(compound);
 
   // The top of the funnel: a reader's own birthdate produced a number.
   useEffect(() => {
@@ -76,16 +92,22 @@ export const LifePathView = () => {
                 />
               </span>
             </label>
+            {dateNote && (
+              <p className="-mt-3 mb-4 text-xs text-amber-200" role="status">
+                {dateNote}
+              </p>
+            )}
 
             <div aria-live="polite" aria-atomic="true">
-              <h2 className={HERO_TITLE}>Life Path {lifePath.number}</h2>
-              <h3 className={HERO_SUBTITLE}>{meaning.title}</h3>
+              <h2 className={HERO_TITLE}>{isEmpty ? 'Add a birthdate' : `Life Path ${lifePath.number}`}</h2>
+              {!isEmpty && <h3 className={HERO_SUBTITLE}>{meaning.title}</h3>}
             </div>
-            {compoundMeaning && (
+            {!isEmpty && compound >= 10 && (
               <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 rounded-lg text-indigo-100">
                 <Gem size={14} className="text-indigo-300" aria-hidden="true" />
                 <span className="text-xs font-bold uppercase tracking-wide">
-                  {compound} / {lifePath.number}: {compoundMeaning}
+                  {compound} / {lifePath.number}
+                  {compoundMeaning ? `: ${compoundMeaning}` : ''}
                 </span>
               </div>
             )}
@@ -97,32 +119,47 @@ export const LifePathView = () => {
               <Layers size={14} aria-hidden="true" /> How the number is found
             </h3>
             <p className="text-[10px] text-indigo-100/60 mb-6">
-              A birthdate. Added together. Reduced to a single digit. That is the whole of the math.
+              Year, month and day are each reduced to a single digit, added, and reduced again. The master numbers 11,
+              22 and 33 are kept as they are.
             </p>
 
-            <div className="flex flex-col gap-4">
-              <div className={`flex justify-between items-center ${MICRO_LABEL} !text-indigo-100/60 px-2`}>
-                <span>Input</span>
-                <span>Reduction</span>
-                <span>Final</span>
-              </div>
-
-              <div className="space-y-3">
-                <ReductionRow raw={breakdown.rawY} sum={breakdown.ySum} final={breakdown.y} tone="indigo" />
-                <ReductionRow raw={breakdown.rawM} sum={breakdown.mSum} final={breakdown.m} tone="purple" />
-                <ReductionRow raw={breakdown.rawD} sum={breakdown.dSum} final={breakdown.d} tone="emerald" />
-              </div>
-
-              <div className="mt-2 pt-4 border-t border-white/10 flex items-center justify-between">
-                <div className="text-xs text-indigo-100/70">
-                  {breakdown.y} + {breakdown.m} + {breakdown.d} ={' '}
-                  <span className="text-white font-bold">{breakdown.y + breakdown.m + breakdown.d}</span>
+            {isEmpty ? (
+              <p className="text-sm text-indigo-100/80">Add a birthdate and every step shows here.</p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div className={`flex justify-between items-center ${MICRO_LABEL} !text-indigo-100/60 px-2`}>
+                  <span>Input</span>
+                  <span>Reduction</span>
+                  <span>Final</span>
                 </div>
-                <div className="bg-indigo-600 px-4 py-2 rounded-lg shadow-lg shadow-indigo-950/50">
-                  <span className="text-2xl font-bold text-white">{lifePath.number}</span>
+
+                <div className="space-y-3">
+                  <ReductionRow raw={breakdown.rawY} final={breakdown.y} tone="indigo" />
+                  <ReductionRow raw={breakdown.rawM} final={breakdown.m} tone="purple" />
+                  <ReductionRow raw={breakdown.rawD} final={breakdown.d} tone="emerald" />
+                </div>
+
+                <div className="mt-2 pt-4 border-t border-white/10 flex items-center justify-between">
+                  <div className="text-xs text-indigo-100/70">
+                    {breakdown.y} + {breakdown.m} + {breakdown.d} ={' '}
+                    <span className="text-white font-bold">{compound}</span>
+                    {totalSteps.steps.length > 0 && (
+                      <span className="block mt-1">
+                        {compound} → {totalSteps.steps.join(' → ')}
+                      </span>
+                    )}
+                    {totalSteps.keptMaster && (
+                      <span className="block mt-1">
+                        {compound} is a master number, kept as {compound}.
+                      </span>
+                    )}
+                  </div>
+                  <div className="bg-indigo-600 px-4 py-2 rounded-lg shadow-lg shadow-indigo-950/50">
+                    <span className="text-2xl font-bold text-white">{lifePath.number}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </HeroCard>
@@ -130,84 +167,87 @@ export const LifePathView = () => {
       {/* THE OTHER HALF — four letters, asked for right after the number */}
       <LettersAsk />
 
-      {/* WHAT THE NUMBER ASKS */}
-      <Card>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Facet icon={Target} tone="indigo" title="What the number asks of you" body={meaning.purpose} />
-          <Facet icon={Heart} tone="purple" title="How the number sits in love" body={meaning.love} />
-          <Facet icon={Briefcase} tone="emerald" title="How the number sits in work" body={meaning.career} />
-        </div>
-      </Card>
+      {isEmpty ? null : (
+        <>
+          {/* WHAT THE NUMBER ASKS */}
+          <Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Facet icon={Target} tone="indigo" title="What the number asks of you" body={meaning.purpose} />
+              <Facet icon={Heart} tone="purple" title="How the number sits in love" body={meaning.love} />
+              <Facet icon={Briefcase} tone="emerald" title="How the number sits in work" body={meaning.career} />
+            </div>
+          </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card variant="tinted">
-          <SectionHeading icon={Star} tone="indigo">
-            When the number is well-met
-          </SectionHeading>
-          <ul className="space-y-3">
-            {meaning.light.map((item) => (
-              <li key={item} className="flex items-start gap-3 text-sm text-slate-700">
-                <div className="mt-1.5 w-1.5 h-1.5 bg-emerald-400 rounded-full shrink-0" />
-                <span className="leading-relaxed">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card variant="tinted">
+              <SectionHeading icon={Star} tone="indigo">
+                When the number is well-met
+              </SectionHeading>
+              <ul className="space-y-3">
+                {meaning.light.map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm text-slate-700">
+                    <div className="mt-1.5 w-1.5 h-1.5 bg-emerald-400 rounded-full shrink-0" />
+                    <span className="leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
 
-        <Card variant="muted">
-          <SectionHeading icon={ShieldAlert}>Where the number breaks</SectionHeading>
-          <ul className="space-y-3">
-            {meaning.shadows.map((item) => (
-              <li key={item} className="flex items-start gap-3 text-sm text-slate-700">
-                <div className="mt-1.5 w-1.5 h-1.5 bg-rose-400 rounded-full shrink-0" />
-                <span className="leading-relaxed">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
+            <Card variant="muted">
+              <SectionHeading icon={ShieldAlert}>Where the number breaks</SectionHeading>
+              <ul className="space-y-3">
+                {meaning.shadows.map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm text-slate-700">
+                    <div className="mt-1.5 w-1.5 h-1.5 bg-rose-400 rounded-full shrink-0" />
+                    <span className="leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
 
-        <Card>
-          <SectionHeading icon={Users}>Some who walked this path</SectionHeading>
-          <div className="flex flex-wrap gap-2">
-            {meaning.famous.length > 0 ? (
-              meaning.famous.map((person) => <Chip key={person}>{person}</Chip>)
-            ) : (
-              <span className={BODY}>No names recorded for this one yet.</span>
-            )}
+            <Card>
+              <SectionHeading icon={Users}>Some who walked this path</SectionHeading>
+              <div className="flex flex-wrap gap-2">
+                {meaning.famous.length > 0 ? (
+                  meaning.famous.map((person) => <Chip key={person}>{person}</Chip>)
+                ) : (
+                  <span className={BODY}>No names recorded for this one yet.</span>
+                )}
+              </div>
+            </Card>
           </div>
-        </Card>
-      </div>
+        </>
+      )}
     </div>
   );
 };
 
 interface ReductionRowProps {
   raw: string;
-  sum: number;
   final: number;
   tone: Tone;
 }
 
-/** One line of the reduction: raw digits → digit sum → reduced value. */
-const ReductionRow = ({ raw, sum, final, tone }: ReductionRowProps) => {
-  const value = parseInt(raw, 10);
-  const needsSum = Number.isNaN(value) || value >= 10;
+/** One line of the reduction: raw digits → every step → reduced value. */
+const ReductionRow = ({ raw, final, tone }: ReductionRowProps) => {
   const t = toneFor(tone);
+  const { steps, keptMaster } = reductionSteps(raw);
   return (
-    <div className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
-      <div className={`text-sm font-mono ${t.textOnDark} w-12`}>{raw}</div>
-      <ArrowRight size={12} className="text-indigo-100/40" aria-hidden="true" />
-      <div className="text-xs text-indigo-100/70">
-        {needsSum ? (
+    <div className="flex items-center justify-between gap-2 bg-white/5 p-2 rounded-lg">
+      <div className={`text-sm font-mono ${t.textOnDark} w-12 shrink-0`}>{raw}</div>
+      <ArrowRight size={12} className="text-indigo-100/40 shrink-0" aria-hidden="true" />
+      <div className="text-xs text-indigo-100/70 flex-1 min-w-0">
+        {steps.length > 0 ? (
           <>
-            {raw.split('').join('+')} = <span className="text-white font-bold">{sum}</span>
+            {steps.join(' → ')}
+            {keptMaster && <span className="text-white font-bold">, kept as {final}</span>}
           </>
         ) : (
-          value
+          final
         )}
       </div>
-      <ArrowRight size={12} className="text-indigo-100/40" aria-hidden="true" />
-      <div className={`text-xl font-bold ${t.textOnDark} w-6 text-right`}>{final}</div>
+      <ArrowRight size={12} className="text-indigo-100/40 shrink-0" aria-hidden="true" />
+      <div className={`text-xl font-bold ${t.textOnDark} w-8 text-right shrink-0`}>{final}</div>
     </div>
   );
 };

@@ -458,8 +458,13 @@ export const PersonalityView = () => {
               <span className={EYEBROW}>A Reader's Profile</span>
             </div>
             <h2 className={HERO_TITLE}>
-              <TypeCode letters={dimensions} onDark /> <span className="text-indigo-300 font-light">·</span> Life Path{' '}
-              {lifePathNumber}
+              <TypeCode letters={dimensions} onDark />
+              {lifePathNumber > 0 && (
+                <>
+                  {' '}
+                  <span className="text-indigo-300 font-light">·</span> Life Path {lifePathNumber}
+                </>
+              )}
             </h2>
             <h3 className={HERO_SUBTITLE}>
               {mbtiData.title}
@@ -618,8 +623,8 @@ export const PersonalityView = () => {
       </div>
 
       <p className="text-center text-xs text-slate-400 italic pt-4">
-        A reader's tool. Not a measurement. Read it that way. <TypeCode letters={dimensions} /> · Life Path{' '}
-        {lifePathNumber}.
+        A reader's tool. Not a measurement. Read it that way. <TypeCode letters={dimensions} />
+        {lifePathNumber > 0 && <> · Life Path {lifePathNumber}</>}.
       </p>
     </div>
   );

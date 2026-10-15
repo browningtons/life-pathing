@@ -48,7 +48,7 @@ export function ProfileProvider({ children, initialProfile }: ProfileProviderPro
   const dimensions = useMemo(() => dimensionDetails(profile.dimensions), [profile.dimensions]);
   const lifePath = useMemo(() => calculateLifePath(profile.birthDate), [profile.birthDate]);
   const isSample = useMemo(() => profilesEqual(profile, DEFAULT_PROFILE), [profile]);
-  const ownBirthDate = profile.birthDate !== DEFAULT_PROFILE.birthDate;
+  const ownBirthDate = profile.birthDate !== '' && profile.birthDate !== DEFAULT_PROFILE.birthDate;
   const lettersKnown = profile.dimensionSource !== 'sample';
   const facetsMissing = lettersKnown && profile.facetSource === 'sample';
 
