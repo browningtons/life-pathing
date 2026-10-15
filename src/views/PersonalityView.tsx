@@ -50,6 +50,7 @@ import {
 } from '../data/personality';
 import { LIFE_PATH_MEANINGS } from '../data/lifePathMeanings';
 import { FACET_DETAIL_GATE, isPaidSection } from '../data/tiers';
+import { defaultProfileSection } from '../lib/provenance';
 import {
   ASIDE,
   BODY,
@@ -174,15 +175,18 @@ const FACET_SECTIONS: Section[] = ['traits', 'descriptors'];
  */
 function FacetsMissing() {
   const { go } = useNav();
+  const { isPro } = useGate();
+  // Not a gate: nothing here is for sale. Plain card, no lock, no price.
   return (
-    <Card variant="tinted">
-      <SectionHeading icon={ClipboardPaste} tone="indigo" className="!mb-3">
+    <Card>
+      <SectionHeading icon={ClipboardPaste} className="!mb-3">
         No facet scores yet
       </SectionHeading>
       <p className={`${BODY} max-w-2xl`}>
         The twenty-three facets come from a full type report, the kind TypeFinder or 16personalities gives at the end of
         its test. Four letters are enough for the rest of this page. The facets need the report. Paste one on the Your
-        Data tab and this section fills in.
+        Data tab and this section fills in.{' '}
+        {isPro ? 'It is already unlocked; only the scores are missing.' : 'Pasting is free, and so is the first part of what it fills.'}
       </p>
       <button
         type="button"
@@ -343,7 +347,7 @@ function ConvergenceSection({ themes, growth }: { themes: ConvergenceTheme[]; gr
           Where the systems agree
         </SectionHeading>
         <p className={`${ASIDE} mb-5`}>
-          Where four old systems — MBTI, Big Five, numerology, Enneagram — happen to point the same way.
+          Where the four letters and the Life Path happen to point the same way.
         </p>
         <div className="flex flex-col gap-3">
           {themes.map((t) => {
@@ -426,8 +430,9 @@ export const PersonalityView = () => {
   const { isPro } = useGate();
   const lifePathNumber = lifePath.number;
 
-  // A reader with letters but no facets opens on the first section that is about them.
-  const [activeSection, setActiveSection] = useState<Section>(facetsMissing ? 'temperament' : 'traits');
+  // A reader with letters but no facets opens on the first section that is
+  // about them; see lib/provenance.
+  const [activeSection, setActiveSection] = useState<Section>(() => defaultProfileSection(facetsMissing));
   const [activeCategory, setActiveCategory] = useState<'all' | TraitCategory>('all');
   const [expandedTrait, setExpandedTrait] = useState<string | null>(null);
 
@@ -471,8 +476,10 @@ export const PersonalityView = () => {
               {lpMeaning ? ` · ${lpMeaning.title}` : ''} · {temperament}
             </h3>
             <p className={HERO_BODY}>
-              Four lenses laid over each other. MBTI for the wiring, Big Five for the texture, numerology for the arc,
-              Enneagram for the inward pull. Read it as a journal prompt, not a measurement.
+              {facetsMissing
+                ? 'The four letters for the wiring, numerology for the arc. The facets add the texture once a report is pasted.'
+                : 'The four letters for the wiring, the facets for the texture, numerology for the arc.'}{' '}
+              Read it as a journal prompt, not a measurement.
             </p>
           </div>
 
@@ -496,7 +503,7 @@ export const PersonalityView = () => {
         </div>
       </HeroCard>
 
-      {/* THE READ — synthesis across all four lenses */}
+      {/* THE READ — the letters and the number, read together */}
       <Card>
         <SectionHeading icon={BookOpen} tone="indigo" className="!mb-3">
           The read

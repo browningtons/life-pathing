@@ -31,6 +31,12 @@ export interface GateCopy {
   title: string;
   /** One or two sentences in the almanac voice. */
   blurb: string;
+  /**
+   * True when the section reads the facet scores, which only a pasted
+   * report supplies. The blurb must then say so, so a letters-only reader
+   * knows before buying (tested in tiers.test.ts).
+   */
+  needsReport?: boolean;
 }
 
 export const GATE_COPY: Record<GateKey, GateCopy> = {
@@ -38,12 +44,14 @@ export const GATE_COPY: Record<GateKey, GateCopy> = {
   traits_detail: {
     title: 'All twenty-three facets, by category',
     blurb:
-      'How you think, how you recharge, what you prioritize, how you move. Each facet with a reading of how strongly it runs, from a tension to the way the wiring goes.',
+      'How you think, how you recharge, what you prioritize, how you move. Each facet with a reading of how strongly it runs, from a tension to the way the wiring goes. Read from a pasted TypeFinder or 16personalities report; four letters alone do not carry the facets.',
+    needsReport: true,
   },
   descriptors: {
     title: 'How others tend to read you',
     blurb:
-      'Twenty-five words, each a blend of a few facets, ranked by how much of you they catch. The top three are above. The full ranking is the interesting part.',
+      'Twenty-five words, each a blend of a few facets, ranked by how much of you they catch. The top three are above. The full ranking is the interesting part. Like the facets, it needs a pasted TypeFinder or 16personalities report.',
+    needsReport: true,
   },
   temperament: {
     title: 'The four temperaments',
@@ -57,7 +65,7 @@ export const GATE_COPY: Record<GateKey, GateCopy> = {
   convergence: {
     title: 'Where the systems agree',
     blurb:
-      'Four old systems laid over each other, and the places they happen to point the same way. Then the two places this combination tends to ask more of you.',
+      'The four letters and the Life Path laid over each other, and the places they happen to point the same way. Then the two places this combination tends to ask more of you.',
   },
   personas: {
     title: 'The inner cast',

@@ -48,6 +48,13 @@ export const KIT_CONFIG: KitConfig = {
       'Feature two',
       'Feature three',
     ],
+    // Optional. Features that need something from the buyer first (an
+    // import, a report). Listed after `features` under `heading`, so the
+    // condition is read before the buy. Omit if every feature is unconditional.
+    // conditionalFeatures: {
+    //   heading: 'With an imported file',
+    //   features: ['Feature four'],
+    // },
     trustLine:
       'Secure payment via Stripe. 30-day refund, no questions asked. No account. No recurring charges.',
   },

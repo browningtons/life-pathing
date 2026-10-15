@@ -101,6 +101,21 @@ export default function UpgradeModal({ onClose, onRestore, source }: UpgradeModa
               </div>
             ))}
           </div>
+          {upgrade.conditionalFeatures && upgrade.conditionalFeatures.features.length > 0 && (
+            <div className="mt-4">
+              <div className="text-[11px] font-bold uppercase tracking-wide text-stone-500 mb-2">
+                {upgrade.conditionalFeatures.heading}
+              </div>
+              <div className="space-y-2">
+                {upgrade.conditionalFeatures.features.map((f) => (
+                  <div key={f} className="flex items-center gap-2.5 text-sm text-stone-600">
+                    <Check size={14} className="text-emerald-500 flex-shrink-0" />
+                    {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* CTA — inline Buy Button if configured, else Payment Link */}

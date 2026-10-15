@@ -27,6 +27,7 @@ import {
 } from '../design/tokens';
 import { isBorderline, rawScore } from '../lib/deriveType';
 import { parseReport, pastePatch } from '../lib/parseReport';
+import { dataHeading } from '../lib/provenance';
 import { useProfile } from '../store/useProfile';
 import type { MbtiDimension } from '../types';
 
@@ -47,6 +48,11 @@ export const IntakeView = () => {
     useProfile();
   const mbti = getMbtiData(typeCode);
   const lp = LIFE_PATH_MEANINGS[lifePath.number];
+  // Whose numbers these are, input by input; see lib/provenance.
+  const { ownBirthDate, lettersKnown } = useProfile();
+  const heading = isSample
+    ? dataHeading({ ownBirthDate: false, lettersKnown: false, ownFacets: false })
+    : dataHeading({ ownBirthDate, lettersKnown, ownFacets: profile.facetSource !== 'sample' });
 
   const [pasted, setPasted] = useState('');
   const [pasteNote, setPasteNote] = useState<string | null>(null);
@@ -70,7 +76,7 @@ export const IntakeView = () => {
   };
 
   const onReset = () => {
-    if (window.confirm('Replace your scores with the sample profile? This clears what is saved on this device.')) {
+    if (window.confirm('Replace your scores with the sample profile? Your birthdate, letters and facets are cleared. A purchase is not: the whole profile stays unlocked.')) {
       resetProfile();
       setPasteNote(null);
     }
@@ -87,7 +93,7 @@ export const IntakeView = () => {
               <span className={EYEBROW}>Your Data</span>
             </div>
             <h2 className={HERO_TITLE}>Enter your own scores</h2>
-            <h3 className={HERO_SUBTITLE}>{isSample ? 'You are reading a sample profile' : 'This is your profile'}</h3>
+            <h3 className={HERO_SUBTITLE}>{heading}</h3>
             <p className={HERO_BODY}>
               Bring a TypeFinder or 16personalities result. A birthdate, four dimension percentages, and the twenty-three
               facets are the only inputs. Everything else on the other tabs is read from them.
