@@ -8,7 +8,7 @@ import type { QuizPole } from '../data/quiz';
 import type { DimensionDetail } from '../lib/deriveType';
 import { useTapGuard } from '../kit';
 import { trackLettersEntered, trackQuizStarted } from '../lib/funnel';
-import { resultLeanCopy, resultRetakeLabel } from '../lib/letterSource';
+import { NOT_YOU_LABEL, offersTypedCorrection, resultLeanCopy, resultRetakeLabel } from '../lib/letterSource';
 import { checkTypeCode, scoresFromQuiz, scoresFromTypeCode, type QuizAnswers } from '../lib/letters';
 import { useNav } from '../store/useNav';
 import { useProfile } from '../store/useProfile';
@@ -103,6 +103,7 @@ export const LettersAsk = () => {
           dimensions={dimensions}
           onContinue={() => go('profile')}
           onRetake={() => setPhase('quiz')}
+          onTypeInstead={() => setPhase('typed')}
         />
       )}
     </Card>
@@ -244,9 +245,10 @@ interface ResultProps {
   dimensions: DimensionDetail[];
   onContinue: () => void;
   onRetake: () => void;
+  onTypeInstead: () => void;
 }
 
-const Result = ({ typeCode, dimensions, onContinue, onRetake }: ResultProps) => {
+const Result = ({ typeCode, dimensions, onContinue, onRetake, onTypeInstead }: ResultProps) => {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const source = useProfile().profile.dimensionSource;
   const title = getMbtiData(typeCode).title;
@@ -289,6 +291,11 @@ const Result = ({ typeCode, dimensions, onContinue, onRetake }: ResultProps) => 
           {typed ? <ListChecks size={12} aria-hidden="true" /> : <RotateCcw size={12} aria-hidden="true" />}{' '}
           {resultRetakeLabel(source)}
         </button>
+        {offersTypedCorrection(source, borderline.length) && (
+          <button type="button" className={QUIET} onClick={(e) => settled(e) && onTypeInstead()}>
+            <Keyboard size={12} aria-hidden="true" /> {NOT_YOU_LABEL}
+          </button>
+        )}
       </div>
     </div>
   );

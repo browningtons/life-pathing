@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   TYPED_MATCHES_NOTE,
   TYPED_TEMPERAMENT_NOTE,
+  NOT_YOU_LABEL,
+  offersTypedCorrection,
   resultLeanCopy,
   resultRetakeLabel,
   showsDimensionPercent,
@@ -51,5 +53,23 @@ describe('typed notes', () => {
       expect(note).not.toMatch(/\d/);
     }
     expect(TYPED_MATCHES_NOTE).toContain('tie');
+  });
+});
+
+describe('offersTypedCorrection', () => {
+  it('is offered on a quiz result with any borderline letter', () => {
+    expect(offersTypedCorrection('quiz', 1)).toBe(true);
+    expect(offersTypedCorrection('quiz', 4)).toBe(true);
+    expect(NOT_YOU_LABEL).toContain('Type your four letters');
+  });
+
+  it('is hidden on a clean sweep', () => {
+    expect(offersTypedCorrection('quiz', 0)).toBe(false);
+  });
+
+  it('is hidden for typed, report and sample letters', () => {
+    for (const source of ['typed', 'report', 'sample'] as const) {
+      expect(offersTypedCorrection(source, 2)).toBe(false);
+    }
   });
 });
