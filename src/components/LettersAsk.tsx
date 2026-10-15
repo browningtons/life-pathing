@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from 'react';
 import { ArrowLeft, ArrowRight, Keyboard, ListChecks, RotateCcw } from 'lucide-react';
 import { getMbtiData } from '../data/mbti';
 import { QUIZ_QUESTIONS } from '../data/quiz';
@@ -261,7 +261,15 @@ const Result = ({ typeCode, dimensions, onContinue, onRetake }: ResultProps) => 
   const borderline = dimensions.filter((d) => d.borderline);
   const typed = source === 'typed';
 
-  useEffect(() => headingRef.current?.focus(), []);
+  // The card replaces the form under the pointer, so the second half of a
+  // double-click on "Read it" would land on these buttons and skip the card.
+  const shownAt = useRef(0);
+  const settled = (e: MouseEvent) => e.timeStamp - shownAt.current > 400;
+
+  useEffect(() => {
+    shownAt.current = performance.now();
+    headingRef.current?.focus();
+  }, []);
 
   return (
     <div aria-live="polite">
@@ -273,13 +281,14 @@ const Result = ({ typeCode, dimensions, onContinue, onRetake }: ResultProps) => 
         {resultLeanCopy(source, borderline.length)} Your number and your type are now read together on the Profile.
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button type="button" className={PRIMARY} onClick={onContinue}>
+        <button type="button" className={PRIMARY} onClick={(e) => settled(e) && onContinue()}>
           See the two read together <ArrowRight size={14} aria-hidden="true" />
         </button>
         <button
           type="button"
           className={QUIET}
-          onClick={() => {
+          onClick={(e) => {
+            if (!settled(e)) return;
             // For a typed reader this is a first quiz, not a retake.
             if (typed) trackQuizStarted();
             onRetake();
