@@ -3,7 +3,7 @@
 A small reader's tool for two old self-reflection systems. Numerology by birthdate. MBTI by type. Both are made up. Both are useful, in the way a good question is useful.
 
 - **Life Path number** — derived from a birthdate by Pythagorean numerology, with a breakdown of the compound digits and the older master numbers (11, 22, 33) preserved.
-- **MBTI archetype** — pick a type and see the archetype, the function stack in its usual order, and a few notes on where it tends to do well and where it tends to stumble.
+- **MBTI archetype** — browse any of the sixteen types and see the archetype, the function stack in its usual order, and a few notes on where it tends to do well and where it tends to stumble. Once your own letters are set, the toggles on this tab only change what you are looking at (a "Back to your type" link returns you) and never your saved type; while the profile is still the sample, picking a type updates the whole app.
 - **A reader's profile** — a small derived dashboard. Twenty-three facets, a temperament, adjacent types, and the places these old systems happen to point the same way.
 
 Built by someone who keeps going back to this stuff.
