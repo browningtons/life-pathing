@@ -106,3 +106,17 @@ export const setDimensionScore = (
   ...dimensions,
   [SCORE_KEY[dim]]: Math.max(0, Math.min(100, Math.round(pct))),
 });
+
+/**
+ * The raw score to store when the reader names a pole and a strength.
+ *
+ * The strength is clamped to 50–100 and read toward the named pole, so a
+ * blank or out-of-range entry can never change which pole is chosen. A
+ * dead-even 50 reads to the right-hand letter (see letterFor), so a left
+ * pole at 50 is stored as 49, the nearest score that derives to it; the
+ * right pole at 50 is stored as 50.
+ */
+export const poleScore = (side: 'left' | 'right', strength: number): number => {
+  const s = Math.max(50, Math.min(100, Math.round(Number.isFinite(strength) ? strength : 50)));
+  return side === 'right' ? s : Math.min(100 - s, 49);
+};

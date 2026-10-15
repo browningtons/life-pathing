@@ -9,7 +9,7 @@ import type { DimensionDetail } from '../lib/deriveType';
 import { useTapGuard } from '../kit';
 import { trackLettersEntered, trackQuizStarted } from '../lib/funnel';
 import { resultLeanCopy, resultRetakeLabel } from '../lib/letterSource';
-import { parseTypeCode, scoresFromQuiz, scoresFromTypeCode, type QuizAnswers } from '../lib/letters';
+import { checkTypeCode, scoresFromQuiz, scoresFromTypeCode, type QuizAnswers } from '../lib/letters';
 import { useNav } from '../store/useNav';
 import { useProfile } from '../store/useProfile';
 import { Card } from './Card';
@@ -113,19 +113,14 @@ export const LettersAsk = () => {
 
 const TypedLetters = ({ onCancel, onDone }: { onCancel: () => void; onDone: (code: string) => void }) => {
   const [value, setValue] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { code, error } = checkTypeCode(value);
 
   useEffect(() => inputRef.current?.focus(), []);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const code = parseTypeCode(value);
-    if (!code) {
-      setError('Four letters, one from each pair, in order: E or I, S or N, T or F, J or P.');
-      return;
-    }
-    onDone(code);
+    if (code) onDone(code);
   };
 
   return (
@@ -141,11 +136,8 @@ const TypedLetters = ({ onCancel, onDone }: { onCancel: () => void; onDone: (cod
           ref={inputRef}
           id="typed-letters"
           value={value}
-          onChange={(e) => {
-            setValue(e.target.value);
-            setError(null);
-          }}
-          maxLength={8}
+          onChange={(e) => setValue(e.target.value)}
+          maxLength={14}
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
@@ -154,7 +146,7 @@ const TypedLetters = ({ onCancel, onDone }: { onCancel: () => void; onDone: (cod
           placeholder="Four letters"
           className={`w-40 rounded-lg border border-slate-200 bg-white px-3 py-2 text-lg font-bold uppercase tracking-[0.2em] text-slate-800 placeholder:text-sm placeholder:font-medium placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400 ${FOCUS_RING}`}
         />
-        <button type="submit" className={PRIMARY} disabled={value.trim().length === 0}>
+        <button type="submit" className={PRIMARY} disabled={code === null}>
           Read it <ArrowRight size={14} aria-hidden="true" />
         </button>
         <button type="button" className={QUIET} onClick={onCancel}>

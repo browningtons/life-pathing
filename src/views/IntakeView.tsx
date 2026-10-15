@@ -25,8 +25,8 @@ import {
   toneFor,
   type Tone,
 } from '../design/tokens';
-import { isBorderline, rawScore } from '../lib/deriveType';
-import { parseReport, pastePatch } from '../lib/parseReport';
+import { isBorderline, poleScore, rawScore } from '../lib/deriveType';
+import { describeReport, parseReport, pastePatch } from '../lib/parseReport';
 import { dataHeading } from '../lib/provenance';
 import { useProfile } from '../store/useProfile';
 import type { MbtiDimension } from '../types';
@@ -70,7 +70,7 @@ export const IntakeView = () => {
     setPasteNote(
       `Read ${parsedDims} of 4 dimensions and ${parsedFacets} of 23 facets. ${
         filledEven ? 'Anything not found was set to an even 50.' : 'Anything not found kept its current value.'
-      }`,
+      } ${describeReport(parsed)}`,
     );
     setPasted('');
   };
@@ -283,16 +283,23 @@ const PoleInput = ({ id, label, left, right, rightPct, onChange, tone, showBorde
   const dominantPct = rightDominant ? rightPct : 100 - rightPct;
   const borderline = isBorderline(rightPct);
 
-  const pick = (side: 'left' | 'right') => {
-    if (side === 'right') onChange(dominantPct);
-    else onChange(100 - dominantPct);
-  };
+  // The pole is the reader's choice and only a click on the other pole
+  // changes it. The box holds a draft while typing; blank, under-50 or
+  // over-100 entries are clamped to 50–100 on blur and never move the pole.
+  const [draft, setDraft] = useState<string | null>(null);
+  const side = rightDominant ? 'right' : 'left';
+
+  const pick = (to: 'left' | 'right') => onChange(poleScore(to, dominantPct));
 
   const onPct = (raw: string) => {
+    setDraft(raw);
     const n = Number(raw);
-    if (!Number.isFinite(n)) return;
-    const pct = Math.max(50, Math.min(100, Math.round(n)));
-    onChange(rightDominant ? pct : 100 - pct);
+    if (raw.trim() !== '' && Number.isInteger(n) && n >= 50 && n <= 100) onChange(poleScore(side, n));
+  };
+
+  const onBlur = () => {
+    if (draft !== null && draft.trim() !== '' && Number.isFinite(Number(draft))) onChange(poleScore(side, Number(draft)));
+    setDraft(null);
   };
 
   const poleClass = (active: boolean) =>
@@ -322,8 +329,9 @@ const PoleInput = ({ id, label, left, right, rightPct, onChange, tone, showBorde
             inputMode="numeric"
             min={50}
             max={100}
-            value={dominantPct}
+            value={draft ?? dominantPct}
             onChange={(e) => onPct(e.target.value)}
+            onBlur={onBlur}
             className={`${INPUT} w-16 text-right`}
           />
           <span className="text-xs font-bold text-slate-400">%</span>

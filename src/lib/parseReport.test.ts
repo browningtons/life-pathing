@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FACET_CATALOG } from '../data/personality';
 import { DEFAULT_PROFILE } from '../data/profile';
-import { parseReport, pastePatch } from './parseReport';
+import { describeReport, parseReport, pastePatch } from './parseReport';
 
 describe('parseReport', () => {
   it('reads a TypeFinder-style facet list toward the labelled pole', () => {
@@ -51,7 +51,7 @@ describe('parseReport', () => {
   });
 
   it('returns empty results for empty text', () => {
-    expect(parseReport('')).toEqual({ dimensions: {}, facets: {}, matched: 0 });
+    expect(parseReport('')).toEqual({ dimensions: {}, facets: {}, matched: 0, read: [], ignored: [] });
   });
 });
 
@@ -90,5 +90,52 @@ describe('pastePatch', () => {
         FACET_CATALOG.map((f) => `${f.right} 40%`).join('\n'),
     );
     expect(pastePatch(DEFAULT_PROFILE, full).filledEven).toBe(false);
+  });
+});
+
+describe('read/ignored report', () => {
+  const messy = [
+    'you are intuitive 58%',
+    'FEELING: 72%',
+    '48%',
+    'Mood: zesty 85%',
+    'page 3 of 12',
+    'Just a heading',
+  ].join('\n');
+
+  it('lists the pairs it read, in order, as written', () => {
+    const out = parseReport(messy);
+    expect(out.read).toEqual([
+      { label: 'intuitive', value: 58 },
+      { label: 'FEELING', value: 72 },
+    ]);
+    expect(out.matched).toBe(2);
+  });
+
+  it('lists number-bearing lines it could not use, and skips plain text', () => {
+    const out = parseReport(messy);
+    expect(out.ignored).toEqual([
+      { text: '48%', reason: 'no label' },
+      { text: 'Mood: zesty 85%', reason: 'unknown label' },
+      { text: 'page 3 of 12', reason: 'unknown label' },
+    ]);
+  });
+
+  it('describes both lists in one line', () => {
+    expect(describeReport(parseReport(messy))).toBe(
+      "Read: intuitive 58, FEELING 72 · Ignored: '48%' (no label), 'Mood: zesty 85%', 'page 3 of 12'",
+    );
+  });
+
+  it('caps long lists with a count of the rest', () => {
+    const lines = Array.from({ length: 7 }, (_, i) => `junk${i} ${i}`).join('\n');
+    const text = `Extraverted 61\nIntuitive 70\nFeeling 60\nPerceiving 55\nRelaxed 66\nInsightful 94\n${lines}`;
+    const line = describeReport(parseReport(text));
+    expect(line).toContain('Read: Extraverted 61, Intuitive 70, Feeling 60, Perceiving 55 and 2 more');
+    expect(line).toContain("'junk3 3' and 3 more");
+  });
+
+  it('is empty for an empty paste', () => {
+    expect(describeReport(parseReport(''))).toBe('');
   });
 });

@@ -35,6 +35,39 @@ export function parseTypeCode(input: string): string | null {
   return match ? match[1] : null;
 }
 
+const POSITIONS = [
+  { name: 'First', pair: 'E or I', ok: /^[EI]$/ },
+  { name: 'Second', pair: 'S or N', ok: /^[SN]$/ },
+  { name: 'Third', pair: 'T or F', ok: /^[TF]$/ },
+  { name: 'Fourth', pair: 'J or P', ok: /^[JP]$/ },
+];
+
+export interface TypeCodeCheck {
+  /** The four-letter code, when the input is a complete valid type. */
+  code: string | null;
+  /** What is wrong so far, naming the first bad position; null while valid or merely unfinished. */
+  error: string | null;
+}
+
+/**
+ * Check what the reader has typed so far. Wrong letters are named as soon
+ * as they appear ("Second letter: S or N, not X."); a short but so-far
+ * valid entry has no error and no code, so the form just waits.
+ */
+export function checkTypeCode(input: string): TypeCodeCheck {
+  const cleaned = input.toUpperCase().replace(/\s+/g, '');
+  for (let i = 0; i < Math.min(4, cleaned.length); i++) {
+    const pos = POSITIONS[i];
+    if (!pos.ok.test(cleaned[i])) {
+      return { code: null, error: `${pos.name} letter: ${pos.pair}, not ${cleaned[i]}.` };
+    }
+  }
+  if (cleaned.length < 4) return { code: null, error: null };
+  const code = parseTypeCode(cleaned);
+  if (code) return { code, error: null };
+  return { code: null, error: 'After the four letters only a -A or -T suffix is allowed.' };
+}
+
 /** Stored scores for a typed type code: 70 toward each named letter. */
 export function scoresFromTypeCode(code: string): DimensionScores {
   const lean = (letter: string, right: string) => (letter === right ? TYPED_PCT : 100 - TYPED_PCT);

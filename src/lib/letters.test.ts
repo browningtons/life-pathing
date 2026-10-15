@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { MBTI_TYPES } from '../data/mbti';
 import { QUIZ_QUESTIONS } from '../data/quiz';
 import { deriveTypeCode, isBorderline } from './deriveType';
-import { parseTypeCode, QUIZ_PCT, scoresFromQuiz, scoresFromTypeCode, TYPED_PCT, type QuizAnswers } from './letters';
+import { checkTypeCode, parseTypeCode, QUIZ_PCT, scoresFromQuiz, scoresFromTypeCode, TYPED_PCT, type QuizAnswers } from './letters';
 
 describe('parseTypeCode', () => {
   it('accepts a plain code in any case', () => {
@@ -102,5 +102,33 @@ describe('scoresFromQuiz', () => {
     delete answers.jp3;
     expect(scoresFromQuiz(answers)).toBeNull();
     expect(scoresFromQuiz({})).toBeNull();
+  });
+});
+
+describe('checkTypeCode', () => {
+  it('names the first bad position', () => {
+    expect(checkTypeCode('ABCD').error).toBe('First letter: E or I, not A.');
+    expect(checkTypeCode('IXFJ').error).toBe('Second letter: S or N, not X.');
+    expect(checkTypeCode('ISXP').error).toBe('Third letter: T or F, not X.');
+    expect(checkTypeCode('ISTX').error).toBe('Fourth letter: J or P, not X.');
+  });
+
+  it('names a bad letter before four are typed, and waits quietly on a good start', () => {
+    expect(checkTypeCode('IS7')).toEqual({ code: null, error: 'Third letter: T or F, not 7.' });
+    expect(checkTypeCode('IST')).toEqual({ code: null, error: null });
+    expect(checkTypeCode('')).toEqual({ code: null, error: null });
+  });
+
+  it('accepts lower case, spaces and the A/T suffix', () => {
+    expect(checkTypeCode('istp').code).toBe('ISTP');
+    expect(checkTypeCode('ISTP-A').code).toBe('ISTP');
+    expect(checkTypeCode('entp-t').code).toBe('ENTP');
+    expect(checkTypeCode('infj a').code).toBe('INFJ');
+  });
+
+  it('rejects trailing junk after four good letters', () => {
+    expect(checkTypeCode('INFJX').code).toBeNull();
+    expect(checkTypeCode('INFJX').error).toMatch(/suffix/);
+    expect(checkTypeCode('INFJ-Q').error).toMatch(/suffix/);
   });
 });
