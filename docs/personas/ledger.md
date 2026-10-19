@@ -59,3 +59,25 @@ I 60, S 55, F 80, J 55 gives Empath 36% (N×F = 0.45 × 0.80) over Preserver (S�
 *Filed 2026-10-14 (Aisha, via a harness quirk). 1+4+1−1 = **5**.*
 
 `handleRestore` returns without a word when the prompt is empty or cancelled. Fine for cancel; for an empty submit a one-line "Enter the email from your receipt" would help. Also blocks the harness from testing restore at all (a `prompt()` cannot be filled).
+
+### L8 — Hand-edit pass over the 528 Readings (the moat)
+
+*Filed 2026-10-18 from the Phase 2 engineering review (D7). Impact 4 + Confidence 4 + Risk 2 − Effort 4 = **6**.*
+
+The design's "Approach B" was hand-written pairings. With the Readings generated offline into the repo, that is an editing job: open the source file the script owns, improve the prose, commit. The 20-sample voice review (`docs/readings-review.md`) starts it; the other 508 are this entry.
+
+**Trap:** a prompt-version bump regenerates every key and would overwrite edits. Before editing beyond the sample, give the script a `locked` marker per key that it never regenerates, and a `--only <key>` flag.
+
+**Smallest change:** the locking rule in `scripts/generate-readings.ts` plus a `docs/readings-review.md` line per edited key.
+
+**Done looks like:** regenerate with a new prompt version; every locked key's text is byte-identical afterwards.
+
+### L9 — v2 inputs for the Reading (personal year, birthday number, facets)
+
+*Filed 2026-10-18 from the Phase 2 engineering review (D8). Impact 3 + Confidence 3 + Risk 2 − Effort 5 = **3**.*
+
+v1 reads from two inputs on purpose. The key space is 33 life path + compound pairs × 16 types = 528, which is why the Readings are generated offline (D1). A personal year makes the key time-varying (9× the set, regenerated every January). Facets make it unbounded and reopen on-demand generation with a store, a cap and a kill switch. Any new input must be derivable from a bounded set or the architecture changes back.
+
+**Trigger:** twenty Readings read for voice, a first buyer, and a panel re-run (same roster) showing the Reading moved the "would pay" count.
+
+**Smallest change:** none until the trigger; then `readingKey.ts` grows a field and `READING_PROMPT_VERSION` bumps.
