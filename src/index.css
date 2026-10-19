@@ -1,3 +1,71 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Print / Save as PDF. On the Reading tab only the Reading article prints:
+ * its header (title, pills, the "Written for" line) opens the first page,
+ * then the opening and the five sections. The nav, tabs, banners, the gate,
+ * every button and any state card marked data-print-hide are left out.
+ */
+@media print {
+  /* Scoped to a page that shows a Reading; other tabs print as before. */
+  body:has(#reading-article),
+  body:has(#reading-article) #root > div {
+    background: #fff !important;
+  }
+
+  body:has(#reading-article) [data-print-hide],
+  body:has(#reading-article) header,
+  body:has(#reading-article) nav,
+  body:has(#reading-article) [role='tablist'],
+  body:has(#reading-article) button,
+  body:has(#reading-article) main > :not([role='tabpanel']) {
+    display: none !important;
+  }
+
+  body:has(#reading-article) main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  #reading-article > * + * {
+    margin-top: 10pt !important;
+  }
+
+  /* Cards print as plain blocks: no shadows, no tinted fills. */
+  #reading-article .rounded-2xl {
+    box-shadow: none !important;
+    background: #fff !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* The dark header card prints as ink on paper. */
+  #reading-article .bg-indigo-900,
+  #reading-article .bg-indigo-900 * {
+    color: #0f172a !important;
+    background: transparent !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  #reading-article h1 {
+    font-size: 22pt !important;
+  }
+
+  #reading-article p {
+    color: #1e293b !important;
+    font-size: 11pt !important;
+    line-height: 1.55 !important;
+    max-width: none !important;
+  }
+
+  .reading-section h3 {
+    break-after: avoid;
+  }
+
+  .reading-section p {
+    orphans: 3;
+    widows: 3;
+  }
+}

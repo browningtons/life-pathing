@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { sections } from './personality';
-import { FACET_DETAIL_GATE, GATE_COPY, PAID_SECTIONS, isPaidSection } from './tiers';
+import {
+  FACET_DETAIL_GATE,
+  GATE_COPY,
+  INCLUDED_WITH_READING,
+  PAID_SECTIONS,
+  READING_GATE,
+  READING_SECTIONS,
+  isPaidSection,
+} from './tiers';
 
 describe('the free / paid split', () => {
   it('keeps the facets section free at the top level', () => {
@@ -44,5 +52,27 @@ describe('the free / paid split', () => {
     for (const [key, copy] of Object.entries(GATE_COPY)) {
       expect(`${copy.title} ${copy.blurb}`, key).not.toMatch(/big five|enneagram|four lenses|four old systems/i);
     }
+  });
+
+  it('has gate copy for the Reading that names all five sections', () => {
+    const copy = GATE_COPY[READING_GATE];
+    expect(copy.title).toMatch(/five/i);
+    for (const section of READING_SECTIONS) {
+      expect(copy.blurb.toLowerCase(), section.title).toContain(section.title.toLowerCase());
+    }
+    expect(copy.needsReport).toBeFalsy();
+  });
+
+  it('lists the Reading sections in the contract order', () => {
+    expect(READING_SECTIONS.map((s) => s.field)).toEqual(['number', 'type', 'agree', 'pull', 'closing']);
+  });
+
+  it('keeps the Reading gate out of the Profile sections', () => {
+    expect((sections as readonly string[]).includes(READING_GATE)).toBe(false);
+    expect((PAID_SECTIONS as readonly string[]).includes(READING_GATE)).toBe(false);
+  });
+
+  it('names the Reading in the Profile gates\' shared line', () => {
+    expect(INCLUDED_WITH_READING).toMatch(/the Reading/);
   });
 });
