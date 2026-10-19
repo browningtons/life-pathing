@@ -178,6 +178,11 @@ describe('validateReading: forecasts, person, plain text', () => {
     }
   });
 
+  it('flags exclamation marks and emoji', () => {
+    expect(validateReading(withField('closing', `${words(14)} quiet!`))).toContain('closing: exclamation mark; the register has none');
+    expect(validateReading(withField('closing', `${words(14)} quiet \u{2728}`))).toContain('closing: emoji; the register has none');
+  });
+
   it('allows paragraph breaks', () => {
     expect(validateReading(withField('number', `${words(80)}\n\n${words(90)}`))).toEqual([]);
   });

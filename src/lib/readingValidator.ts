@@ -119,6 +119,8 @@ export function validateReading(reading: unknown): string[] {
     const second = SECOND_PERSON_PATTERN.exec(value);
     if (second) failures.push(`${field}: second person ("${second[0]}"); write in the third person`);
     if (MARKDOWN_PATTERN.test(value)) failures.push(`${field}: markdown; bodies are plain text`);
+    if (value.includes('!')) failures.push(`${field}: exclamation mark; the register has none`);
+    if (/\p{Extended_Pictographic}/u.test(value)) failures.push(`${field}: emoji; the register has none`);
   }
 
   const [tlo, thi] = TOTAL_WORD_BOUNDS;
