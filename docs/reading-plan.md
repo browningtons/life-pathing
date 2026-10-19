@@ -12,6 +12,10 @@ Engineering plan from `/plan-eng-review` on 2026-10-18 against [`reading-design.
 | D2 | **The paid text is served by a thin route that re-verifies the Stripe session on each fetch; the client then caches the text locally** keyed by Reading key + prompt version. | One Stripe round trip per device per Reading; re-opens and printing work offline, which matches "saved to this browser". A prompt-version bump invalidates every cached copy. |
 | D3 | **Admin door:** `READING_ADMIN_TOKEN` env; the route accepts it as a header in place of a session id; admin mode asks for it once and keeps it in sessionStorage. | Paul can walk the live Reading page for any key before launch without buying. |
 | D4 | **Each Reading is structured JSON**, not markdown: `{ teaser, number, type, agree, pull, closing }` with plain-text bodies. | No markdown dependency; the page renders with the app's own Card and SectionHeading; the validator checks named fields; every formatting failure happens in the script, never in a buyer's browser. |
+| T1 | **Each purchase is bound to its Reading key.** The Payment Link gets `client_reference_id = <key>__<utm>`; the route serves only the bound key; the payment intent's latest charge is expanded and a refunded session is refused; the session id travels in a request header, never the query string. A session with no key (a pre-Phase-2 $29 buyer) may read any one key. Buying requires the reader's own letters, so every new session carries a key. | Outside voice: with no store and no cap, one paid session id read the whole catalogue, and Stripe keeps `payment_status: paid` after a refund. Binding needs no server state and makes the offer exact: "The Reading for 7 · INFJ". A buyer who changes letters later is told, before paying, that a new pairing is a new Reading. |
+| T2 | **Four personal-ness checks before the full run:** a cross-sibling overlap test in the validator (the 16 Readings of one number, the 33 of one type, flagged above a shared-n-gram threshold); a side-by-side review file (same type, different numbers); the document shows "Written for a 7 born 14 March 1991" from the device; and a 5-persona read of 3 pilot Readings before the 528 are generated. | Everyone who is a 7 and INFJ gets the same text and the inputs are the free pills. A reader of one document cannot see that it matches its 32 siblings. |
+| T3 | **`VITE_READING_ENABLED` flag, off by default.** The tab, the Reading gate copy, the $19 modal and the Profile gates' "Included with the Reading" copy flip on together in the final PR after Paul signs `docs/readings-review.md`. The modal header names the Reading. | main auto-deploys; without a flag the live offer would mix $29 "whole profile" copy with a $19 Reading page for as long as the Stripe step takes. The sign-off becomes a mechanism. |
+| T4 | **Fix email restore in lane B.** The POST scans sessions by email and checks line items on each match until one is this product (the Stripe account is shared with another app); `prompt()` becomes a small email form in the modal so the harness can test restore. | A bug on main today; the Reading makes restore the only path to a second device. |
 | D5 | **Launch gate:** all 528 pass the validator (script exits 1 otherwise) **and** Paul reads a stratified sample of 20 (`docs/readings-review.md`) before the $19 price goes live. | The panel's loudest complaint about the paid tier was generic prose. Rules cannot catch "correct and dull". |
 
 ## Architecture
@@ -42,15 +46,16 @@ System: the almanac register, third person, the disclaimer framing, the fixed se
 
 ### Validator (`src/lib/readingValidator.ts`, pure, tested)
 
-All six fields present and strings; teaser 60–120 words; `number`, `type`, `agree`, `pull` 150–200 words each; `closing` 15–40 words; no banned word or pattern (case-insensitive, word-boundary); no second-person forecast patterns. Returns a list of failures. The script retries a failing key once with the failures appended to the prompt, then marks it failed. **No fallback text ships.** A failed key fails the script.
+All six fields present and strings; teaser 60–120 words; `number`, `type`, `agree`, `pull` 150–200 words each; `closing` 15–40 words; total 700–900 words; no banned word or pattern (case-insensitive, word-boundary); no second-person forecast patterns. Returns a list of failures. A second pass over the whole set flags sibling pairs (same number, or same type) whose shared 6-gram ratio exceeds a threshold set from the pilot. The script retries a failing key once with the failures appended to the prompt, then marks it failed. **No fallback text ships.** A failed key fails the script.
 
 ### Route (`api/reading.ts`)
 
-- `GET /api/reading?key=<key>&session_id=<cs_…>`; or header `x-reading-admin: <READING_ADMIN_TOKEN>`.
-- Verifies with `verifySession(sessionId)` from the new `api/_lib/entitlement.ts` (the price-id / product-id match extracted from `verify-purchase.ts`, which keeps its behaviour).
-- Responses: `200 { key, version, reading }` · `402 { error: 'not verified' }` · `404 { error: 'no reading for this key' }` · `405` · `502 { error: 'verification failed' }` when Stripe throws.
+- `GET /api/reading?key=<key>` with header `x-reading-session: cs_…`, or header `x-reading-admin: <READING_ADMIN_TOKEN>`.
+- `verifySession(sessionId, key)` in the new `api/_lib/entitlement.ts` (the price-id / product-id match extracted from `verify-purchase.ts`, which keeps its behaviour): retrieves the session with `line_items` and `payment_intent.latest_charge` expanded; requires `payment_status === 'paid'`, a product match, `latest_charge.refunded !== true`, and that `client_reference_id` is absent (legacy) or starts with `<key>__` / equals `<key>`.
+- Responses: `200 { key, version, reading }` · `402 { error: 'not verified' | 'refunded' | 'other reading' }` · `404 { error: 'no reading for this key' }` · `405` · `502 { error: 'verification failed' }` when Stripe throws. The `other reading` case tells the client which key the session is bound to, so the page can say so.
 - The full set is imported into the function (`api/_readings/index.json`, built by the script); nothing reads the filesystem at runtime.
-- `verify-purchase.ts` POST now returns `{ verified, sessionId }` so the email-restore path can store the session id the Reading route needs.
+- `verify-purchase.ts` POST now returns `{ verified, sessionId }` so the email-restore path can store the session id the Reading route needs, and it scans every session matching the email until one carries this product (T4).
+- The kit's `stripeUrlWithUtm` becomes `stripeUrlWithRef(baseUrl, { key, utm })` and encodes `client_reference_id = <key>__<utm_source>_<utm_medium>_<utm_campaign>` (Stripe allows `[A-Za-z0-9_-]`, 200 chars). The modal needs the key, so buying is only offered once the reader has their own letters; otherwise the modal points to the letters ask.
 
 ### Client
 
@@ -58,6 +63,10 @@ All six fields present and strings; teaser 60–120 words; `number`, `type`, `ag
 - `ProGate` gains an optional `buttonLabel` and a `surface` so the analytics source reads `reading_reading`.
 - `src/data/tiers.ts`: `GateKey` gains `'reading'` with copy naming the five sections.
 - `useAuth`: `#session_id` activation switches to the Reading tab on the false→true transition of `justPurchased` only; restore saves the returned session id; the post-purchase banner names the Reading.
+- The document header reads "Written for a 7 born 14 March 1991", rendered from the device's profile (never sent anywhere).
+- `VITE_READING_ENABLED` (T3) gates the tab, the Reading gate key, the modal copy variant and the Profile gates' "Included with the Reading" line. Off by default; `.env.example` documents it; the final PR sets it in Vercel.
+- Admin mode with no token entered shows the token prompt in place of the gate, never a 402 card.
+- Restore is a small email form in the upgrade modal (kit), not `prompt()`.
 - Print stylesheet in `src/index.css` under `@media print`: only the Reading article prints; nav, banners, gates and buttons hidden.
 - Funnel: `reading_teaser_shown` (once per session) in `src/lib/funnel.ts`.
 - `kit.config.ts`: `upgrade.price` `$19`, `upgrade.features` leading with the Reading, `stripe.paymentUrl` the new $19 link, `stripe.priceIdHint` (all four together); `STRIPE_PRICE_ID` env updated by Paul.
@@ -71,6 +80,9 @@ All six fields present and strings; teaser 60–120 words; `number`, `type`, `ag
 - Hand-editing the 528 (starts with the 20-sample review; the rest is a ledger item).
 - The privacy and refund page is required before real money but is its own PR, in a parallel lane.
 - Stripe Buy Button (the Payment Link stays, deliberately).
+- Pre-rendered PDFs served as a download (outside voice: phone Save-as-PDF is buried). Ledger L10; the print stylesheet ships first.
+- A birthday-number paragraph (31 static blocks). Paul's call after the pilot read.
+- Prerendered free pages and the "post the link" assignment (phase 4 and the design's Assignment) are not engineering work in this phase; analytics are on as of 2026-10-18.
 
 ## What already exists (reused, not rebuilt)
 
@@ -106,16 +118,18 @@ No critical gaps: every failure has a test and a visible state.
 | Step | Modules | Depends on |
 |---|---|---|
 | A. key + prompt + validator + script + the 528 JSON | `src/lib/`, `scripts/`, `public/readings/`, `api/_readings/` | — (needs `ANTHROPIC_API_KEY` locally) |
-| B. entitlement extraction + reading route + verify-purchase POST | `api/` | A's JSON shape only (a fixture suffices) |
+| B. entitlement extraction (+ key binding, refund check) + reading route + verify-purchase POST (product-aware email scan) + kit restore form + `stripeUrlWithRef` | `api/`, `src/kit/` | A's JSON shape only (fixture in `api/_readings/__fixtures__/`) |
 | C. ReadingView + ProGate label + tiers copy + print stylesheet + funnel event + tab switch + restore | `src/views/`, `src/components/`, `src/data/tiers.ts`, `src/kit/auth/`, `src/index.css` | A's key module and B's route shape (both are small contracts; stub them) |
-| D. kit.config $19 + roadmap + README | `kit.config.ts`, `docs/` | Paul creates the $19 price and Payment Link |
+| D. kit.config $19 + modal copy + flag on + roadmap + README | `kit.config.ts`, `docs/`, Vercel env | Paul creates the $19 price and Payment Link, signs the review file |
 | E. privacy and refund page | `src/views/` or `public/` | — |
 
-Launch A, B, C, E in parallel worktrees against agreed contracts (key format, JSON shape, route responses); D after Paul's Stripe step; merge A → B → C → E → D.
+Sequence: A runs the 3-key pilot first and the 5-persona read decides whether the prompt goes another round; B, C and E start in parallel against the contracts below; A's full run lands when the pilot passes. Merge A → B → C → E, then D (with the flag flip) last. C and E both touch the shell nav: E adds a footer link only, after C.
+
+**Contracts:** key `"<lifePath>-<compoundKey>-<TYPE>"`; Reading JSON `{ key, version, teaser, number, type, agree, pull, closing }`; teaser file `public/readings/<key>.json` = `{ key, version, teaser }`; route as above; `verify-purchase` POST `{ verified, sessionId }`; flag `import.meta.env.VITE_READING_ENABLED === '1'`.
 
 ## Dependencies on Paul
 
 - A new $19 price and Payment Link under the existing product; `STRIPE_PRICE_ID` updated; the $29 price archived; the Payment Link success URL set to `https://life-pathing.vercel.app/#session_id={CHECKOUT_SESSION_ID}`.
-- `READING_ADMIN_TOKEN` env in Vercel.
+- `READING_ADMIN_TOKEN` env in Vercel; `VITE_READING_ENABLED=1` only in the final PR.
 - `ANTHROPIC_API_KEY` locally to run the script.
 - Read the 20-sample review file before the price goes live.

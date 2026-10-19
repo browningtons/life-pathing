@@ -81,3 +81,13 @@ v1 reads from two inputs on purpose. The key space is 33 life path + compound pa
 **Trigger:** twenty Readings read for voice, a first buyer, and a panel re-run (same roster) showing the Reading moved the "would pay" count.
 
 **Smallest change:** none until the trigger; then `readingKey.ts` grows a field and `READING_PROMPT_VERSION` bumps.
+
+### L10 — A real PDF download for the Reading
+
+*Filed 2026-10-18 from the Phase 2 outside voice. Impact 3 + Confidence 4 + Risk 2 − Effort 3 = **6**.*
+
+The "kept artifact" is a print stylesheet. On iOS Safari, Save as PDF is buried in the share sheet, and three of the panel's ten were on phones. The content is static (528 documents), so the PDFs can be rendered offline with the same stylesheet and served through the same key-bound route as a download.
+
+**Smallest change:** a script step that prints each Reading to PDF with Playwright; the route serves `application/pdf` when asked.
+
+**Done looks like:** on a phone, "Save the PDF" produces a file without the share sheet.
