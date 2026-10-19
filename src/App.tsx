@@ -7,6 +7,7 @@ import { PersonalityView } from './views/PersonalityView';
 import { IntakeView } from './views/IntakeView';
 import { ReadingView } from './views/ReadingView';
 import { readingKey as readingKeyOf } from './lib/readingKey';
+import { PRIVACY_PATH, PrivacyView } from './views/PrivacyView';
 import { AdminBar, ProBadge, UpgradeModal, captureUtmParams, trackTabView, useAuth } from './kit';
 import { LETTERS_ASK_ID } from './components/LettersAsk';
 import { GateContext, type Gate } from './store/gate-internal';
@@ -35,6 +36,9 @@ export default function SoulCompassApp() {
   // (Kept on even with the paywall off — useful traffic-source signal
   // for whenever a paid surface is reintroduced.)
   captureUtmParams();
+
+  // The privacy page is a plain page at /privacy, outside the tabs.
+  if (window.location.pathname.replace(/\/+$/, '') === PRIVACY_PATH) return <PrivacyView />;
 
   return (
     <ProfileProvider>
@@ -246,6 +250,12 @@ function Shell() {
               <Active />
             </div>
           </main>
+
+          <footer className="max-w-4xl mx-auto px-4 sm:px-6 mt-8 text-center text-xs">
+            <a href={PRIVACY_PATH} className={`rounded-md text-slate-500 underline hover:text-slate-700 ${FOCUS_RING}`}>
+              Privacy &amp; refunds
+            </a>
+          </footer>
 
           {auth.upgradeSource && (
             <div data-print-hide="">

@@ -2,5 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/reading.ts": { "includeFiles": "api/_readings/index.json" }
-  }
+  },
+  "rewrites": [{ "source": "/privacy", "destination": "/index.html" }]
 }
