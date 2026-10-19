@@ -443,7 +443,7 @@ export function getGrowthEdges(temperament: TemperamentName): GrowthEdge[] {
 // Path title and names what the combination tends to ask of those who
 // walk it. Voice: quiet-almanac, third-person.
 
-const SYNTHESIS_BY_TEMPERAMENT: Record<TemperamentName, string> = {
+export const SYNTHESIS_BY_TEMPERAMENT: Record<TemperamentName, string> = {
   Empath:
     'Read across the letters and the number, the through-line is heart-first — meaning before mechanism, attunement before argument. {INSIDE} asks the same thing of those who walk it: enough freedom for the depth to show, enough structure for it to land.',
   Theorist:
