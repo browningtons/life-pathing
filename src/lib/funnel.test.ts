@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../kit', () => ({ trackEvent: vi.fn() }));
 
 import { trackEvent } from '../kit';
-import { trackLettersEntered, trackLifePathShown, trackOncePerSession } from './funnel';
+import { trackLettersEntered, trackLifePathShown, trackOncePerSession, trackReadingTeaserShown } from './funnel';
 
 function stubSessionStorage() {
   const store = new Map<string, string>();
@@ -44,6 +44,14 @@ describe('funnel events', () => {
     });
     trackOncePerSession('c');
     expect(trackEvent).toHaveBeenCalledWith('c', undefined);
+  });
+
+  it('fires reading_teaser_shown once per session, tagged with the first key', () => {
+    trackReadingTeaserShown('7-16-XXXX');
+    trackReadingTeaserShown('7-16-XXXX');
+    trackReadingTeaserShown('1-0-XXXX');
+    expect(trackEvent).toHaveBeenCalledTimes(1);
+    expect(trackEvent).toHaveBeenCalledWith('reading_teaser_shown', { key: '7-16-XXXX' });
   });
 
   it('fires letters_entered every time, tagged with the method', () => {

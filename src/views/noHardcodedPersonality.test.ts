@@ -22,13 +22,14 @@ const FAMOUS = Object.values(MBTI_DATA).flatMap((e) => e.famous);
 const FUNCTIONS = ['Fi', 'Fe', 'Ti', 'Te', 'Ni', 'Ne', 'Si', 'Se'];
 
 describe('source files under guard', () => {
-  it('covers the three views and the app shell', () => {
+  it('covers the views and the app shell', () => {
     expect(FILES).toEqual([
       '../App.tsx',
       './ArchetypesView.tsx',
       './IntakeView.tsx',
       './LifePathView.tsx',
       './PersonalityView.tsx',
+      './ReadingView.tsx',
     ]);
   });
 });
