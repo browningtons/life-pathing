@@ -5,7 +5,7 @@
 
 import { createContext } from 'react';
 
-export type View = 'lifepath' | 'archetypes' | 'profile' | 'intake';
+export type View = 'lifepath' | 'archetypes' | 'profile' | 'reading' | 'intake';
 
 export interface Nav {
   /** Show a tab. With `anchor`, scroll to and focus the element with that id once it renders. */

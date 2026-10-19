@@ -5,25 +5,27 @@ import { BIRTHDATE_INPUT_ID, LifePathView } from './views/LifePathView';
 import { ArchetypesView } from './views/ArchetypesView';
 import { PersonalityView } from './views/PersonalityView';
 import { IntakeView } from './views/IntakeView';
+import { ReadingView } from './views/ReadingView';
+import { readingKey as readingKeyOf } from './lib/readingKey';
 import { AdminBar, ProBadge, UpgradeModal, captureUtmParams, trackTabView, useAuth } from './kit';
 import { LETTERS_ASK_ID } from './components/LettersAsk';
 import { GateContext, type Gate } from './store/gate-internal';
 import { NavContext, type Nav, type View } from './store/nav-internal';
 import { ProfileProvider } from './store/ProfileProvider';
+import { tabsFor } from './store/tabs';
+import { READING_ENABLED } from './lib/readingFlag';
 import { useProfile } from './store/useProfile';
 import { FOCUS_RING, FONT, PAGE_BG, PAGE_TEXT } from './design/tokens';
 
-const TABS: { id: View; label: string }[] = [
-  { id: 'lifepath', label: 'Life Path' },
-  { id: 'archetypes', label: 'Archetypes' },
-  { id: 'profile', label: 'Profile' },
-  { id: 'intake', label: 'Your Data' },
-];
+const TABS = tabsFor(READING_ENABLED);
+// Five tabs fit a phone only a little tighter; four keep their old padding.
+const TAB_PAD = READING_ENABLED ? 'px-2 sm:px-4' : 'px-3 sm:px-4';
 
 const VIEWS: Record<View, () => React.JSX.Element> = {
   lifepath: LifePathView,
   archetypes: ArchetypesView,
   profile: PersonalityView,
+  reading: ReadingView,
   intake: IntakeView,
 };
 
@@ -47,9 +49,17 @@ function Shell() {
   // so a nav to the tab already showing still scrolls.
   const pendingAnchor = useRef<string | null>(null);
   const [navTick, setNavTick] = useState(0);
-  const { isSample, ownBirthDate, lettersKnown } = useProfile();
+  const profileStore = useProfile();
+  const { isSample, ownBirthDate, lettersKnown } = profileStore;
   const auth = useAuth();
   const Active = VIEWS[view];
+  // The Reading a purchase made now would be bound to (plan T1). Only the
+  // reader's own number and letters make a key; without them the gates send
+  // the reader to supply them instead of to the modal.
+  const readingKey =
+    READING_ENABLED && ownBirthDate && lettersKnown
+      ? (readingKeyOf(profileStore.lifePath.number, profileStore.lifePath.compound, profileStore.typeCode) ?? undefined)
+      : undefined;
 
   const setView = useCallback((next: View) => {
     setViewState(next);
@@ -81,17 +91,32 @@ function Shell() {
     el?.focus({ preventScroll: true });
   }, [navTick]);
 
+  // After a #session_id unlock, land on the Reading. Only on the false→true
+  // transition of justPurchased: the flag also survives a reload (session
+  // storage), and a reload must not yank the reader off the tab they chose.
+  const wasJustPurchased = useRef(auth.justPurchased);
+  useEffect(() => {
+    if (READING_ENABLED && auth.justPurchased && !wasJustPurchased.current) nav.go('reading');
+    wasJustPurchased.current = auth.justPurchased;
+  }, [auth.justPurchased, nav]);
+
   // What the banner above each tab says about whose numbers are showing:
   //   sample   nothing is the reader's yet
   //   letters  the birthdate is theirs, the type is still the sample's
   const banner: 'sample' | 'letters' | null =
-    view === 'intake' ? null : isSample ? 'sample' : ownBirthDate && !lettersKnown ? 'letters' : null;
+    // The Reading tab asks for the missing birthdate or letters itself.
+    view === 'intake' || view === 'reading' ? null : isSample ? 'sample' : ownBirthDate && !lettersKnown ? 'letters' : null;
 
   // The single entitlement instance, published to the views. Admins
   // viewing-as-user see the free experience; see kit/auth/useAuth.
   const gate = useMemo<Gate>(
-    () => ({ isPro: auth.isPro, openUpgrade: auth.openUpgrade, restore: auth.openRestore }),
-    [auth.isPro, auth.openUpgrade, auth.openRestore],
+    () => ({
+      isPro: auth.isPro,
+      openUpgrade: auth.openUpgrade,
+      restore: auth.openRestore,
+      adminView: auth.isAdmin && auth.viewAs === 'admin',
+    }),
+    [auth.isPro, auth.openUpgrade, auth.openRestore, auth.isAdmin, auth.viewAs],
   );
 
   return (
@@ -99,9 +124,11 @@ function Shell() {
       <GateContext.Provider value={gate}>
         <div className={`min-h-screen ${PAGE_BG} ${FONT} ${PAGE_TEXT} pb-12`}>
           {auth.isAdmin && (
-            <AdminBar isPro={auth.isPro} viewAs={auth.viewAs} setViewAs={auth.setViewAs} setIsAdmin={auth.setIsAdmin} />
+            <div data-print-hide="">
+              <AdminBar isPro={auth.isPro} viewAs={auth.viewAs} setViewAs={auth.setViewAs} setIsAdmin={auth.setIsAdmin} />
+            </div>
           )}
-          <header>
+          <header data-print-hide="">
             <nav aria-label="Primary" className="bg-white border-b border-slate-200 sticky top-0 z-30 mb-8">
               <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between gap-4">
                 <button
@@ -134,7 +161,7 @@ function Shell() {
                       aria-selected={view === tab.id}
                       aria-controls={`panel-${tab.id}`}
                       onClick={() => setView(tab.id)}
-                      className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap ${FOCUS_RING} ${
+                      className={`${TAB_PAD} py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap ${FOCUS_RING} ${
                         view === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                       }`}
                     >
@@ -150,14 +177,22 @@ function Shell() {
             {auth.justPurchased && (
               <div
                 role="status"
+                data-print-hide=""
                 className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs text-emerald-800"
               >
                 <span className="flex items-center gap-2">
                   <PartyPopper size={14} aria-hidden="true" />
-                  <span>
-                    <span className="font-bold">The whole profile is open.</span> The unlock is saved to this browser. On
-                    another device, use Restore, then enter your own birthdate and letters again.
-                  </span>
+                  {READING_ENABLED ? (
+                    <span>
+                      <span className="font-bold">Your Reading is open.</span> Saved to this browser; on another device,
+                      use Restore, then enter the same birthdate and letters.
+                    </span>
+                  ) : (
+                    <span>
+                      <span className="font-bold">The whole profile is open.</span> The unlock is saved to this browser.
+                      On another device, use Restore, then enter your own birthdate and letters again.
+                    </span>
+                  )}
                 </span>
                 <button
                   type="button"
@@ -171,7 +206,10 @@ function Shell() {
             )}
 
             {banner && (
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-2.5 text-xs text-indigo-800">
+              <div
+                data-print-hide=""
+                className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-2.5 text-xs text-indigo-800"
+              >
                 {banner === 'sample' ? (
                   <span>
                     <span className="font-bold">Reading a sample profile.</span> The numbers here belong to the person
@@ -210,7 +248,14 @@ function Shell() {
           </main>
 
           {auth.upgradeSource && (
-            <UpgradeModal source={auth.upgradeSource} onClose={auth.closeUpgrade} onRestore={auth.handleRestore} />
+            <div data-print-hide="">
+              <UpgradeModal
+                source={auth.upgradeSource}
+                onClose={auth.closeUpgrade}
+                onRestore={auth.handleRestore}
+                readingKey={readingKey}
+              />
+            </div>
           )}
         </div>
       </GateContext.Provider>
