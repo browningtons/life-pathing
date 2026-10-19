@@ -7,7 +7,19 @@
 //   1. Copy this file to `kit.config.ts` (peer of package.json).
 //   2. Replace every value below with your app's brand + Stripe IDs.
 //   3. Wrap your <App /> in <KitProvider config={KIT_CONFIG}>.
-//   4. Set STRIPE_SECRET_KEY, STRIPE_PRICE_ID, STRIPE_PRODUCT_ID in Vercel env.
+//   4. Set the server env vars in Vercel (never VITE_-prefixed; none ship
+//      in the bundle):
+//        STRIPE_SECRET_KEY    sk_live_… / sk_test_…; read by api/verify-purchase
+//                             and api/reading.
+//        STRIPE_PRICE_ID      the paid price (price_…). A line item matching
+//        STRIPE_PRODUCT_ID    either this or the product (prod_…) counts.
+//        READING_ADMIN_TOKEN  a long random string. Sent as the
+//                             `x-reading-admin` header, it lets api/reading
+//                             serve any key without a purchase. Unset = off.
+//      The Payment Link's success URL should end in
+//      `#session_id={CHECKOUT_SESSION_ID}`. The modal sets
+//      `client_reference_id` (`<readingKey>__<utm>`), which binds the
+//      purchase to one Reading; see stripeUrlWithRef in src/kit/analytics.
 //
 // Server-side IDs (price + product) are also referenced here for
 // documentation, but the verify-purchase API route reads them from env so

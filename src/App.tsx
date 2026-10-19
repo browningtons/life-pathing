@@ -90,8 +90,8 @@ function Shell() {
   // The single entitlement instance, published to the views. Admins
   // viewing-as-user see the free experience; see kit/auth/useAuth.
   const gate = useMemo<Gate>(
-    () => ({ isPro: auth.isPro, openUpgrade: auth.openUpgrade, restore: auth.handleRestore }),
-    [auth.isPro, auth.openUpgrade, auth.handleRestore],
+    () => ({ isPro: auth.isPro, openUpgrade: auth.openUpgrade, restore: auth.openRestore }),
+    [auth.isPro, auth.openUpgrade, auth.openRestore],
   );
 
   return (

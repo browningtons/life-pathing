@@ -4,8 +4,9 @@
 //   GET  /api/verify-purchase?session_id=cs_...   → post-checkout confirmation
 //   POST /api/verify-purchase  { email: "..." }    → manual restore
 //
-// Returns { verified: boolean } in both cases. We intentionally do not leak
-// anything else — the frontend only needs yes/no.
+// GET returns { verified: boolean }. POST returns { verified: true, sessionId }
+// on a match (a restored device needs the session id for /api/reading) and
+// { verified: false } otherwise. Nothing else leaks.
 //
 // Environment variables (set in Vercel project settings):
 //   STRIPE_SECRET_KEY  — Stripe secret key (sk_live_... or sk_test_...)
@@ -14,26 +15,11 @@
 //
 // Both PRICE and PRODUCT are checked because Stripe occasionally rotates
 // prices under the same product (e.g. promotional pricing). Either match
-// counts as verified.
+// counts as verified. The match lives in ./_lib/entitlement.
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
-
-function lineItemMatchesPro(
-  items: Stripe.ApiList<Stripe.LineItem> | null | undefined,
-  priceId: string,
-  productId: string,
-): boolean {
-  if (!items?.data) return false;
-  return items.data.some((li) => {
-    const liPriceId = li.price?.id;
-    const liProductId =
-      typeof li.price?.product === 'string'
-        ? li.price.product
-        : li.price?.product?.id;
-    return liPriceId === priceId || liProductId === productId;
-  });
-}
+import { lineItemMatchesPro } from './_lib/entitlement.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const secret = process.env.STRIPE_SECRET_KEY;
@@ -70,8 +56,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const target = email.toLowerCase();
 
       // Scan recent paid Checkout Sessions. `sessions.list` doesn't support
-      // email filtering, so we page through the most recent results. For
-      // launch volume this is fine — revisit if Pro buyers exceed ~500.
+      // email filtering, so we page through the most recent results. The
+      // Stripe account is shared with another app, so an email match alone
+      // proves nothing: every matching session is retrieved with its line
+      // items until one carries this product. For launch volume this is
+      // fine — revisit if Pro buyers exceed ~500.
       const MAX_PAGES = 5;
       let startingAfter: string | undefined;
       for (let page = 0; page < MAX_PAGES; page++) {
@@ -79,18 +68,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           limit: 100,
           ...(startingAfter ? { starting_after: startingAfter } : {}),
         });
-        const hit = batch.data.find(
+        const hits = batch.data.filter(
           (s) =>
             s.payment_status === 'paid' &&
             s.customer_details?.email?.toLowerCase() === target,
         );
-        if (hit) {
+        for (const hit of hits) {
           const full = await stripe.checkout.sessions.retrieve(hit.id, {
             expand: ['line_items'],
           });
-          return res
-            .status(200)
-            .json({ verified: lineItemMatchesPro(full.line_items, priceId, productId) });
+          if (lineItemMatchesPro(full.line_items, priceId, productId)) {
+            return res.status(200).json({ verified: true, sessionId: hit.id });
+          }
         }
         if (!batch.has_more) break;
         startingAfter = batch.data[batch.data.length - 1]?.id;
@@ -100,7 +89,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(405).json({ error: 'method not allowed' });
   } catch (err) {
-    console.error('verify-purchase error', err);
+    // The failure's kind only: a Stripe error message can echo a session id.
+    const e = err as { type?: string; code?: string } | null;
+    console.error('verify-purchase error', e?.type ?? 'unknown', e?.code ?? '');
     return res.status(500).json({ error: 'verification failed' });
   }
 }
