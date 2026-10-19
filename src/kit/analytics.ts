@@ -66,19 +66,52 @@ export function getUtmParams(): UtmParams {
   }
 }
 
+// Stripe accepts client_reference_id up to 200 characters of [A-Za-z0-9_-].
+export const CLIENT_REFERENCE_MAX = 200;
+
+function refSafe(s: string | undefined): string {
+  return (s ?? '').replace(/[^A-Za-z0-9_-]/g, '');
+}
+
 /**
- * Decorates a Stripe URL with `client_reference_id` derived from UTMs so
- * the buyer's traffic source surfaces in the Stripe dashboard.
+ * The `client_reference_id` for a purchase: `<key>__<source>_<medium>_<campaign>`.
+ * With no key it is the legacy UTM-only form (no `__`). Only Stripe's
+ * allowed characters survive; the UTM tail is cut so the whole fits in 200
+ * characters and the key is never truncated. Empty when there is nothing
+ * to send.
  */
-export function stripeUrlWithUtm(baseUrl: string): string {
-  const utm = getUtmParams();
-  const ref = [utm.utm_source, utm.utm_medium, utm.utm_campaign]
+export function clientReferenceId(opts: { key?: string; utm?: UtmParams }): string {
+  const utm = opts.utm ?? {};
+  const tail = [utm.utm_source, utm.utm_medium, utm.utm_campaign]
+    .map(refSafe)
     .filter(Boolean)
     .join('_');
+  const key = refSafe(opts.key).slice(0, CLIENT_REFERENCE_MAX);
+  if (!key) return tail.slice(0, CLIENT_REFERENCE_MAX);
+  if (!tail) return key;
+  const room = CLIENT_REFERENCE_MAX - key.length - 2;
+  return room > 0 ? `${key}__${tail.slice(0, room)}` : key;
+}
+
+/**
+ * Decorates a Stripe Payment Link with `client_reference_id`, binding the
+ * purchase to a Reading key (when given) and carrying the buyer's traffic
+ * source to the Stripe dashboard.
+ */
+export function stripeUrlWithRef(
+  baseUrl: string,
+  opts: { key?: string; utm?: UtmParams } = {},
+): string {
+  const ref = clientReferenceId(opts);
   if (!ref) return baseUrl;
   const url = new URL(baseUrl);
   url.searchParams.set('client_reference_id', ref);
   return url.toString();
+}
+
+/** Legacy form: UTMs only, no Reading key. Kept for compatibility. */
+export function stripeUrlWithUtm(baseUrl: string): string {
+  return stripeUrlWithRef(baseUrl, { utm: getUtmParams() });
 }
 
 // ── Generic event helper ────────────────────────────────

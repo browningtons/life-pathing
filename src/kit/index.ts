@@ -18,6 +18,8 @@ export {
   captureUtmParams,
   getUtmParams,
   stripeUrlWithUtm,
+  stripeUrlWithRef,
+  clientReferenceId,
   trackLandingView,
   trackTabView,
   trackUpgradeShown,
