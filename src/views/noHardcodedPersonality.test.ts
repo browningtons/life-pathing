@@ -29,6 +29,7 @@ describe('source files under guard', () => {
       './IntakeView.tsx',
       './LifePathView.tsx',
       './PersonalityView.tsx',
+      './PrivacyView.tsx',
       './ReadingView.tsx',
     ]);
   });
