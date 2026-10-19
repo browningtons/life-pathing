@@ -8,6 +8,7 @@ declare module 'react' {
         React.HTMLAttributes<HTMLElement> & {
           'buy-button-id': string;
           'publishable-key': string;
+          'client-reference-id'?: string;
         },
         HTMLElement
       >;

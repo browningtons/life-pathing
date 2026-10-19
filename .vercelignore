@@ -1,0 +1,3 @@
+# Test files under api/ would otherwise deploy as serverless functions.
+api/**/*.test.ts
+api/_readings/__fixtures__
