@@ -133,3 +133,17 @@ Sequence: A runs the 3-key pilot first and the 5-persona read decides whether th
 - `READING_ADMIN_TOKEN` env in Vercel; `VITE_READING_ENABLED=1` only in the final PR.
 - `ANTHROPIC_API_KEY` locally to run the script.
 - Read the 20-sample review file before the price goes live.
+
+## Status (2026-10-19)
+
+| Lane | PR | State |
+|---|---|---|
+| A key, prompt, validator, script | [#13](https://github.com/browningtons/life-pathing/pull/13) | Merged into this branch. **Pilot not run:** no `ANTHROPIC_API_KEY`. No Readings exist yet; `public/readings/` holds two fixtures. |
+| B entitlement, route, restore fix, Stripe link | [#12](https://github.com/browningtons/life-pathing/pull/12) | Merged. Verified on the combined build. |
+| C Reading tab, gate, cache, print, funnel | [#14](https://github.com/browningtons/life-pathing/pull/14) | Merged. Verified on the combined build with the flag on. |
+| E privacy and refund page | [#11](https://github.com/browningtons/life-pathing/pull/11) | Merged into this branch. **Wording needs Paul's approval** before this branch reaches main. |
+| D $19 price, modal copy, flag on, roadmap | — | Waits on Paul's Stripe step and the signed review file. |
+
+Combined walk of `e28bf75` with `VITE_READING_ENABLED=1` (phone): every Reading state, the Buy link with `client_reference_id=7-16-INFJ`, the full text after a simulated purchase, a reload from cache with no fetch, a print PDF, `/privacy`. 392 tests pass.
+
+**Next, in order:** (1) Paul approves the privacy wording → this branch merges to main with the flag off; (2) `ANTHROPIC_API_KEY` in `.env.local` → the 3-key pilot → a 5-persona read → the 528 run and the 20-sample review; (3) Paul's Stripe price and link, `READING_ADMIN_TOKEN` → lane D flips the flag.
