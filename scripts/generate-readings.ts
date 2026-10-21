@@ -8,7 +8,8 @@
 // Options: --concurrency N (default 4), --model ID (default claude-sonnet-5),
 // --threshold R (sibling overlap, default 0.15), --key K (which prompt --dry-run prints).
 //
-// Needs ANTHROPIC_API_KEY in the environment or in this repo's .env.local.
+// Needs ANTHROPIC_API_KEY in the environment or in this repo's .env.local. A key that is
+// not scoped to a workspace also needs ANTHROPIC_WORKSPACE_ID (the Console's wrkspc_… id).
 // Writes public/readings/<key>.json (teaser only, served free) and merges the
 // full Readings into api/_readings/index.json (imported by the route). A key
 // whose index entry has "locked": true is never regenerated (ledger L8). A
@@ -139,16 +140,22 @@ function writeTeaser(reading: Reading): void {
   writeFileSync(path.join(PUBLIC_DIR, `${reading.key}.json`), `${JSON.stringify(teaser, null, 2)}\n`);
 }
 
-/** The API key from the environment, else from this repo's .env.local. Never printed. */
-function loadApiKey(): string | null {
-  if (process.env.ANTHROPIC_API_KEY) return process.env.ANTHROPIC_API_KEY;
+/** A value from the environment, else from this repo's .env.local. Never printed. */
+function loadEnv(name: string): string | null {
+  if (process.env[name]) return process.env[name] ?? null;
   const envPath = path.join(ROOT, '.env.local');
   if (!existsSync(envPath)) return null;
+  const re = new RegExp(`^\\s*(?:export\\s+)?${name}\\s*=\\s*(.*)\\s*$`);
   for (const line of readFileSync(envPath, 'utf8').split('\n')) {
-    const m = /^\s*(?:export\s+)?ANTHROPIC_API_KEY\s*=\s*(.*)\s*$/.exec(line);
+    const m = re.exec(line);
     if (m) return m[1].replace(/^['"]|['"]$/g, '') || null;
   }
   return null;
+}
+
+/** The API key from the environment, else from this repo's .env.local. Never printed. */
+function loadApiKey(): string | null {
+  return loadEnv('ANTHROPIC_API_KEY');
 }
 
 /** Life path, then compound, then type, numerically. */
@@ -293,7 +300,7 @@ function writeReview(keys: string[], index: Record<string, Reading>, model: stri
     const t = parseReadingKey(k)!.type;
     byType.set(t, [...(byType.get(t) ?? []), k]);
   }
-  const groups = [...byType.values()].every((g) => g.length === 1) ? [present] : [...byType.values()];
+  const groups = present.length === 0 ? [] : [...byType.values()].every((g) => g.length === 1) ? [present] : [...byType.values()];
   const flags = siblingOverlap(Object.fromEntries(present.map((k) => [k, index[k]])));
 
   const out = [
@@ -364,7 +371,12 @@ async function main(): Promise<number> {
       console.error('No ANTHROPIC_API_KEY in the environment or in .env.local. Nothing generated.');
       return 1;
     }
-    const client = new Anthropic({ apiKey });
+    // A key that is not scoped to a workspace must name one per request.
+    const workspaceId = loadEnv('ANTHROPIC_WORKSPACE_ID');
+    const client = new Anthropic({
+      apiKey,
+      ...(workspaceId ? { defaultHeaders: { 'anthropic-workspace-id': workspaceId } } : {}),
+    });
     console.log(`Generating ${todo.length} Readings with ${opts.model}, concurrency ${opts.concurrency}.`);
     let done = 0;
     await runPool(todo, opts.concurrency, async (key) => {
