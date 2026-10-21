@@ -1,8 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { X, Zap, Check, ExternalLink } from 'lucide-react';
 import { useKitConfig } from '../use-kit-config';
-import { stripeUrlWithUtm, trackUpgradeShown } from '../analytics';
+import { clientReferenceId, getUtmParams, stripeUrlWithRef, trackUpgradeShown } from '../analytics';
 import { useTapGuard } from '../tap-guard';
+import { RESTORE_SOURCE } from '../auth/useAuth';
+import type { RestoreResult } from '../auth/restore';
 
 /**
  * The Buy Button web component requires a Stripe-dashboard-created Buy
@@ -16,10 +18,22 @@ function isBuyButtonConfigured(buyButtonId: string): boolean {
 
 interface UpgradeModalProps {
   onClose: () => void;
-  onRestore: () => void;
+  /** Email restore (useAuth's handleRestore). Resolves what the form shows. */
+  onRestore: (email: string) => Promise<RestoreResult>;
   /** Where in the app the modal was triggered, for funnel attribution. */
   source: string;
+  /**
+   * The Reading key this purchase is for. When set, the Buy link binds the
+   * Stripe session to it (client_reference_id = <key>__<utm>); when absent
+   * the link carries UTMs only (legacy).
+   */
+  readingKey?: string;
 }
+
+type RestoreState =
+  | { phase: 'closed' }
+  | { phase: 'open'; pending: boolean; message: string | null }
+  | { phase: 'done' };
 
 /**
  * The single upgrade modal used everywhere. All copy + IDs come from
@@ -29,8 +43,35 @@ interface UpgradeModalProps {
  * consuming app — but resist redesigning per-app, the whole point is one
  * shared, tested upgrade surface.
  */
-export default function UpgradeModal({ onClose, onRestore, source }: UpgradeModalProps) {
+export default function UpgradeModal({ onClose, onRestore, source, readingKey }: UpgradeModalProps) {
   const { stripe, upgrade } = useKitConfig();
+
+  // "Already purchased? Restore" opens a small email form in place. Opened
+  // straight from a gate's restore link, the form is already showing.
+  const [restore, setRestore] = useState<RestoreState>(() =>
+    source === RESTORE_SOURCE ? { phase: 'open', pending: false, message: null } : { phase: 'closed' },
+  );
+  const [email, setEmail] = useState('');
+  const pendingRef = useRef(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const restoreOpen = restore.phase === 'open';
+  useEffect(() => {
+    if (restoreOpen) emailRef.current?.focus({ preventScroll: true });
+  }, [restoreOpen]);
+
+  const submitRestore = async (e: FormEvent) => {
+    e.preventDefault();
+    // A double-click or a second Enter while the first check runs is ignored.
+    if (pendingRef.current) return;
+    pendingRef.current = true;
+    setRestore({ phase: 'open', pending: true, message: null });
+    try {
+      const result = await onRestore(email);
+      setRestore(result.ok ? { phase: 'done' } : { phase: 'open', pending: false, message: result.message });
+    } finally {
+      pendingRef.current = false;
+    }
+  };
 
   // The tap that opened the modal can double: its second half lands where
   // the Buy link now is. Pointer clicks on the CTA are ignored for a moment.
@@ -118,16 +159,18 @@ export default function UpgradeModal({ onClose, onRestore, source }: UpgradeModa
           )}
         </div>
 
-        {/* CTA — inline Buy Button if configured, else Payment Link */}
+        {/* CTA — inline Buy Button if configured, else Payment Link. Hidden once restored. */}
+        {restore.phase !== 'done' && (
         <div className="px-6 pb-4 flex justify-center">
           {isBuyButtonConfigured(stripe.buyButtonId) ? (
             <stripe-buy-button
               buy-button-id={stripe.buyButtonId}
               publishable-key={stripe.publishableKey}
+              client-reference-id={clientReferenceId({ key: readingKey, utm: getUtmParams() }) || undefined}
             />
           ) : (
             <a
-              href={stripeUrlWithUtm(stripe.paymentUrl)}
+              href={stripeUrlWithRef(stripe.paymentUrl, { key: readingKey, utm: getUtmParams() })}
               onClick={(e) => {
                 if (tooEarly(e)) e.preventDefault();
               }}
@@ -138,15 +181,65 @@ export default function UpgradeModal({ onClose, onRestore, source }: UpgradeModa
             </a>
           )}
         </div>
+        )}
 
         {/* Restore */}
         <div className="px-6 pb-5 text-center">
-          <button
-            onClick={onRestore}
-            className="text-[11px] text-stone-400 hover:text-stone-600 underline underline-offset-2 transition-colors"
-          >
-            Already purchased? Restore
-          </button>
+          {restore.phase === 'closed' && (
+            <button
+              type="button"
+              onClick={() => setRestore({ phase: 'open', pending: false, message: null })}
+              className="text-[11px] text-stone-400 hover:text-stone-600 underline underline-offset-2 transition-colors"
+            >
+              Already purchased? Restore
+            </button>
+          )}
+          {restore.phase === 'open' && (
+            <form onSubmit={submitRestore} noValidate className="text-left" aria-label="Restore a purchase">
+              <label htmlFor="kit-restore-email" className="block text-xs font-semibold text-stone-600 mb-1.5">
+                The email you used at checkout
+              </label>
+              <div className="flex gap-2">
+                <input
+                  ref={emailRef}
+                  id="kit-restore-email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  aria-describedby="kit-restore-status"
+                  className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-base sm:text-sm text-stone-800 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
+                />
+                <button
+                  type="submit"
+                  disabled={restore.pending}
+                  aria-busy={restore.pending}
+                  className="shrink-0 rounded-lg bg-stone-800 px-4 py-2 text-sm font-bold text-white hover:bg-stone-900 disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+                >
+                  {restore.pending ? 'Checking…' : 'Restore'}
+                </button>
+              </div>
+              <p id="kit-restore-status" role="status" aria-live="polite" className="mt-2 min-h-[1rem] text-xs text-stone-600">
+                {restore.pending ? 'Checking your purchase…' : restore.message}
+              </p>
+            </form>
+          )}
+          {restore.phase === 'done' && (
+            <div role="status" aria-live="polite" className="space-y-3">
+              <p className="text-sm font-semibold text-emerald-700">Restored. Welcome back.</p>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+              >
+                Done
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Trust */}

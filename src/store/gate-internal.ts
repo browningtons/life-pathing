@@ -10,6 +10,11 @@ export interface Gate {
   openUpgrade: (source: string) => void;
   /** Restore a purchase by checkout email (the kit's flow). */
   restore: () => void;
+  /**
+   * True while an admin is viewing as admin (the AdminBar toggle). The
+   * Reading then fetches with the admin token instead of a session id.
+   */
+  adminView: boolean;
 }
 
 export const GateContext = createContext<Gate | null>(null);

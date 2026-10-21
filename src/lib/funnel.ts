@@ -5,6 +5,7 @@
 //   lifepath_shown   a non-sample birthdate produced a Life Path (once per session)
 //   quiz_started     the reader opened the letters quiz (once per session)
 //   letters_entered  the reader supplied letters, by quiz or typed
+//   reading_teaser_shown  the Reading tab rendered a teaser (once per session)
 //
 // Together with the kit's gate_shown, upgrade_shown, and pro_purchase,
 // these answer the one question Phase 1 exists for: of the people who get
@@ -36,4 +37,7 @@ export const trackLifePathShown = (number: number): void => trackOncePerSession(
 
 export const trackQuizStarted = (): void => trackOncePerSession('quiz_started');
 
-export const trackLettersEntered = (method: 'quiz' | 'typed'): void => trackEvent('letters_entered', { method });
+/** Phase 2: the Reading's free opening rendered on the Reading tab (once per session). */
+export const trackReadingTeaserShown = (key: string): void => trackOncePerSession('reading_teaser_shown', { key });
+
+export const trackLettersEntered =(method: 'quiz' | 'typed'): void => trackEvent('letters_entered', { method });

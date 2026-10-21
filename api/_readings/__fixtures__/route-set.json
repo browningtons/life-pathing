@@ -1,0 +1,22 @@
+{
+  "7-16-INFJ": {
+    "key": "7-16-INFJ",
+    "version": 1,
+    "teaser": "Fixture teaser for 7-16-INFJ.",
+    "number": "Fixture number section.",
+    "type": "Fixture type section.",
+    "agree": "Fixture agree section.",
+    "pull": "Fixture pull section.",
+    "closing": "Fixture closing."
+  },
+  "1-0-ESTP": {
+    "key": "1-0-ESTP",
+    "version": 1,
+    "teaser": "Fixture teaser for 1-0-ESTP.",
+    "number": "Fixture number section.",
+    "type": "Fixture type section.",
+    "agree": "Fixture agree section.",
+    "pull": "Fixture pull section.",
+    "closing": "Fixture closing."
+  }
+}

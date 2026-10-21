@@ -3,6 +3,10 @@ import { load, save } from '../persistence';
 import { useKitConfig } from '../use-kit-config';
 import { trackProPurchase, trackRestoreAttempt } from '../analytics';
 import { parseActivation } from './activation';
+import { RESTORE_MESSAGES, restorePurchase, type RestoreResult } from './restore';
+
+/** upgradeSource that opens the modal on its restore form. */
+export const RESTORE_SOURCE = 'restore';
 
 const JUST_PURCHASED_KEY = 'just_purchased';
 
@@ -133,33 +137,26 @@ export function useAuth() {
     [isPro],
   );
 
-  const handleRestore = useCallback(async () => {
-    const email = prompt('Enter the email address you used at checkout:');
-    if (!email || !email.trim().includes('@')) return;
-    try {
-      const resp = await fetch('/api/verify-purchase', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      const data = (await resp.json()) as { verified?: boolean };
-      if (data.verified) {
-        setIsProReal(true);
-        save('pro', true);
-        setUpgradeSource(null);
-        trackRestoreAttempt(true);
-        alert('Pro unlocked. Welcome back.');
-      } else {
-        trackRestoreAttempt(false);
-        alert(
-          "We couldn't find a paid purchase for that email. Double-check the address on your Stripe receipt, or reply to the receipt email for help.",
-        );
-      }
-    } catch {
-      trackRestoreAttempt(false);
-      alert('Something went wrong verifying your purchase. Try again in a moment.');
+  /**
+   * Email restore, driven by the form in UpgradeModal. On a match it saves
+   * the Pro flag and the returned Checkout Session id (the Reading route
+   * needs it on this device) and resolves `{ ok: true }`; otherwise it
+   * resolves the message the form shows inline. The modal stays open so it
+   * can say so; the reader closes it.
+   */
+  const handleRestore = useCallback(async (email: string): Promise<RestoreResult> => {
+    const result = await restorePurchase(email);
+    if (result.ok) {
+      setIsProReal(true);
+      save('pro', true);
+      if (result.sessionId) save('stripe_session_id', result.sessionId);
     }
+    if (result.ok || result.message !== RESTORE_MESSAGES.invalid) trackRestoreAttempt(result.ok);
+    return result;
   }, []);
+
+  /** Opens the upgrade modal with the restore form already showing. */
+  const openRestore = useCallback(() => setUpgradeSource(RESTORE_SOURCE), []);
 
   return {
     isAdmin,
@@ -177,5 +174,6 @@ export function useAuth() {
     handleLogoTap,
     requirePro,
     handleRestore,
+    openRestore,
   };
 }
