@@ -33,13 +33,14 @@ export const READING_GATE = 'reading' as const;
 export type GateKey = Section | typeof FACET_DETAIL_GATE | typeof READING_GATE;
 
 /**
- * The five sections behind the Reading's line, in order, as the page heads
+ * The six sections behind the Reading's line, in order, as the page heads
  * them. The free opening (the teaser) comes before them. Field names follow
  * the Reading JSON contract.
  */
 export const READING_SECTIONS = [
   { field: 'number', title: 'The Number' },
   { field: 'type', title: 'The Type' },
+  { field: 'love', title: 'In love' },
   { field: 'agree', title: 'Where they agree' },
   { field: 'pull', title: 'Where they pull' },
   { field: 'closing', title: 'A closing line' },
@@ -94,10 +95,10 @@ export const GATE_COPY: Record<GateKey, GateCopy> = {
     blurb: 'An old practice: name three internal figures. Starter names, and the prompt to find your own.',
   },
   reading: {
-    title: 'Five more sections, written for this number and this type',
-    blurb: `${READING_SECTIONS.slice(0, 4)
+    title: 'Six more sections, written for this number and this type',
+    blurb: `${READING_SECTIONS.slice(0, 5)
       .map((s) => s.title)
-      .join(', ')}, and ${READING_SECTIONS[4].title.toLowerCase()}. Seven to nine hundred words in all, kept in this browser and ready to print.`,
+      .join(', ')}, and ${READING_SECTIONS[5].title.toLowerCase()}. Seven to nine hundred words in all, kept in this browser and ready to print.`,
   },
 };
 

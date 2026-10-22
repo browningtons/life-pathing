@@ -7,6 +7,7 @@ import {
   Feather,
   GitMerge,
   Hash,
+  Heart,
   KeyRound,
   Printer,
   RotateCcw,
@@ -86,6 +87,7 @@ const SECONDARY = `inline-flex items-center justify-center gap-2 rounded-lg bord
 const SECTION_ICONS: Record<(typeof READING_SECTIONS)[number]['field'], LucideIcon> = {
   number: Hash,
   type: User,
+  love: Heart,
   agree: GitMerge,
   pull: Shuffle,
   closing: Feather,
@@ -95,7 +97,7 @@ const SECTION_ICONS: Record<(typeof READING_SECTIONS)[number]['field'], LucideIc
 
 /**
  * The Reading tab (Phase 2). One document, written for this number and
- * these four letters. The opening is free; the five sections after it are
+ * these four letters. The opening is free; the six sections after it are
  * behind the Reading gate. Nothing about the reader leaves the browser
  * except the key, which is the same for everyone with the same pills.
  */
@@ -487,7 +489,7 @@ const AdminTokenForm = ({ rejected, onSubmit }: { rejected: boolean; onSubmit: (
   );
 };
 
-/** The five sections, in contract order, then the print control. */
+/** The six sections, in contract order, then the print control. */
 const FullText = ({ reading }: { reading: Reading }) => {
   const { typeCode, lifePath } = useProfile();
   const print = () => {

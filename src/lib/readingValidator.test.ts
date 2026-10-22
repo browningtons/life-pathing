@@ -2,34 +2,49 @@ import { describe, expect, it } from 'vitest';
 import sample from '../../api/_readings/__fixtures__/sample.json';
 import {
   BANNED_TERMS,
+  BODY_FIELDS,
+  HEDGE_CAP,
   READING_FIELDS,
+  SKELETON_PHRASES,
   WORD_BOUNDS,
+  countHedges,
   countWords,
   overlapRatio,
   shingles,
   siblingOverlap,
   validateReading,
+  type ReadingField,
   type ReadingSections,
 } from './readingValidator';
 
 const words = (n: number, word = 'quiet') => Array(n).fill(word).join(' ');
 
+/** n words that address the reader and ask a question, as a body section must. */
+const body = (n: number) => `Do you ${words(n - 3)} see?`;
+
+/** n words that pass the field's own rules. */
+const fill = (field: ReadingField, n: number) => (BODY_FIELDS.includes(field) ? body(n) : words(n));
+
 const base = (): ReadingSections => {
-  const { teaser, number, type, agree, pull, closing } = sample;
-  return { teaser, number, type, agree, pull, closing };
+  const { teaser, number, type, love, agree, pull, closing } = sample;
+  return { teaser, number, type, love, agree, pull, closing };
 };
 
 const withField = (field: keyof ReadingSections, text: string) => ({ ...base(), [field]: text });
 
+/** A whole Reading from per-field word counts. */
+const sized = (counts: Record<ReadingField, number>): ReadingSections =>
+  Object.fromEntries(READING_FIELDS.map((f) => [f, fill(f, counts[f])])) as ReadingSections;
+
 describe('validateReading: the passing fixture', () => {
-  it('passes the hand-written sample with no failures', () => {
+  it('passes the sample with no failures', () => {
     expect(validateReading(sample)).toEqual([]);
   });
 
   it('is marked as a fixture and keyed per the contract', () => {
     expect(sample.fixture).toBe(true);
     expect(sample.key).toBe('7-16-INFJ');
-    expect(sample.version).toBe(1);
+    expect(sample.version).toBe(2);
   });
 });
 
@@ -38,6 +53,10 @@ describe('validateReading: shape', () => {
     expect(validateReading(null)).toHaveLength(1);
     expect(validateReading('text')).toHaveLength(1);
     expect(validateReading([])).toHaveLength(1);
+  });
+
+  it('has seven fields, love between the type and where they agree', () => {
+    expect(READING_FIELDS).toEqual(['teaser', 'number', 'type', 'love', 'agree', 'pull', 'closing']);
   });
 
   for (const field of READING_FIELDS) {
@@ -58,40 +77,52 @@ describe('validateReading: shape', () => {
 });
 
 describe('validateReading: word bounds', () => {
+  it('sets the round-2 bounds', () => {
+    expect(WORD_BOUNDS).toEqual({
+      teaser: [60, 120],
+      number: [130, 180],
+      type: [130, 180],
+      love: [80, 120],
+      agree: [130, 180],
+      pull: [130, 180],
+      closing: [15, 40],
+    });
+  });
+
   for (const field of READING_FIELDS) {
     const [lo, hi] = WORD_BOUNDS[field];
 
     it(`${field}: passes at exactly ${lo} and ${hi} words`, () => {
-      expect(validateReading(withField(field, words(lo)))).toEqual([]);
-      expect(validateReading(withField(field, words(hi)))).toEqual([]);
+      // The field's own checks only: swapping one field can move the sample's total.
+      const own = (n: number) => validateReading(withField(field, fill(field, n))).filter((f) => !f.startsWith('total:'));
+      expect(own(lo)).toEqual([]);
+      expect(own(hi)).toEqual([]);
     });
 
     it(`${field}: fails at ${lo - 1} words`, () => {
-      const failures = validateReading(withField(field, words(lo - 1)));
+      const failures = validateReading(withField(field, fill(field, lo - 1)));
       expect(failures).toContain(`${field}: ${lo - 1} words, under the ${lo}-word floor`);
     });
 
     it(`${field}: fails at ${hi + 1} words`, () => {
-      const failures = validateReading(withField(field, words(hi + 1)));
+      const failures = validateReading(withField(field, fill(field, hi + 1)));
       expect(failures).toContain(`${field}: ${hi + 1} words, over the ${hi}-word ceiling`);
     });
   }
 
   it('fails a total under 700 even when every field is in bounds', () => {
-    const r = { teaser: words(60), number: words(150), type: words(150), agree: words(150), pull: words(150), closing: words(15) };
+    const r = sized({ teaser: 60, number: 130, type: 130, love: 80, agree: 130, pull: 130, closing: 15 });
     expect(validateReading(r)).toEqual(['total: 675 words, under the 700-word floor']);
   });
 
   it('fails a total over 900 even when every field is in bounds', () => {
-    const r = { teaser: words(120), number: words(200), type: words(200), agree: words(200), pull: words(200), closing: words(40) };
-    expect(validateReading(r)).toEqual(['total: 960 words, over the 900-word ceiling']);
+    const r = sized({ teaser: 120, number: 180, type: 180, love: 120, agree: 180, pull: 180, closing: 40 });
+    expect(validateReading(r)).toEqual(['total: 1000 words, over the 900-word ceiling']);
   });
 
   it('passes the total at 700 and 900', () => {
-    const low = { teaser: words(60), number: words(150), type: words(150), agree: words(150), pull: words(175), closing: words(15) };
-    expect(validateReading(low)).toEqual([]);
-    const high = { teaser: words(120), number: words(200), type: words(200), agree: words(200), pull: words(160), closing: words(20) };
-    expect(validateReading(high)).toEqual([]);
+    expect(validateReading(sized({ teaser: 60, number: 130, type: 130, love: 80, agree: 130, pull: 155, closing: 15 }))).toEqual([]);
+    expect(validateReading(sized({ teaser: 100, number: 180, type: 180, love: 100, agree: 180, pull: 140, closing: 20 }))).toEqual([]);
   });
 
   it('counts words, not punctuation', () => {
@@ -138,17 +169,108 @@ describe('validateReading: banned words', () => {
   });
 });
 
-describe('validateReading: forecasts, person, plain text', () => {
+describe('validateReading: the round-1 skeleton', () => {
+  it('bans every phrase the persona readers quoted', () => {
+    for (const phrase of [
+      'both systems',
+      'neither system',
+      'put together,',
+      'paired, the',
+      'in ordinary life',
+      'this pairing',
+      'this combination',
+      'the risk particular',
+      'a separate, quieter',
+      'is a separate question',
+      'the question is only',
+    ]) {
+      expect(SKELETON_PHRASES).toContain(phrase);
+    }
+  });
+
+  for (const phrase of SKELETON_PHRASES) {
+    it(`flags "${phrase}" in any case`, () => {
+      const upper = phrase.toUpperCase();
+      const failures = validateReading(withField('agree', `${body(150)} ${upper} quiet`));
+      expect(failures).toContain(`agree: skeleton phrase "${phrase}"`);
+    });
+  }
+
+  it('flags a closing that is a question', () => {
+    expect(validateReading(withField('closing', `${words(14)} or is it?`))).toContain('closing: a question; the closing is a statement');
+  });
+});
+
+describe('validateReading: jargon', () => {
+  for (const phrase of ['the Ni', 'Fe first', 'Ni-Fe', 'the whole stack', 'the shadow side', 'its shadows', 'an Empath', 'Theorists', 'a Responder', 'the Preserver']) {
+    it(`flags "${phrase}"`, () => {
+      const failures = validateReading(withField('type', `${body(150)} ${phrase}`));
+      expect(failures.some((f) => f.startsWith('type: jargon'))).toBe(true);
+    });
+  }
+
+  it('matches function abbreviations by case only', () => {
+    for (const phrase of ['ni', 'se', 'fine', 'Nine', 'Sea', 'Tie']) {
+      const failures = validateReading(withField('type', `${body(150)} ${phrase}`));
+      expect(failures.filter((f) => f.includes('jargon'))).toEqual([]);
+    }
+  });
+
+  it('requires a gloss where "compound number" first appears', () => {
+    const plain = sized({ teaser: 80, number: 150, type: 150, love: 100, agree: 150, pull: 150, closing: 20 });
+    const bare = `${body(150)} The compound number 16 sits under it.`;
+    expect(validateReading({ ...plain, number: bare }).some((f) => f.startsWith('compound number: not glossed'))).toBe(true);
+    const glossed = `${body(140)} The compound number 16, the number your date adds up to before it is reduced, sits under it.`;
+    expect(validateReading({ ...plain, number: glossed }).filter((f) => f.startsWith('compound'))).toEqual([]);
+  });
+});
+
+describe('validateReading: verdicts, advice and hedges', () => {
+  for (const phrase of ['you should rest', 'you must choose', 'you need to stop', 'you have to say it', 'You Will see', 'the growth you are pointed toward', 'the lesson here is', 'the work is to listen']) {
+    it(`flags the advice "${phrase}"`, () => {
+      const failures = validateReading(withField('pull', `${body(150)} ${phrase}`));
+      expect(failures.some((f) => f.startsWith('pull: advice'))).toBe(true);
+    });
+  }
+
+  it('counts hedges', () => {
+    expect(countHedges('It tends to rain. They tend to stay. Often, you can. You cannot. You can’t.')).toBe(4);
+  });
+
+  it(`passes ${HEDGE_CAP} hedges in a section and fails ${HEDGE_CAP + 1}`, () => {
+    expect(HEDGE_CAP).toBe(3);
+    const three = `${body(150)} it tends to, often, and can`;
+    expect(validateReading(withField('agree', three))).toEqual([]);
+    const four = `${body(150)} it tends to, often, can, and often`;
+    expect(validateReading(withField('agree', four))).toContain('agree: 4 hedges ("tends to", "often", "can"), over the cap of 3');
+  });
+
+  for (const field of BODY_FIELDS) {
+    it(`${field}: needs a question and "you"`, () => {
+      const [lo] = WORD_BOUNDS[field];
+      expect(validateReading(withField(field, `${words(lo + 5)}.`))).toEqual(
+        expect.arrayContaining([`${field}: no "you"; address the reader in the second person`, `${field}: no question to the reader`]),
+      );
+    });
+  }
+
+  it('allows the second person anywhere', () => {
+    expect(validateReading(withField('closing', `${words(14)} your number and you`))).toEqual([]);
+  });
+});
+
+describe('validateReading: forecasts and plain text', () => {
   const forecasts = [
     'and they will find a partner',
     'this person will change',
+    'this one will not drop it',
     "they'll settle down",
     "and you'll see",
     'it will soon arrive',
     'a change next year',
     'over the coming months',
     'in the near future',
-    'this pairing is meant to lead',
+    'it is meant to lead',
     'it was written in the stars',
   ];
 
@@ -164,15 +286,8 @@ describe('validateReading: forecasts, person, plain text', () => {
     expect(failures).toEqual([]);
   });
 
-  it('flags the second person', () => {
-    for (const phrase of ['your number', 'You are', 'for yourself']) {
-      const failures = validateReading(withField('closing', `${words(14)} ${phrase}`));
-      expect(failures.some((f) => f.startsWith('closing: second person'))).toBe(true);
-    }
-  });
-
   it('flags markdown in a body', () => {
-    for (const text of [`## The Number\n${words(160)}`, `**bold** ${words(160)}`, `- one\n- two ${words(160)}`]) {
+    for (const text of [`## The Number\n${body(160)}`, `**bold** ${body(160)}`, `- one\n- two ${body(160)}`]) {
       const failures = validateReading(withField('number', text));
       expect(failures).toContain('number: markdown; bodies are plain text');
     }
@@ -184,7 +299,7 @@ describe('validateReading: forecasts, person, plain text', () => {
   });
 
   it('allows paragraph breaks', () => {
-    expect(validateReading(withField('number', `${words(80)}\n\n${words(90)}`))).toEqual([]);
+    expect(validateReading(withField('number', `${words(70)}\n\n${body(80)}`))).toEqual([]);
   });
 });
 
@@ -193,6 +308,7 @@ describe('siblingOverlap', () => {
     teaser: Array.from({ length: 80 }, (_, i) => `${seed}t${i}`).join(' '),
     number: Array.from({ length: 160 }, (_, i) => `${seed}n${i}`).join(' '),
     type: Array.from({ length: 160 }, (_, i) => `${seed}y${i}`).join(' '),
+    love: Array.from({ length: 100 }, (_, i) => `${seed}l${i}`).join(' '),
     agree: Array.from({ length: 160 }, (_, i) => `${seed}a${i}`).join(' '),
     pull: Array.from({ length: 160 }, (_, i) => `${seed}p${i}`).join(' '),
     closing: Array.from({ length: 20 }, (_, i) => `${seed}c${i}`).join(' '),

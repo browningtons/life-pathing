@@ -6,8 +6,8 @@
 
 import { parseReadingKey } from './readingKey';
 
-/** The six plain-text bodies, in reading order. */
-export const READING_FIELDS = ['teaser', 'number', 'type', 'agree', 'pull', 'closing'] as const;
+/** The seven plain-text bodies, in reading order. */
+export const READING_FIELDS = ['teaser', 'number', 'type', 'love', 'agree', 'pull', 'closing'] as const;
 
 export type ReadingField = (typeof READING_FIELDS)[number];
 
@@ -26,10 +26,11 @@ export interface Reading extends ReadingSections {
 /** Word bounds per field, inclusive. */
 export const WORD_BOUNDS: Record<ReadingField, [number, number]> = {
   teaser: [60, 120],
-  number: [150, 200],
-  type: [150, 200],
-  agree: [150, 200],
-  pull: [150, 200],
+  number: [130, 180],
+  type: [130, 180],
+  love: [80, 120],
+  agree: [130, 180],
+  pull: [130, 180],
   closing: [15, 40],
 };
 
@@ -54,19 +55,127 @@ export const BANNED_TERMS: { label: string; pattern: RegExp }[] = [
 
 /**
  * Forecasts. No section may predict: no "will" attached to the reader, no
- * dated future, no fate. Third-person "they will" is the forecast this voice
+ * dated future, no fate. "They will" and "this one will" are the forecasts this voice
  * would most often slip into.
  */
 export const FORECAST_PATTERNS: { label: string; pattern: RegExp }[] = [
   { label: 'second-person forecast ("you\'ll", "you are going to")', pattern: /\byou('|’)ll\b|\byou\s+are\s+(going|about)\s+to\b|\byou\s+shall\b/i },
-  { label: 'third-person forecast ("they will", "this person will")', pattern: /\b(they|he|she|this person|the reader|this reader)\s+(will|shall)\b|\b(they|he|she)('|’)ll\b/i },
+  { label: 'third-person forecast ("they will", "this one will")', pattern: /\b(they|he|she|this person|this one|the reader|this reader)\s+(will|shall)\b|\b(they|he|she)('|’)ll\b/i },
   { label: 'will + soon/eventually/one day', pattern: /\bwill\s+(soon|eventually|one\s+day|someday|finally)\b/i },
   { label: 'dated future ("next year", "the coming months")', pattern: /\b(next|coming)\s+(year|month|months|week|weeks|season|decade)\b|\bthis\s+(month|week|season|decade)\b|\bin\s+the\s+(near\s+)?future\b/i },
   { label: 'fate ("is meant to", "is fated", "is written in the stars")', pattern: /\b(is|are)\s+(meant|fated|bound)\s+to\b|\bfated\b|\bin\s+the\s+stars\b/i },
 ];
 
-/** Second person. The Reading is third person throughout. */
+/**
+ * Second person. Since prompt version 2 the Reading addresses the reader as
+ * "you" (D9); this pattern now checks that each body section does, and that
+ * the third-person exemplars stay third person (readingPrompt.test.ts).
+ */
 export const SECOND_PERSON_PATTERN = /\b(you|your|yours|yourself|yourselves)\b/i;
+
+/** The sections that carry a scene and a question to the reader (rule 3). */
+export const BODY_FIELDS: readonly ReadingField[] = ['number', 'type', 'love', 'agree', 'pull'];
+
+/**
+ * The round-1 skeleton: the connectives and shapes every pilot Reading
+ * reused. Matched case-insensitively as plain substrings.
+ */
+export const SKELETON_PHRASES: readonly string[] = [
+  'both systems',
+  'neither system',
+  'put together,',
+  'paired, the',
+  'paired, they',
+  'in ordinary life',
+  'this pairing',
+  'this combination',
+  'the risk particular',
+  'a separate, quieter',
+  'quieter question',
+  'is a separate question',
+  'the question is only',
+  // Round-2 drafts found new joins; banned before they became the new skeleton.
+  'both halves',
+  'alone misses',
+  'alone would miss',
+  'neither one alone',
+  'its own kind of',
+  'you might say it',
+  'is listed as',
+  'growth edge',
+  'together they',
+  'one number says',
+  'one set of letters',
+  "isn't loud",
+  'is not loud',
+  'here is rarely loud',
+  // Stock moves a cold reader found repeated across the round-2 pilot.
+  'run through',
+  'runs through',
+  'running through',
+  'some weeks',
+  'other weeks',
+  'across a kitchen',
+  'turn out to be',
+  'turns out to be',
+  'the overlap',
+  'somewhere in that',
+  'somewhere between',
+  'the label',
+  'its own label',
+  'a partner learns to',
+  "you're already",
+  "you've already",
+  'you are already',
+  'maybe it is the',
+  "maybe it's the",
+  'is it you who',
+  'one motion',
+  'one gesture',
+  'the number and the letters',
+  'where the number ends',
+  'hunch that arrives before',
+  'the number wants',
+  'the letters want',
+  'the type wants',
+  'is described as',
+  'read a room',
+  'reads a room',
+  'reading a room',
+  'you always know',
+];
+
+/** A section that opens on the number or the type: the round-1 "describe the number, describe the type" lead. */
+export const SYSTEM_OPENER_PATTERN = /^\s*(life\b|the number\b|the letters\b|\d|[EI][NS][TF][JP]\b)/i;
+
+/**
+ * Jargon a stranger cannot read. Function abbreviations are matched
+ * case-sensitively (they are capitalised pairs); the rest ignore case.
+ */
+export const JARGON_PATTERNS: { label: string; pattern: RegExp }[] = [
+  { label: 'function abbreviation (Ni, Fe, ...)', pattern: /\b(Ni|Ne|Si|Se|Ti|Te|Fi|Fe)\b/ },
+  { label: '"stack"', pattern: /\bstacks?\b/i },
+  { label: '"shadow"', pattern: /\bshadows?\b/i },
+  { label: 'temperament name', pattern: /\b(empaths?|theorists?|responders?|preservers?)\b/i },
+];
+
+/**
+ * Verdicts and advice: telling the reader what they will, should or must do,
+ * or what their growth is.
+ */
+export const ADVICE_PATTERNS: { label: string; pattern: RegExp }[] = [
+  { label: '"you will / should / must / need to / have to"', pattern: /\byou\s+(will|should|must|need\s+to|have\s+to)\b/i },
+  { label: '"the growth / the lesson / the work is to"', pattern: /\b(the\s+growth|the\s+lesson|the\s+work)\s+(you\s+are|here\s+is|is\s+to)\b/i },
+];
+
+/** Hedges, counted per section. The prompt allows two; the validator fails above this. */
+export const HEDGE_PATTERN = /\btend(s|ed|ing)?\s+to\b|\boften\b|\bcan\b(?!['’]t)/gi;
+export const HEDGE_CAP = 3;
+
+/** How many hedges a body holds. */
+export function countHedges(text: string): number {
+  return (text.match(HEDGE_PATTERN) ?? []).length;
+}
 
 /** Markdown in a plain-text body: headings, bold/italic markers, list bullets, links. */
 const MARKDOWN_PATTERN = /(^|\n)\s*(#{1,6}\s|[-*+]\s|\d+\.\s)|\*\*|__|\[[^\]]+\]\([^)]+\)/;
@@ -83,7 +192,7 @@ export function countWords(text: string): number {
 export function validateReading(reading: unknown): string[] {
   const failures: string[] = [];
   if (typeof reading !== 'object' || reading === null || Array.isArray(reading)) {
-    return ['not an object with the six fields'];
+    return ['not an object with the seven fields'];
   }
   const r = reading as Record<string, unknown>;
 
@@ -116,11 +225,37 @@ export function validateReading(reading: unknown): string[] {
       const m = pattern.exec(value);
       if (m) failures.push(`${field}: forecast, ${label} ("${m[0]}")`);
     }
-    const second = SECOND_PERSON_PATTERN.exec(value);
-    if (second) failures.push(`${field}: second person ("${second[0]}"); write in the third person`);
+    const lower = value.toLowerCase();
+    if (SYSTEM_OPENER_PATTERN.test(value)) failures.push(`${field}: opens on the number or the type; open on a scene or a question`);
+    for (const phrase of SKELETON_PHRASES) {
+      if (lower.includes(phrase)) failures.push(`${field}: skeleton phrase "${phrase}"`);
+    }
+    for (const { label, pattern } of JARGON_PATTERNS) {
+      const m = pattern.exec(value);
+      if (m) failures.push(`${field}: jargon, ${label} ("${m[0]}")`);
+    }
+    for (const { label, pattern } of ADVICE_PATTERNS) {
+      const m = pattern.exec(value);
+      if (m) failures.push(`${field}: advice, ${label} ("${m[0]}")`);
+    }
+    const hedges = countHedges(value);
+    if (hedges > HEDGE_CAP) failures.push(`${field}: ${hedges} hedges ("tends to", "often", "can"), over the cap of ${HEDGE_CAP}`);
+    if (BODY_FIELDS.includes(field)) {
+      if (!SECOND_PERSON_PATTERN.test(value)) failures.push(`${field}: no "you"; address the reader in the second person`);
+      if (!value.includes('?')) failures.push(`${field}: no question to the reader`);
+    }
+    if (field === 'closing' && value.includes('?')) failures.push('closing: a question; the closing is a statement');
     if (MARKDOWN_PATTERN.test(value)) failures.push(`${field}: markdown; bodies are plain text`);
     if (value.includes('!')) failures.push(`${field}: exclamation mark; the register has none`);
     if (/\p{Extended_Pictographic}/u.test(value)) failures.push(`${field}: emoji; the register has none`);
+  }
+
+  // "Compound number" is glossed in plain words the first time it appears.
+  const firstCompound = READING_FIELDS.map((f) => (typeof r[f] === 'string' ? (r[f] as string) : ''))
+    .join('\n\n')
+    .match(/\bcompound\b[^.?]*[.?]/i);
+  if (firstCompound && !/\b(add(s|ed)?\s+up|reduc(e|ed|es|ing))\b/i.test(firstCompound[0])) {
+    failures.push('compound number: not glossed where it first appears (say it is the number the date adds up to before it is reduced)');
   }
 
   const [tlo, thi] = TOTAL_WORD_BOUNDS;
