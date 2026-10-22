@@ -248,11 +248,13 @@ export function validateReading(reading: unknown): string[] {
     if (/\p{Extended_Pictographic}/u.test(value)) failures.push(`${field}: emoji; the register has none`);
   }
 
-  // "Compound number" is glossed in plain words the first time it appears.
-  const firstCompound = READING_FIELDS.map((f) => (typeof r[f] === 'string' ? (r[f] as string) : ''))
-    .join('\n\n')
-    .match(/\bcompound\b[^.?]*[.?]/i);
-  if (firstCompound && !/\b(add(s|ed)?\s+up|reduc(e|ed|es|ing))\b/i.test(firstCompound[0])) {
+  // "Compound number" is glossed in plain words the first time it appears:
+  // the sentence that first says "compound" (either side of the word) says it
+  // is the total the birth date adds up to before it is reduced.
+  const all = READING_FIELDS.map((f) => (typeof r[f] === 'string' ? r[f] : '')).join('\n');
+  const at = all.search(/\bcompound\b/i);
+  const firstCompound = at === -1 ? null : [all.slice(all.lastIndexOf('.', at) + 1, (() => { const e = all.slice(at).search(/[.?!]/); return e === -1 ? all.length : at + e + 1; })())];
+  if (firstCompound && !/\b(add(s|ed|ing)?\s+(up|together)|sum|total|digits?|reduc(e|ed|es|ing|tion)|brought down|single digit)\b/i.test(firstCompound[0])) {
     failures.push('compound number: not glossed where it first appears (say it is the number the date adds up to before it is reduced)');
   }
 
