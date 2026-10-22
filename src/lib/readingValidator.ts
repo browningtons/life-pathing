@@ -169,8 +169,8 @@ export const ADVICE_PATTERNS: { label: string; pattern: RegExp }[] = [
 ];
 
 /** Hedges, counted per section. The prompt allows two; the validator fails above this. */
-export const HEDGE_PATTERN = /\btend(s|ed|ing)?\s+to\b|\boften\b|\bcan\b(?!['’]t)/gi;
-export const HEDGE_CAP = 3;
+export const HEDGE_PATTERN = /\btend(s|ed|ing)?\s+to\b|\boften\b|\bcan\b(?!['’]t)|\bmight\b|\bcould\b|\bperhaps\b|\bmay\b/gi;
+export const HEDGE_CAP = 4;
 
 /** How many hedges a body holds. */
 export function countHedges(text: string): number {
@@ -226,7 +226,6 @@ export function validateReading(reading: unknown): string[] {
       if (m) failures.push(`${field}: forecast, ${label} ("${m[0]}")`);
     }
     const lower = value.toLowerCase();
-    if (SYSTEM_OPENER_PATTERN.test(value)) failures.push(`${field}: opens on the number or the type; open on a scene or a question`);
     for (const phrase of SKELETON_PHRASES) {
       if (lower.includes(phrase)) failures.push(`${field}: skeleton phrase "${phrase}"`);
     }
@@ -239,10 +238,9 @@ export function validateReading(reading: unknown): string[] {
       if (m) failures.push(`${field}: advice, ${label} ("${m[0]}")`);
     }
     const hedges = countHedges(value);
-    if (hedges > HEDGE_CAP) failures.push(`${field}: ${hedges} hedges ("tends to", "often", "can"), over the cap of ${HEDGE_CAP}`);
+    if (hedges > HEDGE_CAP) failures.push(`${field}: ${hedges} hedges ("tends to", "often", "can", "might", "could", "perhaps", "may"), over the cap of ${HEDGE_CAP}`);
     if (BODY_FIELDS.includes(field)) {
       if (!SECOND_PERSON_PATTERN.test(value)) failures.push(`${field}: no "you"; address the reader in the second person`);
-      if (!value.includes('?')) failures.push(`${field}: no question to the reader`);
     }
     if (field === 'closing' && value.includes('?')) failures.push('closing: a question; the closing is a statement');
     if (MARKDOWN_PATTERN.test(value)) failures.push(`${field}: markdown; bodies are plain text`);

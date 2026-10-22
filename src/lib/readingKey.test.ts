@@ -20,7 +20,7 @@ const EXPECTED_PAIRS = [
 
 describe('readingKey', () => {
   it('is version 2', () => {
-    expect(READING_PROMPT_VERSION).toBe(2);
+    expect(READING_PROMPT_VERSION).toBe(3);
   });
 
   it('keeps a labeled compound', () => {

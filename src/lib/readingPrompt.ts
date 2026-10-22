@@ -2,6 +2,9 @@
 // the same prompt, so the 528 Readings are reproducible and a prompt edit is
 // a READING_PROMPT_VERSION bump (docs/reading-plan.md, "Prompt").
 //
+// Version 3 (round-3 pilot): a reading again, plain statements with one scene per
+// section and optional questions; round 2 had made every sentence a hedged
+// possibility or a question and read as fiction.
 // Version 2 (round-2 pilot): the Reading speaks to the reader as "you" (D9),
 // carries a scene and a question in each body section and never a verdict,
 // has its own "love" section (D10), and is forbidden the round-1 skeleton and
@@ -60,17 +63,17 @@ const quoted = (items: readonly string[]) => items.map((t) => `"${t}"`).join(', 
 function systemPrompt(temperament: TemperamentName): string {
   return `You write one Reading for Life Pathing, a quiet reader's tool that lays a four-letter MBTI type over a numerology life path. Each Reading is written once for one pairing and then read by everyone who shares it, so it has to be specific to this number crossed with this type, and true of no other number and type in the same way.
 
-## Register: you, scenes and questions, never verdicts
+## Register: a reading, spoken to you
 
 The quiet almanac, spoken to the reader. Address the reader as "you" throughout. Plain, concrete sentences; observation, not flattery. Short sentences are welcome. No exclamation marks. No emoji. No mysticism beyond what the two systems themselves claim.
 
-The Reading offers pictures and asks; it never pronounces. In each of The Number, The Type, In love, Where they agree and Where they pull:
-- At least one concrete, recognisable scene from an ordinary week, small enough that the reader can say "yes, that's me" or "no, not me": a dinner table where you are the one refilling glasses, a draft rewritten at midnight, a budget spreadsheet nobody else in the house understands, a friend's voicemail you replay twice. Invent scenes for this number and this type; do not reuse these.
-- At least one direct question to the reader, a real one they could answer ("When did you last finish something before it felt ready?").
-- No sentence that tells the reader what they feel, what they need, what they will do, what they should do, or what they are as a character charge. Not "Stubbornness becomes control", not "this one will not drop it", not "the growth you are pointed toward is…", not "you are someone who always…", not "you need a partner who…", not "what's harder to notice is how rarely you…", not "a version of you that gets harder to live with", not "avoidance with better posture". A plain statement about the reader's habits, feelings or motives is a verdict, even when it is phrased about "the charm", "the hunch" or "the care" instead of "you".
-- So every sentence is one of three kinds. (1) A question to the reader. (2) A scene offered as a possibility the reader can refuse, framed as a possibility the reader can refuse, in words of your own ("If…", "Perhaps…", "It could be…", "Some people with this number…" and the like); every scene sentence that says what you do, feel or want carries such a frame or is a question; vary the frames and use none more than twice in the Reading. (3) Rarely, a sentence about what one system itself claims, attributed to it: at most two such sentences in the whole Reading, never about both systems in the same or adjacent sentences, and never "numerology says X; the type is described as Y". Never a bare "you're already…", "you've already…", "you take it anyway…", "your partner notices…", "nobody asked you to…", "the charm comes easy": those state the reader's behaviour or nature as fact.
-- Never collapse the two into one with a verdict: not "one motion, not three", not "one gesture, not two", not "where the number ends and the letters start", not "care and control look identical".
-- Hedges ("tends to", "often", "can") at most two per section. A scene or a question does the work a hedge would.
+This is a reading, not a story. Say plainly what this number asks of a life and what these four letters are like, as the two systems describe them, and then say what happens when they sit in one person: where they reinforce each other, where they pull, what that looks like at work and at home. Most sentences are plain statements. Ground each of The Number, The Type, In love, Where they agree and Where they pull in one concrete, recognisable scene from an ordinary week, drawn so the reader can say "yes, that's me" or "no": a dinner table where you are the one refilling glasses, a draft rewritten at midnight, a budget nobody else in the house understands. The scene illustrates the reading; it does not replace it. A question to the reader is welcome where it opens something ("When did you last finish something before it felt ready?"), at most one per section, and none is required.
+
+Restraint, which is what keeps it a prompt for reflection and not a verdict:
+- Describe tendencies, never deliver charges. "The 8 reaches for the next rung" is a reading; "Stubbornness becomes control" and "this one will not drop it" are charges. Write the first kind.
+- Where the reader's own habits come in, let it be recognisable rather than asserted: "the draft that gets rewritten twice before anyone sees it" rather than "you never show anyone a first draft".
+- No advice and no prescriptions: not "the growth you are pointed toward is…", not "you need a partner who…", not what to do. If the reference material offers a tip, do not pass it on.
+- Hedges ("tends to", "often", "can", "might", "could", "perhaps", "may") at most three per section. A plain statement about what the system says needs no hedge.
 - Never write "you will", "you should", "you must", "you need to" or "you have to", not even inside a question.
 
 ## Framing (it holds on every line)
@@ -87,21 +90,18 @@ Never use these, in any inflection, anywhere: ${quoted(BANNED_TERMS.map((t) => t
 
 ## No skeleton
 
-Every Reading in the catalogue has the same seven sections in the same order, so the inside of each section must be built for this number and this type and must not follow a shape another Reading would also use. The user turn carries a shape plan for this Reading: how each section opens, which sections end on a question, and the settings its scenes are drawn from. Follow it; it is different for every number and type, and it is what keeps hundreds of Readings from sharing one shape. No section opens with "Picture" or "Maybe".
-
-No section's first word is "Life", the number, the type's four letters, "The number" or "The letters": open on the scene or the question, and bring the number and the type in later in the paragraph.
+Every Reading in the catalogue has the same seven sections in the same order, so the inside of each section must be built for this number and this type and must not follow a shape another Reading would also use. The user turn carries a shape plan for this Reading: how each section opens, which sections end on a question, and the settings its scenes are drawn from. Follow it; it is different for every number and type, and it is what keeps hundreds of Readings from sharing one shape. No section opens with "Picture" or "Maybe". The plan's opening moves are suggestions for variety; the sentence that follows the opening says something plain.
 
 These shapes are worn out and banned:
-- The Opening must not run "describe the number, describe the type, then join them" ("Life path 7 wants…; INFJ wants… Put a mind like that inside a number like this…"), and must not announce what one side "misses" or "alone" cannot explain. Name the number and the type once, together, as who the reader is, in a phrase of your own folded into a sentence about something else; never as two things that each do something, and never as a "For a N who…" lead-in.
+- The Opening must not run "describe the number, describe the type, then join them" as three separate moves, and must not announce what one side "alone" cannot explain. Name the number and the type within the first two sentences, as who the reader is, and go straight to what is particular about that crossing. Vary how the pairing is named from Reading to Reading: not always "You are a 7 who is also an INFJ"; sometimes the number arrives in a clause, sometimes the letters come first, sometimes the pairing is named in the second sentence.
 - The Number must not be scaffolded as "In work… In love…" paragraphs, and must not open "Life path N asks for…, running through TYPE…".
 - The Type must not open with the type's mental functions or list them, and must not run "TYPE already does X; this life path adds Y".
 - Where they agree must not open "Both systems point to / converge on…", must not pivot on "In ordinary life this looks like…", and must not give each side a line ("the number calls it…, the type calls it…").
 - Where they pull must not be built as two speakers or two wants: not "X wants A, Y wants B", not "duty says…, while the teacher in you wants…".
 - In love must not open "You might say it like this" or any "you might say" line; let the line a partner hears arrive in the middle of a scene.
 - The closing line must not be a question, a rhetorical question, a shrug about "a quieter question" or whether something is kept or let go, and must not lean on "its own kind of".
-- Anywhere in the Reading, never give the number and the type a clause each, side by side, as two speakers or two forces ("Life path 8 shows up as…; ISTJ shows up as…", "One number says…; one set of letters says…", "the ambition in you wants…, while the steadier half hopes…", "the dollar signs pulling one way, the handshake the other"), and never sum them up with "Together they…" or join them with "life path N meets TYPE in…", "paired with", "folded into". Show one moment in which both are already at work, without naming either system inside it.
-- The Number and The Type do not explain how one system "runs through", "bends under", "meets", "folds into" or "asks to scale up" the other. Show one habit in one specific place and let the number's colour sit in the details; the reader can see the crossing without being told it is happening.
-- Questions vary in shape and place. At most two sections end on a question; put the others mid-paragraph. At most two "A, or B?" questions in the whole Reading.
+- Do not make the number and the type two speakers in every paragraph ("the number says…; the letters say…"). Name the crossing when it matters and otherwise write about one person.
+- Questions vary in shape and place; at most one per section, and no "A, or B?" more than once in the Reading.
 - Name a weekday at most once in the Reading. Do not reach for the stock props of these Readings (a spreadsheet, a drawer, a binder, a group chat, a friend who "mentions" a problem at dinner) unless the reference itself points there.
 - Do not say "not because X but because Y" more than once, and do not use "already…, already…".
 - No stock lines. Earlier drafts kept reaching for "the agreement here isn't loud", "what lines up here isn't loud", "somewhere around the third year, a partner…", "that's the type showing up", "the open secret of this path". Write none of these or their cousins; if a sentence could sit unchanged in another number's Reading, cut it.
@@ -113,10 +113,10 @@ Never write these phrases, in any case: ${quoted(SKELETON_PHRASES)}.
 
 Return exactly one JSON object with these seven string fields, in this order, and nothing else:
 
-- "teaser" (${bounds('teaser')}): the Opening. Shown free, before the paywall, so it must stand on its own and already feel written for this number and this type. Open on a scene or a question, name the number and the type within the first three sentences, and arrive at what is particular to this number crossed with this type by showing it, not by announcing that two things are being joined.
+- "teaser" (${bounds('teaser')}): the Opening. Shown free, before the paywall, so it must stand on its own and already feel written for this number and this type. Name the number and the type within the first two sentences and say, plainly, what is particular to this number crossed with this type; one small scene may carry it, but the reader should finish the Opening knowing what the pairing is.
 - "number" (${bounds('number')}): The Number. The life path read through the type: what this number may look like in your week, seen through these four letters.
 - "type" (${bounds('type')}): The Type. The four letters read through the number: how this type's habits bend under this life path.
-- "love" (${bounds('love')}): In love. Not a trait list. Write it as a line you say or ask a partner, or as what a partner would notice in one specific moment: the sentence said too late, the thing they read in your silence. Every sentence in it is something said, something asked, or something a partner sees in a specific moment; no sentence about what you value, need or look for in a partner, and no "loyalty here looks like…". Ground it in this number's love entry and this type together.
+- "love" (${bounds('love')}): In love. What this number's love entry and this type together look like inside a relationship, told through one specific moment a partner would recognise (the sentence said too late, the thing read in your silence) and one line that could be said or asked. Not a trait list and not a specification for a partner.
 - "agree" (${bounds('agree')}): Where they agree. The through-line the number and the letters share, shown as a scene from an ordinary day.
 - "pull" (${bounds('pull')}): Where they pull. The honest tension between the two, shown in a moment where it bites, without advice and without resolving it.
 - "closing" (${bounds('closing')}): A closing line. One or two quiet sentences, a plain statement, not a question and not an instruction: an image or an observation the reader can carry.
@@ -131,13 +131,11 @@ ${readingExemplars(temperament)}
 
 ## Before you answer, check every field
 
-- Each of "number", "type", "love", "agree" and "pull" speaks to "you" (not "they", not "people with this type"), holds a scene, and holds at least one question mark.
-- No field's first word is "Life", a numeral, the four letters, "The number" or "The letters".
-- No sentence states the reader's habit, need or motive as fact; each is a possibility or a question.
-- "closing" holds no question mark.
-- No section has more than two of "tends to", "tend to", "often", "can".
+- Each of "number", "type", "love", "agree" and "pull" speaks to "you", says something plain about the number, the type or their crossing, and holds one scene.
+- No sentence is a charge, an instruction or a forecast; "closing" holds no question mark.
+- No section has more than three hedges ("tends to", "often", "can", "might", "could", "perhaps", "may").
 - No banned word in any inflection: check "energy", "expect", "expected" and "journey" above all, since the exemplars and the reference use some of them.
-- No jargon: not "stack" or "shadow" even in their everyday senses (write "pile", "shade"). No skeleton phrase, no "you will / should / must / need to / have to", no "you'll", and no dated future ("next month", "this month", "next week", "this week", "the coming months"): scenes are in the past or the habitual present ("last Tuesday", "most Sundays").
+- No jargon: not "stack" or "shadow" even in their everyday senses (write "pile", "shade"). No skeleton phrase, no "you will / should / must / need to / have to", no "you'll", and no dated future ("next month", "this week", "the coming months"): scenes are in the past or the habitual present.
 - Each field's word count is inside its range and the total is 700–900.`;
 }
 
@@ -291,9 +289,9 @@ function planText(key: string): string {
   const plan = shapePlan(key);
   return [
     'Shape plan for this Reading (follow it):',
-    ...PLAN_SECTIONS.map((s) => `- ${PLAN_LABELS[s]} opens with ${plan.openings[s]}.`),
+    ...PLAN_SECTIONS.map((s) => `- ${PLAN_LABELS[s]} may open with ${plan.openings[s]}, if it suits; then say something plain.`),
     `- A closing line: ${plan.closing}.`,
-    `- Only ${PLAN_LABELS[plan.questionEndings[0]]} and ${PLAN_LABELS[plan.questionEndings[1]]} end on a question; every other section keeps its question mid-paragraph and ends on a statement.`,
+    `- If a section ends on a question, let it be ${PLAN_LABELS[plan.questionEndings[0]]} or ${PLAN_LABELS[plan.questionEndings[1]]}; the others end on a statement.`,
     `- Draw the scenes mostly from these settings, adapted to the number and the type: ${plan.settings.join('; ')}. One setting per scene; a setting used once is not used again.`,
   ].join('\n');
 }

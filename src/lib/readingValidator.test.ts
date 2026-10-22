@@ -238,19 +238,21 @@ describe('validateReading: verdicts, advice and hedges', () => {
   });
 
   it(`passes ${HEDGE_CAP} hedges in a section and fails ${HEDGE_CAP + 1}`, () => {
-    expect(HEDGE_CAP).toBe(3);
-    const three = `${body(150)} it tends to, often, and can`;
-    expect(validateReading(withField('agree', three))).toEqual([]);
-    const four = `${body(150)} it tends to, often, can, and often`;
-    expect(validateReading(withField('agree', four))).toContain('agree: 4 hedges ("tends to", "often", "can"), over the cap of 3');
+    expect(HEDGE_CAP).toBe(4);
+    const four = `${body(150)} it tends to, often, can, and might`;
+    expect(validateReading(withField('agree', four))).toEqual([]);
+    const five = `${body(150)} it tends to, often, can, might, and perhaps`;
+    expect(validateReading(withField('agree', five))).toContain(
+      'agree: 5 hedges ("tends to", "often", "can", "might", "could", "perhaps", "may"), over the cap of 4',
+    );
   });
 
   for (const field of BODY_FIELDS) {
-    it(`${field}: needs a question and "you"`, () => {
+    it(`${field}: needs "you"; a question is optional`, () => {
       const [lo] = WORD_BOUNDS[field];
-      expect(validateReading(withField(field, `${words(lo + 5)}.`))).toEqual(
-        expect.arrayContaining([`${field}: no "you"; address the reader in the second person`, `${field}: no question to the reader`]),
-      );
+      const failures = validateReading(withField(field, `${words(lo + 5)}.`));
+      expect(failures).toContain(`${field}: no "you"; address the reader in the second person`);
+      expect(failures).not.toContain(`${field}: no question to the reader`);
     });
   }
 

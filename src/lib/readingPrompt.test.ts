@@ -72,9 +72,9 @@ describe('buildReadingPrompt', () => {
     expect(system).toContain('700–900 words');
   });
 
-  it('is prompt version 2', () => {
-    expect(READING_PROMPT_VERSION).toBe(2);
-    expect(buildReadingPrompt('7-16-INFJ').version).toBe(2);
+  it('is prompt version 3', () => {
+    expect(READING_PROMPT_VERSION).toBe(3);
+    expect(buildReadingPrompt('7-16-INFJ').version).toBe(3);
   });
 
   it('forbids the round-1 skeleton by name', () => {
@@ -96,17 +96,19 @@ describe('buildReadingPrompt', () => {
 
   it('asks for scenes and questions, never verdicts, with hedges capped', () => {
     const { system } = buildReadingPrompt('7-16-INFJ');
-    expect(system).toMatch(/At least one concrete, recognisable scene/);
-    expect(system).toMatch(/At least one direct question to the reader/);
-    expect(system).toMatch(/No sentence that tells the reader what they feel, what they need, what they will do, what they should do/);
-    expect(system).toMatch(/at most two per section/);
+    expect(system).toMatch(/one concrete, recognisable scene from an ordinary week/);
+    expect(system).toMatch(/A question to the reader is welcome[^.]*at most one per section, and none is required/);
+    expect(system).toMatch(/Describe tendencies, never deliver charges/);
+    expect(system).toMatch(/No advice and no prescriptions/);
+    expect(system).toMatch(/at most three per section/);
     expect(system).toContain('Never write "you will", "you should", "you must", "you need to" or "you have to"');
   });
 
   it('asks for love as something said or noticed, not a trait list', () => {
     const { system } = buildReadingPrompt('7-16-INFJ');
-    expect(system).toMatch(/"love" \(80–120 words\): In love\. Not a trait list\./);
-    expect(system).toMatch(/a line you say or ask a partner, or as what a partner would notice/);
+    expect(system).toMatch(/"love" \(80–120 words\): In love\./);
+    expect(system).toMatch(/one specific moment a partner would recognise/);
+    expect(system).toMatch(/Not a trait list and not a specification for a partner/);
   });
 
   it('does not prime the banned phrases in its own instructions', () => {
