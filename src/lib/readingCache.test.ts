@@ -7,6 +7,7 @@ const reading = (over: Partial<Reading> = {}): Reading => ({
   teaser: 'Opening.',
   number: 'Number.',
   type: 'Type.',
+  love: 'Love.',
   agree: 'Agree.',
   pull: 'Pull.',
   closing: 'Closing.',
