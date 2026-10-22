@@ -16,12 +16,13 @@ export interface Reading {
   teaser: string;
   number: string;
   type: string;
+  love: string;
   agree: string;
   pull: string;
   closing: string;
 }
 
-const FIELDS = ['teaser', 'number', 'type', 'agree', 'pull', 'closing'] as const;
+const FIELDS = ['teaser', 'number', 'type', 'love', 'agree', 'pull', 'closing'] as const;
 
 export const cacheKey = (key: string, version: number = READING_VERSION): string =>
   `${KIT_CONFIG.app.storagePrefix}reading:${version}|${key}`;

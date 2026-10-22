@@ -65,7 +65,7 @@ describe('GET /api/reading', () => {
   it('200 with the full reading for a verified session bound to the key', async () => {
     const out = await call({ query: { key: '7-16-INFJ' }, headers: { 'x-reading-session': SESSION } });
     expect(out.statusCode).toBe(200);
-    expect(out.body).toEqual({ key: '7-16-INFJ', version: 1, reading: READINGS['7-16-INFJ'] });
+    expect(out.body).toEqual({ key: '7-16-INFJ', version: 2, reading: READINGS['7-16-INFJ'] });
     expect(retrieve).toHaveBeenCalledWith(SESSION, {
       expand: ['line_items', 'payment_intent.latest_charge'],
     });

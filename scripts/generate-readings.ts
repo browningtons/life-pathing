@@ -6,6 +6,7 @@
 //   npm run readings:generate                           all 528
 //
 // Options: --concurrency N (default 4), --model ID (default claude-sonnet-5),
+// --keep (reuse keys already generated at this prompt version; regenerate only the rest),
 // --threshold R (sibling overlap, default 0.15), --key K (which prompt --dry-run prints).
 //
 // Needs ANTHROPIC_API_KEY in the environment or in this repo's .env.local. A key that is
@@ -46,6 +47,8 @@ const INDEX_PATH = path.join(ROOT, 'api', '_readings', 'index.json');
 const REVIEW_PATH = path.join(ROOT, 'docs', 'readings-review.md');
 
 const DEFAULT_MODEL = 'claude-sonnet-5';
+// Sonnet 5 thinks by default (adaptive) and can spend 13k tokens of it on one
+// Reading, so the request streams and leaves room for thinking plus the JSON.
 const MAX_TOKENS = 16000;
 
 // ── Arguments ─────────────────────────────────────────────────────────
@@ -55,6 +58,7 @@ interface Options {
   only: string[] | null;
   sample: number | null;
   review: boolean;
+  keep: boolean;
   concurrency: number;
   model: string;
   threshold: number;
@@ -67,6 +71,7 @@ function parseArgs(argv: string[]): Options {
     only: null,
     sample: null,
     review: false,
+    keep: false,
     concurrency: 4,
     model: DEFAULT_MODEL,
     threshold: 0.15,
@@ -85,6 +90,9 @@ function parseArgs(argv: string[]): Options {
         break;
       case '--review':
         opts.review = true;
+        break;
+      case '--keep':
+        opts.keep = true;
         break;
       case '--only':
         opts.only = value(i, arg).split(',').map((k) => k.trim()).filter(Boolean);
@@ -191,13 +199,48 @@ function sampleKeys(n: number, today: Date = new Date()): string[] {
 // ── Generation ────────────────────────────────────────────────────────
 
 /** The model's text as a Reading, or the reason it is not one. */
+/**
+ * The model sometimes writes a paragraph break as a raw newline inside a JSON
+ * string, which JSON.parse rejects. Escape control characters that sit inside
+ * string literals; leave everything between tokens alone.
+ */
+export function escapeControlCharsInStrings(json: string): string {
+  let out = '';
+  let inString = false;
+  let escaped = false;
+  for (const ch of json) {
+    if (!inString) {
+      out += ch;
+      if (ch === '"') inString = true;
+      continue;
+    }
+    if (escaped) {
+      out += ch;
+      escaped = false;
+    } else if (ch === '\\') {
+      out += ch;
+      escaped = true;
+    } else if (ch === '"') {
+      out += ch;
+      inString = false;
+    } else if (ch === '\n') {
+      out += '\\n';
+    } else if (ch === '\t') {
+      out += '\\t';
+    } else if (ch >= ' ') {
+      out += ch;
+    }
+  }
+  return out;
+}
+
 function parseReply(text: string): { sections: ReadingSections | null; error: string | null } {
   const cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
   const start = cleaned.indexOf('{');
   const end = cleaned.lastIndexOf('}');
   if (start === -1 || end <= start) return { sections: null, error: 'reply held no JSON object' };
   try {
-    const parsed = JSON.parse(cleaned.slice(start, end + 1)) as Record<string, unknown>;
+    const parsed = JSON.parse(escapeControlCharsInStrings(cleaned.slice(start, end + 1))) as Record<string, unknown>;
     const sections = {} as ReadingSections;
     for (const f of READING_FIELDS) sections[f] = parsed[f] as string;
     const extra = Object.keys(parsed).filter((k) => !(READING_FIELDS as readonly string[]).includes(k));
@@ -209,12 +252,16 @@ function parseReply(text: string): { sections: ReadingSections | null; error: st
 }
 
 async function ask(client: Anthropic, model: string, prompt: ReadingPrompt, user: string): Promise<{ sections: ReadingSections | null; failures: string[] }> {
-  const response = await client.messages.create({
-    model,
-    max_tokens: MAX_TOKENS,
-    system: prompt.system,
-    messages: [{ role: 'user', content: user }],
-  });
+  const response = await client.messages
+    .stream({
+      model,
+      max_tokens: MAX_TOKENS,
+      // Prose at this length does not need deep thinking.
+      output_config: { effort: 'medium' },
+      system: prompt.system,
+      messages: [{ role: 'user', content: user }],
+    })
+    .finalMessage();
   if (response.stop_reason === 'refusal') return { sections: null, failures: ['the model declined (stop_reason refusal)'] };
   if (response.stop_reason === 'max_tokens') return { sections: null, failures: ['the reply hit max_tokens and was cut off'] };
   const text = response.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
@@ -236,9 +283,12 @@ async function generateOne(client: Anthropic, model: string, key: string): Promi
   let result: { sections: ReadingSections | null; failures: string[] };
   try {
     result = await ask(client, model, prompt, prompt.user);
-    if (result.failures.length) {
-      attempt = 2;
-      result = await ask(client, model, prompt, buildRetryUser(prompt, result.failures));
+    // Up to two revisions: a draft that fails on a few words or one phrase is
+    // cheaper to revise than to write again.
+    while (result.failures.length && attempt < 3) {
+      if (process.env.READINGS_VERBOSE) console.log(`  ${key} attempt ${attempt}: ${result.failures.join('; ')}`);
+      attempt += 1;
+      result = await ask(client, model, prompt, buildRetryUser(prompt, result.failures, result.sections));
     }
   } catch (e) {
     const status = e instanceof Anthropic.APIError ? ` (HTTP ${e.status})` : '';
@@ -268,6 +318,7 @@ const SECTION_LABELS: Record<(typeof READING_FIELDS)[number], string> = {
   teaser: 'Opening (free)',
   number: 'The Number',
   type: 'The Type',
+  love: 'In love',
   agree: 'Where they agree',
   pull: 'Where they pull',
   closing: 'A closing line',
@@ -308,7 +359,7 @@ function writeReview(keys: string[], index: Record<string, Reading>, model: stri
     '',
     `Prompt version ${READING_PROMPT_VERSION} · model \`${model}\` · ${present.length} Readings · written by \`scripts/generate-readings.ts\`.`,
     '',
-    'Every Reading below passed the validator (word bounds, banned words, forecasts, third person, plain text). The validator cannot catch "correct and dull"; that is what this file is for (docs/reading-plan.md D5, T2). Read across each row: the same section for different pairings should not read as the same paragraph with the number swapped.',
+    'Every Reading below passed the validator (word bounds, banned words, forecasts, the round-1 skeleton phrases, jargon, advice shapes, the hedge cap, a question and "you" in every body section, plain text). The validator cannot catch "correct and dull"; that is what this file is for (docs/reading-plan.md D5, T2). Read across each row: the same section for different pairings should not read as the same paragraph with the number swapped.',
     '',
     flags.length
       ? `**Sibling overlap above 0.15:** ${flags.map((f) => `${f.a} / ${f.b} (${f.sibling}, ${f.ratio.toFixed(2)})`).join('; ')}.`
@@ -358,8 +409,8 @@ async function main(): Promise<number> {
 
   const index = readIndex();
   const locked = keys.filter((k) => index[k]?.locked === true);
-  // --sample reuses Readings already generated at this prompt version.
-  const reuse = opts.sample ? keys.filter((k) => index[k] && index[k].version === READING_PROMPT_VERSION) : [];
+  // --sample (and --keep) reuse Readings already generated at this prompt version.
+  const reuse = opts.sample || opts.keep ? keys.filter((k) => index[k] && index[k].version === READING_PROMPT_VERSION) : [];
   const todo = keys.filter((k) => !locked.includes(k) && !reuse.includes(k));
   if (locked.length) console.log(`Locked, skipped: ${locked.join(', ')}`);
   if (reuse.length) console.log(`Already generated, reused: ${reuse.join(', ')}`);
@@ -386,7 +437,7 @@ async function main(): Promise<number> {
         index[key] = outcome.reading;
         writeTeaser(outcome.reading);
         writeIndex(index); // after each key, so an interrupted run keeps its work
-        console.log(`[${done}/${todo.length}] ${key} ok${outcome.attempts > 1 ? ' (second attempt)' : ''}`);
+        console.log(`[${done}/${todo.length}] ${key} ok${outcome.attempts > 1 ? ` (attempt ${outcome.attempts})` : ''}`);
       } else {
         failed.push(outcome);
         console.log(`[${done}/${todo.length}] ${key} FAILED: ${outcome.failures.join('; ')}`);

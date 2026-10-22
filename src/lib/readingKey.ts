@@ -12,7 +12,7 @@ import { MBTI_TYPES } from '../data/mbti';
 import { calculateLifePath } from './calculateLifePath';
 
 /** Bump when the prompt changes; every cached Reading is keyed on it. */
-export const READING_PROMPT_VERSION = 1;
+export const READING_PROMPT_VERSION = 3;
 
 /** The compound number when it has a label, else 0. */
 export function compoundKeyFor(compound: number): number {

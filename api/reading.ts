@@ -34,6 +34,7 @@ export interface Reading {
   teaser: string;
   number: string;
   type: string;
+  love: string;
   agree: string;
   pull: string;
   closing: string;

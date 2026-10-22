@@ -54,9 +54,9 @@ describe('the free / paid split', () => {
     }
   });
 
-  it('has gate copy for the Reading that names all five sections', () => {
+  it('has gate copy for the Reading that names all six sections', () => {
     const copy = GATE_COPY[READING_GATE];
-    expect(copy.title).toMatch(/five/i);
+    expect(copy.title).toMatch(/six/i);
     for (const section of READING_SECTIONS) {
       expect(copy.blurb.toLowerCase(), section.title).toContain(section.title.toLowerCase());
     }
@@ -64,7 +64,7 @@ describe('the free / paid split', () => {
   });
 
   it('lists the Reading sections in the contract order', () => {
-    expect(READING_SECTIONS.map((s) => s.field)).toEqual(['number', 'type', 'agree', 'pull', 'closing']);
+    expect(READING_SECTIONS.map((s) => s.field)).toEqual(['number', 'type', 'love', 'agree', 'pull', 'closing']);
   });
 
   it('keeps the Reading gate out of the Profile sections', () => {
