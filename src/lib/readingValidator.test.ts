@@ -79,13 +79,13 @@ describe('validateReading: shape', () => {
 describe('validateReading: word bounds', () => {
   it('sets the round-2 bounds', () => {
     expect(WORD_BOUNDS).toEqual({
-      teaser: [60, 120],
-      number: [130, 180],
-      type: [130, 180],
-      love: [80, 120],
-      agree: [130, 180],
-      pull: [130, 180],
-      closing: [15, 40],
+      teaser: [60, 130],
+      number: [120, 190],
+      type: [120, 190],
+      love: [70, 130],
+      agree: [120, 190],
+      pull: [120, 190],
+      closing: [12, 45],
     });
   });
 
@@ -110,19 +110,19 @@ describe('validateReading: word bounds', () => {
     });
   }
 
-  it('fails a total under 700 even when every field is in bounds', () => {
-    const r = sized({ teaser: 60, number: 130, type: 130, love: 80, agree: 130, pull: 130, closing: 15 });
-    expect(validateReading(r)).toEqual(['total: 675 words, under the 700-word floor']);
+  it('fails a total under 680 even when every field is in bounds', () => {
+    const r = sized({ teaser: 60, number: 120, type: 120, love: 70, agree: 120, pull: 120, closing: 12 });
+    expect(validateReading(r)).toEqual(['total: 622 words, under the 680-word floor']);
   });
 
-  it('fails a total over 900 even when every field is in bounds', () => {
-    const r = sized({ teaser: 120, number: 180, type: 180, love: 120, agree: 180, pull: 180, closing: 40 });
-    expect(validateReading(r)).toEqual(['total: 1000 words, over the 900-word ceiling']);
+  it('fails a total over 940 even when every field is in bounds', () => {
+    const r = sized({ teaser: 130, number: 190, type: 190, love: 130, agree: 190, pull: 190, closing: 45 });
+    expect(validateReading(r)).toEqual(['total: 1065 words, over the 940-word ceiling']);
   });
 
-  it('passes the total at 700 and 900', () => {
-    expect(validateReading(sized({ teaser: 60, number: 130, type: 130, love: 80, agree: 130, pull: 155, closing: 15 }))).toEqual([]);
-    expect(validateReading(sized({ teaser: 100, number: 180, type: 180, love: 100, agree: 180, pull: 140, closing: 20 }))).toEqual([]);
+  it('passes the total at 680 and 940', () => {
+    expect(validateReading(sized({ teaser: 60, number: 120, type: 120, love: 70, agree: 120, pull: 178, closing: 12 }))).toEqual([]);
+    expect(validateReading(sized({ teaser: 120, number: 180, type: 180, love: 120, agree: 180, pull: 120, closing: 40 }))).toEqual([]);
   });
 
   it('counts words, not punctuation', () => {

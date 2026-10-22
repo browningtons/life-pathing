@@ -25,16 +25,16 @@ export interface Reading extends ReadingSections {
 
 /** Word bounds per field, inclusive. */
 export const WORD_BOUNDS: Record<ReadingField, [number, number]> = {
-  teaser: [60, 120],
-  number: [130, 180],
-  type: [130, 180],
-  love: [80, 120],
-  agree: [130, 180],
-  pull: [130, 180],
-  closing: [15, 40],
+  teaser: [60, 130],
+  number: [120, 190],
+  type: [120, 190],
+  love: [70, 130],
+  agree: [120, 190],
+  pull: [120, 190],
+  closing: [12, 45],
 };
 
-export const TOTAL_WORD_BOUNDS: [number, number] = [700, 900];
+export const TOTAL_WORD_BOUNDS: [number, number] = [680, 940];
 
 /**
  * Banned words and phrases, matched case-insensitively on word boundaries.

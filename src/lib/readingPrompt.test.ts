@@ -106,7 +106,7 @@ describe('buildReadingPrompt', () => {
 
   it('asks for love as something said or noticed, not a trait list', () => {
     const { system } = buildReadingPrompt('7-16-INFJ');
-    expect(system).toMatch(/"love" \(80–120 words\): In love\./);
+    expect(system).toMatch(/"love" \(70–130 words\): In love\./);
     expect(system).toMatch(/one specific moment a partner would recognise/);
     expect(system).toMatch(/Not a trait list and not a specification for a partner/);
   });
