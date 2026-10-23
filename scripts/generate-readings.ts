@@ -4,6 +4,7 @@
 //   npm run readings:generate -- --only 7-16-INFJ,3-0-ESFP [--review]
 //   npm run readings:generate -- --sample 20            stratified 20, writes docs/readings-review.md
 //   npm run readings:generate                           all 528
+//   npm run readings:generate -- --teasers-only         rewrite public/readings/*.json from the index, call nothing
 //
 // Options: --concurrency N (default 4), --model ID (default claude-sonnet-5),
 // --keep (reuse keys already generated at this prompt version; regenerate only the rest),
@@ -11,7 +12,8 @@
 //
 // Needs ANTHROPIC_API_KEY in the environment or in this repo's .env.local. A key that is
 // not scoped to a workspace also needs ANTHROPIC_WORKSPACE_ID (the Console's wrkspc_… id).
-// Writes public/readings/<key>.json (teaser only, served free) and merges the
+// Writes public/readings/<key>.json (the opening plus the first sentence of
+// "In love" as `excerpt`, served free) and merges the
 // full Readings into api/_readings/index.json (imported by the route). A key
 // whose index entry has "locked": true is never regenerated (ledger L8). A
 // key that fails the validator twice is reported and the script exits 1.
@@ -31,6 +33,7 @@ import {
   enumerateReadingKeys,
   parseReadingKey,
 } from '../src/lib/readingKey';
+import { teaserFileFor } from '../src/lib/readingExcerpt';
 import { buildReadingPrompt, buildRetryUser, type ReadingPrompt } from '../src/lib/readingPrompt';
 import {
   READING_FIELDS,
@@ -59,6 +62,7 @@ interface Options {
   sample: number | null;
   review: boolean;
   keep: boolean;
+  teasersOnly: boolean;
   concurrency: number;
   model: string;
   threshold: number;
@@ -72,6 +76,7 @@ function parseArgs(argv: string[]): Options {
     sample: null,
     review: false,
     keep: false,
+    teasersOnly: false,
     concurrency: 4,
     model: DEFAULT_MODEL,
     threshold: 0.15,
@@ -93,6 +98,9 @@ function parseArgs(argv: string[]): Options {
         break;
       case '--keep':
         opts.keep = true;
+        break;
+      case '--teasers-only':
+        opts.teasersOnly = true;
         break;
       case '--only':
         opts.only = value(i, arg).split(',').map((k) => k.trim()).filter(Boolean);
@@ -144,7 +152,7 @@ function writeIndex(index: Record<string, Reading>): void {
 
 function writeTeaser(reading: Reading): void {
   mkdirSync(PUBLIC_DIR, { recursive: true });
-  const teaser = { key: reading.key, version: reading.version, teaser: reading.teaser };
+  const teaser = teaserFileFor(reading);
   writeFileSync(path.join(PUBLIC_DIR, `${reading.key}.json`), `${JSON.stringify(teaser, null, 2)}\n`);
 }
 
@@ -397,6 +405,15 @@ async function main(): Promise<number> {
     console.log(prompt.system);
     console.log('\n[user]\n');
     console.log(prompt.user);
+    return 0;
+  }
+
+  // Rewrite the free teaser files from the index alone. No API key, no calls.
+  if (opts.teasersOnly) {
+    const index = readIndex();
+    const targets = (opts.only ?? Object.keys(index)).filter((k) => all.includes(k) && index[k] && !index[k].fixture);
+    for (const key of targets) writeTeaser(index[key]);
+    console.log(`Rewrote ${targets.length} teaser file(s) from ${path.relative(ROOT, INDEX_PATH)}.`);
     return 0;
   }
 

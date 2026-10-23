@@ -49,6 +49,9 @@ export const READING_SECTIONS = [
 /** Shown on the Profile's gates while the Reading flag is on: one purchase opens both. */
 export const INCLUDED_WITH_READING = 'Included with the Reading.';
 
+/** Labels the upgrade modal's quote: the first sentence of the pairing's "In love" section. */
+export const EXCERPT_LABEL = 'From your In love section';
+
 export interface GateCopy {
   /** What is behind the gate, as a heading. */
   title: string;

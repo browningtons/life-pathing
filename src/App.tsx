@@ -6,7 +6,9 @@ import { ArchetypesView } from './views/ArchetypesView';
 import { PersonalityView } from './views/PersonalityView';
 import { IntakeView } from './views/IntakeView';
 import { ReadingView } from './views/ReadingView';
-import { readingKey as readingKeyOf } from './lib/readingKey';
+import { parseReadingKey, readingKey as readingKeyOf } from './lib/readingKey';
+import { loadTeaserFile } from './lib/teaserFile';
+import { EXCERPT_LABEL } from './data/tiers';
 import { PRIVACY_PATH, PrivacyView } from './views/PrivacyView';
 import { AdminBar, ProBadge, UpgradeModal, captureUtmParams, trackTabView, useAuth } from './kit';
 import { LETTERS_ASK_ID } from './components/LettersAsk';
@@ -64,6 +66,27 @@ function Shell() {
     READING_ENABLED && ownBirthDate && lettersKnown
       ? (readingKeyOf(profileStore.lifePath.number, profileStore.lifePath.compound, profileStore.typeCode) ?? undefined)
       : undefined;
+
+  // What the upgrade modal names and quotes for that key: the pairing under
+  // the price, and the first sentence of its "In love" section from the free
+  // teaser file (fetched once per key, shared with the Reading tab).
+  const pairingLabel = useMemo(() => {
+    const parts = readingKey ? parseReadingKey(readingKey) : null;
+    return parts ? `${parts.type} · Life Path ${parts.lifePath}` : undefined;
+  }, [readingKey]);
+  const [excerptFor, setExcerptFor] = useState<{ key: string; text: string } | null>(null);
+  useEffect(() => {
+    if (!readingKey) return;
+    let live = true;
+    void loadTeaserFile(readingKey).then((res) => {
+      if (live && res.status === 'ok' && res.excerpt) setExcerptFor({ key: readingKey, text: res.excerpt });
+    });
+    return () => {
+      live = false;
+    };
+  }, [readingKey]);
+  const excerpt =
+    readingKey && excerptFor?.key === readingKey ? { label: EXCERPT_LABEL, text: excerptFor.text } : undefined;
 
   const setView = useCallback((next: View) => {
     setViewState(next);
@@ -264,6 +287,8 @@ function Shell() {
                 onClose={auth.closeUpgrade}
                 onRestore={auth.handleRestore}
                 readingKey={readingKey}
+                pairingLabel={pairingLabel}
+                excerpt={excerpt}
               />
             </div>
           )}

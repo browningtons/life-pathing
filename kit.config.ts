@@ -43,14 +43,15 @@ export const KIT_CONFIG: KitConfig = {
   upgrade: READING_ENABLED
     ? {
         headerTitle: 'Read the whole thing.',
-        headerSubtitle: 'One payment. Your Reading and the whole Profile, kept on this device.',
+        // "One-time purchase" is the price caption and the trust line says "No
+        // subscription", so the subtitle does not say "One payment" a third time.
+        headerSubtitle: 'Your Reading and the whole Profile, kept on this device. Restore it elsewhere with your receipt email.',
         price: '$19',
         priceCaption: 'One-time purchase',
         features: [
-          'The Reading: one document written for your Life Path number and your four letters',
+          'The Reading: one document written for your Life Path number and your four letters, printable',
           'The Number, The Type, In love, Where they agree, Where they pull, and a closing line',
           'The four temperaments, the types that sit closest, and the inner cast on the Profile',
-          'Printable, and saved to this browser',
         ],
         conditionalFeatures: {
           heading: 'With a pasted TypeFinder or 16personalities report',
@@ -61,6 +62,9 @@ export const KIT_CONFIG: KitConfig = {
         },
         trustLine:
           'Secure payment via Stripe. 30-day refund, no questions. No subscription, no account. One Reading per purchase, for the number and letters you bought it with. A reader\'s tool, not psychological or life advice.',
+        // The one-Reading rule, before the buy (plan T1). App.tsx passes the
+        // pairing only for the reader's own number and letters.
+        pairingNote: 'For {pairing}. Change your letters first if that\'s not you.',
       }
     : {
         headerTitle: 'See the whole profile.',
