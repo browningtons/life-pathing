@@ -31,7 +31,7 @@ export const KIT_CONFIG: KitConfig = {
     // archived. Server-side, STRIPE_PRICE_ID and STRIPE_PRODUCT_ID in Vercel
     // must name the same price and product.
     paymentUrl: 'https://buy.stripe.com/eVq3cv1utcU72MC6lp3cc06',
-    priceIdHint: 'price_PENDING_FROM_DASHBOARD',
+    priceIdHint: 'price_1UTYhvFgn5goWL8kOamvC5DQ',
     productIdHint: 'prod_VUXnrnuSvEozxE',
   },
 
