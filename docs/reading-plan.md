@@ -138,11 +138,11 @@ Sequence: A runs the 3-key pilot first and the 5-persona read decides whether th
 
 | Lane | PR | State |
 |---|---|---|
-| A key, prompt, validator, script | [#13](https://github.com/browningtons/life-pathing/pull/13) | Merged into this branch. **Pilot not run:** no `ANTHROPIC_API_KEY`. No Readings exist yet; `public/readings/` holds two fixtures. |
+| A key, prompt, validator, script | [#13](https://github.com/browningtons/life-pathing/pull/13), [#16](https://github.com/browningtons/life-pathing/pull/16) (round 2, superseded), [#18](https://github.com/browningtons/life-pathing/pull/18) (prompt v3 + the 528) | Merged to main 2026-10-22 (`9044a6a`). Three prompt rounds: v1 read as a template (5-persona pilot, 0 of 5 would pay), v2 as hedged vignettes, v3 as a reading. All 528 validated, no sibling overlap flagged. |
 | B entitlement, route, restore fix, Stripe link | [#12](https://github.com/browningtons/life-pathing/pull/12) | Merged. Verified on the combined build. |
 | C Reading tab, gate, cache, print, funnel | [#14](https://github.com/browningtons/life-pathing/pull/14) | Merged. Verified on the combined build with the flag on. |
-| E privacy and refund page | [#11](https://github.com/browningtons/life-pathing/pull/11) | Merged into this branch. **Wording needs Paul's approval** before this branch reaches main. |
-| D $19 price, modal copy, flag on, roadmap | — | Waits on Paul's Stripe step and the signed review file. |
+| E privacy and refund page | [#11](https://github.com/browningtons/life-pathing/pull/11) | Merged to main 2026-10-21 after Paul approved the wording. |
+| D $19 price, modal copy, roadmap | lane D PR | Stripe: new product `prod_VUXnrnuSvEozxE`, $19 Payment Link with the success URL, done 2026-10-22. Modal sells the Reading under the flag. **The flag flip waits on Paul's sign-off of `docs/readings-review.md`** and on `STRIPE_PRICE_ID`, `STRIPE_PRODUCT_ID`, `READING_ADMIN_TOKEN` in Vercel. |
 
 Combined walk of `e28bf75` with `VITE_READING_ENABLED=1` (phone): every Reading state, the Buy link with `client_reference_id=7-16-INFJ`, the full text after a simulated purchase, a reload from cache with no fetch, a print PDF, `/privacy`. 392 tests pass.
 

@@ -111,12 +111,17 @@ The split is decided in one place, `src/data/tiers.ts`, and the rule is: **the s
 | Your Data intake, saved on device | ✓ | |
 | The letters ask: typed letters or the twelve-question quiz | ✓ | |
 | Profile hero, "The read", the five facets that show up loudest | ✓ | |
+| **The Reading**: one document for your number and your four letters, free opening, printable (behind `VITE_READING_ENABLED` until launch) | opening | ✓ |
 | All twenty-three facets by category | | ✓ |
 | How others read you, temperament, adjacent types, convergence, the inner cast | | ✓ |
 
 Views wrap paid content in `<ProGate>` (`src/components/ProGate.tsx`). Free readers see an honest teaser — the real component fed a slice of the data — and a card naming what is behind the line. The gate's copy lives beside the split in `tiers.ts`; the modal's sales copy lives in `kit.config.ts` and only promises what ships.
 
 Entitlement is a local flag set by `/api/verify-purchase` after a Stripe Checkout redirect (`#session_id=cs_…`), or by email restore. There is no client-side unlock token. Admin preview: tap the logo five times, then toggle **Free User** in the bar to see the free experience.
+
+### The Reading
+
+Phase 2 of the roadmap. Every birthdate from 1900 reduces to one of 33 life path + compound pairs, times 16 types, so the 528 possible Readings are written once, offline, by `scripts/generate-readings.ts` (`npm run readings:generate`, needs `ANTHROPIC_API_KEY` and `ANTHROPIC_WORKSPACE_ID` in `.env.local`), validated by `src/lib/readingValidator.ts`, and committed: teasers in `public/readings/`, full text in `api/_readings/index.json`. `api/reading.ts` serves the full text after re-verifying the buyer's Stripe session, which is bound to one Reading key through the Payment Link's `client_reference_id`. The tab, the gate and the modal copy sit behind `VITE_READING_ENABLED`. Decisions and status: [`docs/reading-plan.md`](docs/reading-plan.md).
 
 ## A note on what this is and is not
 
