@@ -17,8 +17,8 @@ The birthdate-only reader: arrives from a search ("life path 7 meaning") or a sh
 | # | Phase | Status | Notes |
 |---|---|---|---|
 | 0 | Free / paid split | **Shipped 2026-09-10** | `src/data/tiers.ts` decides it; `<ProGate>` enforces it; teasers are real slices, not blurs. `#pro=1` unlock token removed. |
-| 1 | The funnel | **Built 2026-09-23, not yet deployed** | The letters ask under a reader's own Life Path: a twelve-question quiz or typed letters, no trip to another site. `dimensionSource` / `facetSource` on the profile so the app knows whose numbers it is showing. A "no facet scores yet" state so a quiz-only reader never sees the sample's facets. Funnel events (below). Then seven days of measurement before phase 2. |
-| 2 | The Reading | Not started | One document from life path + compound + four letters, generated once per combination, cached, printable with a print stylesheet (no jsPDF). Free opening paragraph, then the gate. $19, one SKU that also unlocks the facet Profile. Full contract in the design doc. Run `/plan-eng-review` first: the store and the generation route are the open questions. |
+| 1 | The funnel | **Shipped 2026-10-15** (with the persona-panel fixes, #2–#10) | The letters ask under a reader's own Life Path: a twelve-question quiz or typed letters, no trip to another site. `dimensionSource` / `facetSource` on the profile so the app knows whose numbers it is showing. A "no facet scores yet" state so a quiz-only reader never sees the sample's facets. Funnel events (below). Then seven days of measurement before phase 2. |
+| 2 | The Reading | **Built 2026-10-22, behind `VITE_READING_ENABLED`** | All 528 Readings (33 life path + compound pairs × 16 types) generated offline with prompt v3 and validated; served by a key-bound route after a Stripe session check, teasers free, printable, cached on the device. $19, one SKU that also unlocks the facet Profile. The flag flips once Paul signs `docs/readings-review.md`. Decisions and status: [`reading-plan.md`](reading-plan.md). |
 | 3 | Pair read | Not started | Two birthdates and two sets of letters. Where they converge and pull apart. Compatibility is the category's biggest search term. |
 | 4 | Prerender free pages | Not started | `/life-path/7`, `/type/enfp` as static routes so the free tier can be found. Today the app is one URL. |
 | 5 | Shareable result card | Not started | Type × life path as an image. Free. The acquisition loop, not a paid feature. |
@@ -42,11 +42,11 @@ Events are fired from `src/lib/funnel.ts` (app-specific) and the kit's `trackEve
 
 ## Before taking real money
 
-- [ ] Payment Link success URL set to `https://<domain>/#session_id={CHECKOUT_SESSION_ID}` in the Stripe dashboard, or buyers land locked and have to restore by hand.
-- [ ] A new $19 price and Payment Link under the existing product. In `kit.config.ts`, change `upgrade.price`, `upgrade.features`, `stripe.paymentUrl`, and `stripe.priceIdHint` together, or the modal shows $19 and charges $29.
-- [ ] Privacy and refund page. The trust line promises a 30-day refund; it needs somewhere to live.
+- [x] Payment Link success URL set to `https://life-pathing.vercel.app/#session_id={CHECKOUT_SESSION_ID}` (2026-10-22).
+- [x] A $19 price and Payment Link, on a new product (`prod_VUXnrnuSvEozxE`); `kit.config.ts` carries the link, the price and the product id together. `STRIPE_PRICE_ID` and `STRIPE_PRODUCT_ID` in Vercel must match (2026-10-22).
+- [x] Privacy and refund page at `/privacy` (2026-10-21).
 - [ ] Replace `buy_btn_REPLACE_ME` with a real Buy Button, or keep the Payment Link fallback deliberately.
-- [ ] `/launch-checklist` on the money path once phase 2 exists.
+- [ ] `/launch-checklist` on the money path before the flag flips.
 - [ ] Port the `#pro=1` removal back to the shared `appkit` repo so the next app does not reinherit the hole.
 
 ## Pricing notes
