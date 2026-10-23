@@ -4,7 +4,7 @@ import { useKitConfig } from '../use-kit-config';
 import { clientReferenceId, getUtmParams, stripeUrlWithRef, trackUpgradeShown } from '../analytics';
 import { useTapGuard } from '../tap-guard';
 import { RESTORE_SOURCE } from '../auth/useAuth';
-import type { RestoreResult } from '../auth/restore';
+import { RESTORE_MESSAGES, isPlausibleEmail, type RestoreResult } from '../auth/restore';
 
 /**
  * The Buy Button web component requires a Stripe-dashboard-created Buy
@@ -28,6 +28,16 @@ interface UpgradeModalProps {
    * the link carries UTMs only (legacy).
    */
   readingKey?: string;
+  /**
+   * Optional. A line of what the buyer is getting, quoted under the feature
+   * list: `label` names where it comes from, `text` is the quote itself.
+   */
+  excerpt?: { label: string; text: string };
+  /**
+   * Optional. What this purchase is bound to, e.g. a profile name. Shown
+   * under the price through `upgrade.pairingNote`; nothing shows without it.
+   */
+  pairingLabel?: string;
 }
 
 type RestoreState =
@@ -43,11 +53,19 @@ type RestoreState =
  * consuming app — but resist redesigning per-app, the whole point is one
  * shared, tested upgrade surface.
  */
-export default function UpgradeModal({ onClose, onRestore, source, readingKey }: UpgradeModalProps) {
+export default function UpgradeModal({
+  onClose,
+  onRestore,
+  source,
+  readingKey,
+  excerpt,
+  pairingLabel,
+}: UpgradeModalProps) {
   const { stripe, upgrade } = useKitConfig();
 
-  // "Already purchased? Restore" opens a small email form in place. Opened
-  // straight from a gate's restore link, the form is already showing.
+  // "Already purchased? Restore" opens a small email form in place; until
+  // then only the link shows. Opened straight from a gate's restore link,
+  // the form is already showing. No message shows before a submit.
   const [restore, setRestore] = useState<RestoreState>(() =>
     source === RESTORE_SOURCE ? { phase: 'open', pending: false, message: null } : { phase: 'closed' },
   );
@@ -63,6 +81,12 @@ export default function UpgradeModal({ onClose, onRestore, source, readingKey }:
     e.preventDefault();
     // A double-click or a second Enter while the first check runs is ignored.
     if (pendingRef.current) return;
+    // Empty or not an address: say so here, without a round trip.
+    if (!isPlausibleEmail(email)) {
+      setRestore({ phase: 'open', pending: false, message: RESTORE_MESSAGES.invalid });
+      emailRef.current?.focus({ preventScroll: true });
+      return;
+    }
     pendingRef.current = true;
     setRestore({ phase: 'open', pending: true, message: null });
     try {
@@ -76,6 +100,8 @@ export default function UpgradeModal({ onClose, onRestore, source, readingKey }:
   // The tap that opened the modal can double: its second half lands where
   // the Buy link now is. Pointer clicks on the CTA are ignored for a moment.
   const tooEarly = useTapGuard();
+  const pairingNote =
+    pairingLabel && upgrade.pairingNote ? upgrade.pairingNote.replace('{pairing}', pairingLabel) : null;
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   useEffect(() => {
@@ -111,7 +137,7 @@ export default function UpgradeModal({ onClose, onRestore, source, readingKey }:
         className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden max-h-[95vh] overflow-y-auto outline-none"
       >
         {/* Header */}
-        <div className="bg-gradient-to-br from-emerald-700 to-emerald-900 p-6 text-white text-center relative">
+        <div className="bg-gradient-to-br from-emerald-700 to-emerald-900 px-6 pt-5 pb-4 sm:p-6 text-white text-center relative">
           <button
             onClick={onClose}
             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
@@ -119,43 +145,39 @@ export default function UpgradeModal({ onClose, onRestore, source, readingKey }:
           >
             <X size={16} />
           </button>
-          <div className="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+          <div className="hidden sm:flex w-12 h-12 bg-amber-400 rounded-xl items-center justify-center mx-auto mb-3 shadow-lg">
             <Zap size={24} className="text-amber-900" />
           </div>
-          <h2 className="text-xl font-bold mb-1">{upgrade.headerTitle}</h2>
+          <h2 className="text-xl font-bold mb-1 px-6">{upgrade.headerTitle}</h2>
           <p className="text-emerald-200 text-sm">{upgrade.headerSubtitle}</p>
         </div>
 
-        {/* Price */}
-        <div className="px-6 pt-5 pb-3 text-center">
+        {/* Price, and what the purchase is bound to */}
+        <div className="px-6 pt-4 pb-3 text-center">
           <div className="text-4xl font-bold text-stone-800">{upgrade.price}</div>
           <div className="text-xs text-stone-400 mt-1">{upgrade.priceCaption}</div>
+          {pairingNote && (
+            <p data-testid="upgrade-pairing" className="mt-2 text-xs font-semibold text-stone-600">
+              {pairingNote}
+            </p>
+          )}
         </div>
 
-        {/* Features */}
+        {/* What every buyer gets */}
         <div className="px-6 pb-4">
           <div className="space-y-2">
             {upgrade.features.map((f) => (
-              <div key={f} className="flex items-center gap-2.5 text-sm text-stone-600">
-                <Check size={14} className="text-emerald-500 flex-shrink-0" />
+              <div key={f} className="flex items-start gap-2.5 text-sm text-stone-600">
+                <Check size={14} className="text-emerald-500 flex-shrink-0 mt-[3px]" />
                 {f}
               </div>
             ))}
           </div>
-          {upgrade.conditionalFeatures && upgrade.conditionalFeatures.features.length > 0 && (
-            <div className="mt-4">
-              <div className="text-[11px] font-bold uppercase tracking-wide text-stone-500 mb-2">
-                {upgrade.conditionalFeatures.heading}
-              </div>
-              <div className="space-y-2">
-                {upgrade.conditionalFeatures.features.map((f) => (
-                  <div key={f} className="flex items-center gap-2.5 text-sm text-stone-600">
-                    <Check size={14} className="text-emerald-500 flex-shrink-0" />
-                    {f}
-                  </div>
-                ))}
-              </div>
-            </div>
+          {excerpt && excerpt.text && (
+            <figure data-testid="upgrade-excerpt" className="mt-3 rounded-lg border-l-2 border-emerald-500 bg-stone-50 px-3 py-2">
+              <blockquote className="text-sm italic leading-snug text-stone-700">“{excerpt.text}”</blockquote>
+              <figcaption className="mt-1 text-[11px] font-semibold text-stone-500">{excerpt.label}</figcaption>
+            </figure>
           )}
         </div>
 
@@ -181,6 +203,23 @@ export default function UpgradeModal({ onClose, onRestore, source, readingKey }:
             </a>
           )}
         </div>
+        )}
+
+        {/* What needs something from the buyer first, after the buy */}
+        {upgrade.conditionalFeatures && upgrade.conditionalFeatures.features.length > 0 && (
+          <div className="px-6 pb-4">
+            <div className="text-[11px] font-bold uppercase tracking-wide text-stone-500 mb-2">
+              {upgrade.conditionalFeatures.heading}
+            </div>
+            <div className="space-y-2">
+              {upgrade.conditionalFeatures.features.map((f) => (
+                <div key={f} className="flex items-start gap-2.5 text-sm text-stone-600">
+                  <Check size={14} className="text-emerald-500 flex-shrink-0 mt-[3px]" />
+                  {f}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Restore */}

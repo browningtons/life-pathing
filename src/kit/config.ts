@@ -40,6 +40,13 @@ export interface KitConfig {
       features: string[];
     };
     trustLine: string;
+    /**
+     * Optional. The line under the price naming what this purchase is bound
+     * to, with `{pairing}` standing for the modal's `pairingLabel` prop, e.g.
+     * "For {pairing}. Change it first if that's not you." Shown only when the
+     * app passes `pairingLabel`.
+     */
+    pairingNote?: string;
   };
   analytics: {
     eventPrefix: string;

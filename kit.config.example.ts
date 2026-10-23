@@ -69,6 +69,10 @@ export const KIT_CONFIG: KitConfig = {
     // },
     trustLine:
       'Secure payment via Stripe. 30-day refund, no questions asked. No account. No recurring charges.',
+    // Optional. When a purchase is bound to something the buyer chose (a
+    // plan, a profile), the modal names it under the price. `{pairing}` is
+    // the modal's `pairingLabel` prop; nothing shows without that prop.
+    // pairingNote: 'For {pairing}. Change it first if that is not you.',
   },
 
   analytics: {

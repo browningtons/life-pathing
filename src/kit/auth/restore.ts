@@ -7,7 +7,7 @@ export type RestoreResult =
   | { ok: false; message: string };
 
 export const RESTORE_MESSAGES = {
-  invalid: 'Enter the email address you used at checkout.',
+  invalid: 'Enter the email from your Stripe receipt.',
   notFound:
     "We couldn't find a paid purchase for that email. Double-check the address on your Stripe receipt, or reply to the receipt email for help.",
   failed: 'Something went wrong verifying your purchase. Try again in a moment.',

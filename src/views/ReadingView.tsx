@@ -31,6 +31,7 @@ import { useNav } from '../store/useNav';
 import { useProfile } from '../store/useProfile';
 import { BIRTHDATE_INPUT_ID } from './LifePathView';
 import { readingKey } from '../lib/readingKey';
+import { loadTeaserFile } from '../lib/teaserFile';
 
 /** "a 7", or "a 16/7" when the compound carries a label, with the letters. */
 function describeKey(key: string): string | null {
@@ -144,21 +145,15 @@ const ReadingDocument = () => {
 
   useEffect(() => {
     if (hasCache) return;
-    const ctrl = new AbortController();
-    fetch(`/readings/${encodeURIComponent(key)}.json`, { signal: ctrl.signal })
-      .then(async (r) => {
-        if (r.status === 404) return setTeaser({ key, status: 'missing' });
-        if (!r.ok) return setTeaser({ key, status: 'error' });
-        const body: unknown = await r.json().catch(() => null);
-        const text = (body as { teaser?: unknown } | null)?.teaser;
-        // A static host answering a miss with a page is a miss, not an error.
-        if (typeof text !== 'string' || !text.trim()) return setTeaser({ key, status: 'missing' });
-        setTeaser({ key, status: 'ok', text });
-      })
-      .catch(() => {
-        if (!ctrl.signal.aborted) setTeaser({ key, status: 'error' });
-      });
-    return () => ctrl.abort();
+    // Shared with the shell, which quotes the file's excerpt in the upgrade modal.
+    let live = true;
+    void loadTeaserFile(key).then((res) => {
+      if (!live) return;
+      setTeaser(res.status === 'ok' ? { key, status: 'ok', text: res.teaser } : { key, status: res.status });
+    });
+    return () => {
+      live = false;
+    };
   }, [key, attempt, hasCache]);
 
   const current = teaser?.key === key ? teaser : null;

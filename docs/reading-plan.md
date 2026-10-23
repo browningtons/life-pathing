@@ -125,7 +125,7 @@ No critical gaps: every failure has a test and a visible state.
 
 Sequence: A runs the 3-key pilot first and the 5-persona read decides whether the prompt goes another round; B, C and E start in parallel against the contracts below; A's full run lands when the pilot passes. Merge A → B → C → E, then D (with the flag flip) last. C and E both touch the shell nav: E adds a footer link only, after C.
 
-**Contracts:** key `"<lifePath>-<compoundKey>-<TYPE>"`; Reading JSON `{ key, version, teaser, number, type, love, agree, pull, closing }` (since prompt version 2: `love` is "In love", 80–120 words, rendered between The Type and Where they agree; `number`, `type`, `agree`, `pull` 130–180 words each; second person, D9 and D10); teaser file `public/readings/<key>.json` = `{ key, version, teaser }`; route as above; `verify-purchase` POST `{ verified, sessionId }`; flag `import.meta.env.VITE_READING_ENABLED === '1'`.
+**Contracts:** key `"<lifePath>-<compoundKey>-<TYPE>"`; Reading JSON `{ key, version, teaser, number, type, love, agree, pull, closing }` (since prompt version 2: `love` is "In love", 80–120 words, rendered between The Type and Where they agree; `number`, `type`, `agree`, `pull` 130–180 words each; second person, D9 and D10); teaser file `public/readings/<key>.json` = `{ key, version, teaser, excerpt }` (`excerpt`, since 2026-10-22: the first sentence of `love`, capped at 220 characters, quoted in the upgrade modal; `--teasers-only` rewrites the files from the index); route as above; `verify-purchase` POST `{ verified, sessionId }`; flag `import.meta.env.VITE_READING_ENABLED === '1'`.
 
 ## Dependencies on Paul
 
