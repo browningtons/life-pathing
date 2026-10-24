@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, PartyPopper, X } from 'lucide-react';
-import logo from './assets/logo.png';
+import markBadge from './assets/brand/mark-badge.svg';
 import { BIRTHDATE_INPUT_ID, LifePathView } from './views/LifePathView';
 import { ArchetypesView } from './views/ArchetypesView';
 import { PersonalityView } from './views/PersonalityView';
@@ -169,7 +169,7 @@ function Shell() {
                   aria-label="Life Pathing — go to Life Path"
                   className={`flex items-center gap-3 rounded-md ${FOCUS_RING}`}
                 >
-                  <img src={logo} alt="" aria-hidden="true" className="h-20 w-auto sm:h-20 object-contain" />
+                  <img src={markBadge} alt="" aria-hidden="true" className="h-14 w-14 shrink-0" />
                   <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">
                     Life Pathing
                   </span>

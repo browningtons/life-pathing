@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "readings:generate": "tsx scripts/generate-readings.ts"
+    "readings:generate": "tsx scripts/generate-readings.ts",
+    "brand:generate": "tsx scripts/brand/generate.ts"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

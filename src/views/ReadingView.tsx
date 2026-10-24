@@ -15,6 +15,7 @@ import {
   User,
   type LucideIcon,
 } from 'lucide-react';
+import mark from '../assets/brand/mark.svg';
 import { Card } from '../components/Card';
 import { LettersAsk } from '../components/LettersAsk';
 import { ProGate } from '../components/ProGate';
@@ -183,6 +184,7 @@ const ReadingDocument = () => {
 
   return (
     <article id="reading-article" className="space-y-4" aria-labelledby="reading-title">
+      <PrintMasthead />
       <ReadingHeader />
 
       {opening ? (
@@ -211,6 +213,15 @@ const ReadingDocument = () => {
     </article>
   );
 };
+
+/** Top of the printed Reading: the screen shows the site header instead. */
+const PrintMasthead = () => (
+  <div className="hidden print:flex items-center gap-3 border-b border-slate-300 pb-3">
+    <img src={mark} alt="" aria-hidden="true" className="h-12 w-12" />
+    <span className="text-base font-extrabold tracking-tight text-slate-900">Life Pathing</span>
+    <span className="ml-auto text-sm text-slate-500">lifepathing.app</span>
+  </div>
+);
 
 const ReadingHeader = () => {
   const { typeCode, lifePath, profile } = useProfile();
