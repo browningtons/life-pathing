@@ -4,18 +4,18 @@ Standing panel. Re-run the same cards so verdicts are comparable over time.
 Retire or add a persona only with a dated note saying why.
 
 ## Scoreboard
-| Persona | 2026-10-14 | 2026-10-23 |
-|---|---|---|
-| Maya (phone, 11pm, TikTok) | WOULDN'T PAY: paid part needs a pasted report; nothing about love | WOULDN'T PAY (closest): first screen sells nothing; In love is one short paragraph |
-| Dave (desktop, checks the math) | WOULDN'T PAY (close): master-number rows contradict; typed 70% | WOULDN'T PAY: Reading shows no working; one Reading per purchase |
-| Priya (tablet, Truity report owner) | WOULDN'T PAY (leaning): per-facet line is a template | WOULDN'T PAY (close): Reading ignores her scores |
-| Linda (laptop 1366×700, reads every word) | WOULDN'T PAY: sent to TypeFinder for facets; jargon | WOULDN'T PAY (close): jargon; Profile's paste wall |
-| Sam (shared laptop, privacy-first) | WOULDN'T PAY: no privacy/refund page; reset keeps unlock | WOULDN'T PAY (close): "nothing leaves" vs the key; can't delete the unlock |
-| Carlos (desktop, ChatGPT daily) | WOULDN'T PAY: 2 of 6 promises empty; ties at 60% | WOULDN'T PAY: "a lookup table with a $19 sticker" |
-| Rachel (desktop, coach evaluator) | WOULDN'T RECOMMEND: invented percentages; Archetypes overwrote type | WOULDN'T PAY / not as-is: paid text has no framing line |
-| Tom (desktop, edge-case data) | WOULDN'T PAY (yet): Life Path 0 on cleared date | WOULD PAY (barely): first screen is the only exit |
-| Aisha (phone → laptop, second device) | WOULDN'T PAY: paid facets empty; Restore hidden | WOULD PAY (paid): wants guidance after Restore |
-| Kevin (phone, shared link, breaks things) | WOULDN'T PAY: double-tap reaches Buy; free already felt like the product | WOULDN'T PAY (wavering): free Profile feels complete |
+| Persona | 2026-10-14 | 2026-10-23 | 2026-10-23 re-run |
+|---|---|---|---|
+| Maya (phone, 11pm, TikTok) | WOULDN'T PAY: paid part needs a pasted report; nothing about love | WOULDN'T PAY (closest): first screen sells nothing; In love is one short paragraph | WOULD PAY (marginal): wants the post-quiz tap to land on the Reading |
+| Dave (desktop, checks the math) | WOULDN'T PAY (close): master-number rows contradict; typed 70% | WOULDN'T PAY: Reading shows no working; one Reading per purchase | WOULD PAY (barely): wants working in the paid half |
+| Priya (tablet, Truity report owner) | WOULDN'T PAY (leaning): per-facet line is a template | WOULDN'T PAY (close): Reading ignores her scores | WOULD PAY (just): wants her numbers in the Reading |
+| Linda (laptop 1366×700, reads every word) | WOULDN'T PAY: sent to TypeFinder for facets; jargon | WOULDN'T PAY (close): jargon; Profile's paste wall | PAID (barely): Profile jargon still her exit |
+| Sam (shared laptop, privacy-first) | WOULDN'T PAY: no privacy/refund page; reset keeps unlock | WOULDN'T PAY (close): "nothing leaves" vs the key; can't delete the unlock | WOULD PAY (barely): wants "Forget this device" |
+| Carlos (desktop, ChatGPT daily) | WOULDN'T PAY: 2 of 6 promises empty; ties at 60% | WOULDN'T PAY: "a lookup table with a $19 sticker" | WOULDN'T PAY: "ChatGPT does it" |
+| Rachel (desktop, coach evaluator) | WOULDN'T RECOMMEND: invented percentages; Archetypes overwrote type | WOULDN'T PAY / not as-is: paid text has no framing line | WOULDN'T PAY / not yet: paid text has no framing |
+| Tom (desktop, edge-case data) | WOULDN'T PAY (yet): Life Path 0 on cleared date | WOULD PAY (barely): first screen is the only exit | WOULD PAY (barely): offer vanishes after the date |
+| Aisha (phone → laptop, second device) | WOULDN'T PAY: paid facets empty; Restore hidden | WOULD PAY (paid): wants guidance after Restore | WOULD PAY: wants guidance on the page after Restore |
+| Kevin (phone, shared link, breaks things) | WOULDN'T PAY: double-tap reaches Buy; free already felt like the product | WOULDN'T PAY (wavering): free Profile feels complete | WOULDN'T PAY (maybe at $9): headline says method, not outcome |
 
 **2026-10-23 note:** cards reused verbatim; the price in them is read as $19 (brief). Entry URLs unchanged.
 
