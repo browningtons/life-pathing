@@ -113,7 +113,7 @@ export const ReadingView = () => {
 
 const StartWithBirthdate = () => {
   const { go } = useNav();
-  const { restore } = useGate();
+  const { restore, isPro } = useGate();
   return (
     <Card variant="tinted">
       <SectionHeading icon={Calendar} tone="indigo" className="!mb-3">
@@ -126,6 +126,7 @@ const StartWithBirthdate = () => {
       <button type="button" className={`${PRIMARY} mt-4`} onClick={() => go('lifepath', BIRTHDATE_INPUT_ID)}>
         Enter a birthdate on the Life Path tab <ArrowRight size={14} aria-hidden="true" />
       </button>
+      {!isPro && (
       <div className="mt-3">
         <button
           type="button"
@@ -135,6 +136,7 @@ const StartWithBirthdate = () => {
           Already purchased? Restore
         </button>
       </div>
+      )}
     </Card>
   );
 };
