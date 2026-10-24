@@ -48,10 +48,11 @@ src/
   design/        # tokens.ts — shared colours, typography, card + badge recipes
   components/    # Card, HeroCard, SectionHeading, Chip, TypeCode, BorderlineBadge
   kit/           # appkit — paywall + entitlement plumbing (shared across apps)
-  assets/        # logo
+  assets/brand/  # the mark's SVG masters (see DESIGN.md)
 
 api/             # Vercel serverless functions (verify-purchase)
-public/          # favicons
+public/          # favicons, app icons, web manifest, share image
+scripts/brand/   # regenerates the mark, icons and share image (see DESIGN.md)
 kit.config.ts    # per-app Stripe / brand / analytics config (see kit.config.example.ts)
 ```
 
