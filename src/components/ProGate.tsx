@@ -25,6 +25,11 @@ interface ProGateProps {
   buttonLabel?: string;
   /** Which tab the gate sits on; the upgrade source reads `<surface>_<gate>`. */
   surface?: string;
+  /**
+   * A real line from behind the gate, with where it comes from, quoted
+   * beside the price. Optional; without it the gate reads as before.
+   */
+  excerpt?: { label: string; text: string };
 }
 
 /**
@@ -42,6 +47,7 @@ export const ProGate = ({
   teaser,
   buttonLabel = 'See the whole profile',
   surface = 'profile',
+  excerpt,
 }: ProGateProps) => {
   const { isPro, openUpgrade, restore } = useGate();
   const { ownBirthDate, lettersKnown } = useProfile();
@@ -73,6 +79,14 @@ export const ProGate = ({
             <div className={`${MICRO_LABEL} !text-indigo-500 mb-2 flex items-center gap-1.5`}>
               <Lock size={11} aria-hidden="true" /> Behind the line
             </div>
+            {excerpt && (
+              <figure className="mb-4 border-l-2 border-indigo-300 pl-4">
+                <blockquote className="text-sm italic text-slate-700 leading-relaxed">
+                  &ldquo;{excerpt.text}&rdquo;
+                </blockquote>
+                <figcaption className={`${MICRO_LABEL} mt-1.5`}>{excerpt.label}</figcaption>
+              </figure>
+            )}
             <h3 className="text-base font-bold text-slate-900 mb-1">{copy.title}</h3>
             <p className={BODY}>{copy.blurb}</p>
             {READING_ENABLED && gate !== READING_GATE && (
