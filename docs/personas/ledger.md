@@ -4,7 +4,7 @@ Findings that were real on `main` but not fixed in the run that found them. Each
 
 ### L1 — Unread facets filled with 50 show as real scores
 
-*Filed 2026-10-14 from the [persona walkthrough](runs/2026-10-14.md) (Priya; re-check B; on `08eb18c`). 3+5+2−2 = **8**.*
+*Filed 2026-10-14 from the [persona walkthrough](runs/2026-10-14.md) (Priya; re-check B; on `08eb18c`). Re-hit 2026-10-23 twice (Priya, both runs: her would-have-left moment). Raised to 4+5+2−2 = **9**.*
 
 A paste that carries three facets sets the other twenty to 50, and those then render as "BALANCED" rows and even in "What shows up loudest" ("Orderly 50%, Scheduled 50%"). An unread value looks like a measured one.
 

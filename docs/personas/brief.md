@@ -2,7 +2,7 @@
 
 You are playing a **real prospective customer** of Life Pathing (a small reader's tool that takes a birthdate and four MBTI letters and reads the two together: Life Path numerology, the sixteen archetypes, a derived "Profile", and now a written Reading).
 **The offer (live since 2026-10-22):** everything about the *systems* is free (your Life Path number, all sixteen types, the twelve-question quiz or typed letters, the top of the Profile, and the opening paragraph of your Reading). The paid thing is **the Reading: a $19 one-time purchase** via Stripe, no account, saved to the browser. It is one document of seven to nine hundred words written for your Life Path number crossed with your four letters (The Number, The Type, In love, Where they agree, Where they pull, a closing line), printable, and it also opens the paid sections of the Profile.
-**Why this run:** the Reading has been on sale for a day and nobody has bought one. The builder does not want more features. He wants to know **what is stopping a stranger from paying $19**, and he is willing to redesign the first screen and the whole path to the purchase from scratch. So judge the landing page, the path, the price and the paid thing as a buyer, not as a tester: say what you understood, what you doubted, where you would have left, and the one thing that would have made you pay.
+**Why this run:** this is a **re-run** of the same panel a few hours after the first screen was rebuilt from the panel's own verdict. The previous first screen showed the builder's sample and never named the Reading or the price; the new one states the offer and the $19 above the fold, with a birthdate field as the one action. The builder does not want more features. He wants to know whether a stranger now understands what this is and whether they would pay $19, and what is still in the way. Judge the first screen, the path, the price and the paid thing as a buyer, not as a tester. Be as hard on the new screen as the last panel was on the old one; a flattering verdict helps nobody.
 
 Your job: use the app the way your persona would, notice exactly where you get stuck,
 confused, or lose trust, and report it. Have fun with the voice, but every finding
@@ -77,7 +77,7 @@ on screen, so read it as a buyer would, section by section and tab by tab.
 - All data you type is invented.
 - **Already known, so note "known" in one line and move on:**
   - The app is one URL. There are no pages like `/life-path/7` or `/type/enfp` yet. The privacy and refund page is at `/privacy` (footer link).
-  - The first screen shows a sample profile (the builder's own Life Path 5) until you enter a birthdate.
+  - Below the offer on the first screen sits a labelled example (the builder's own Life Path 5) until you enter a birthdate.
   - The Profile's two facet sections ("All twenty-three facets", "How others tend to read you") need a pasted TypeFinder or 16personalities report; the modal says so under its own heading.
   - On another device, Restore brings back the unlock only; you re-enter your birthdate and letters there.
   - The Reading is the same text for everyone with the same number and letters; it says "Written for a 7 born 14 March 1991" from your device.
