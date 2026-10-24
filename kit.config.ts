@@ -26,7 +26,7 @@ export const KIT_CONFIG: KitConfig = {
     // then, the upgrade modal falls back to the Payment Link below.
     buyButtonId: 'buy_btn_REPLACE_ME',
     // The $19 Payment Link (2026-10-22). Its success URL redirects to
-    // https://life-pathing.vercel.app/#session_id={CHECKOUT_SESSION_ID} so the
+    // https://lifepathing.app/#session_id={CHECKOUT_SESSION_ID} so the
     // unlock lands without a manual restore. The $29 price and link are
     // archived. Server-side, STRIPE_PRICE_ID and STRIPE_PRODUCT_ID in Vercel
     // must name the same price and product.
