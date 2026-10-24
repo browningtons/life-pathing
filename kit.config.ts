@@ -65,6 +65,8 @@ export const KIT_CONFIG: KitConfig = {
         // The one-Reading rule, before the buy (plan T1). App.tsx passes the
         // pairing only for the reader's own number and letters.
         pairingNote: 'For {pairing}. Change your letters first if that\'s not you.',
+        restoredNote:
+          'The unlock is on this device. Enter the same birthdate and letters you bought it with to open your Reading.',
       }
     : {
         headerTitle: 'See the whole profile.',

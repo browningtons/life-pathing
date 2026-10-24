@@ -47,6 +47,12 @@ export interface KitConfig {
      * app passes `pairingLabel`.
      */
     pairingNote?: string;
+    /**
+     * Optional. The one line of guidance shown after an email restore
+     * succeeds, in place of the pitch: what the buyer does next on this
+     * device. The kit supplies a generic default.
+     */
+    restoredNote?: string;
   };
   analytics: {
     eventPrefix: string;

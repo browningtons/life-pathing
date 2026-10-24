@@ -40,6 +40,9 @@ interface UpgradeModalProps {
   pairingLabel?: string;
 }
 
+/** App-agnostic default; an app overrides it with `upgrade.restoredNote`. */
+const DEFAULT_RESTORED_NOTE = 'Your purchase is unlocked on this device. Pick up where you left off.';
+
 type RestoreState =
   | { phase: 'closed' }
   | { phase: 'open'; pending: boolean; message: string | null }
@@ -73,6 +76,8 @@ export default function UpgradeModal({
   const pendingRef = useRef(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const restoreOpen = restore.phase === 'open';
+  const restored = restore.phase === 'done';
+  const restoredNote = upgrade.restoredNote || DEFAULT_RESTORED_NOTE;
   useEffect(() => {
     if (restoreOpen) emailRef.current?.focus({ preventScroll: true });
   }, [restoreOpen]);
@@ -148,9 +153,12 @@ export default function UpgradeModal({
           <div className="hidden sm:flex w-12 h-12 bg-amber-400 rounded-xl items-center justify-center mx-auto mb-3 shadow-lg">
             <Zap size={24} className="text-amber-900" />
           </div>
-          <h2 className="text-xl font-bold mb-1 px-6">{upgrade.headerTitle}</h2>
-          <p className="text-emerald-200 text-sm">{upgrade.headerSubtitle}</p>
+          <h2 className="text-xl font-bold mb-1 px-6">{restored ? 'Restored. Welcome back.' : upgrade.headerTitle}</h2>
+          <p className="text-emerald-200 text-sm">{restored ? restoredNote : upgrade.headerSubtitle}</p>
         </div>
+
+        {!restored && (
+          <>
 
         {/* Price, and what the purchase is bound to */}
         <div className="px-6 pt-4 pb-3 text-center">
@@ -181,8 +189,7 @@ export default function UpgradeModal({
           )}
         </div>
 
-        {/* CTA — inline Buy Button if configured, else Payment Link. Hidden once restored. */}
-        {restore.phase !== 'done' && (
+        {/* CTA — inline Buy Button if configured, else Payment Link. */}
         <div className="px-6 pb-4 flex justify-center">
           {isBuyButtonConfigured(stripe.buyButtonId) ? (
             <stripe-buy-button
@@ -203,7 +210,6 @@ export default function UpgradeModal({
             </a>
           )}
         </div>
-        )}
 
         {/* What needs something from the buyer first, after the buy */}
         {upgrade.conditionalFeatures && upgrade.conditionalFeatures.features.length > 0 && (
@@ -220,6 +226,9 @@ export default function UpgradeModal({
               ))}
             </div>
           </div>
+        )}
+
+          </>
         )}
 
         {/* Restore */}
@@ -268,8 +277,7 @@ export default function UpgradeModal({
             </form>
           )}
           {restore.phase === 'done' && (
-            <div role="status" aria-live="polite" className="space-y-3">
-              <p className="text-sm font-semibold text-emerald-700">Restored. Welcome back.</p>
+            <div role="status" aria-live="polite" className="pt-4">
               <button
                 type="button"
                 onClick={onClose}
