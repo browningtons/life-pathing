@@ -6,7 +6,7 @@ import { LAST_UPDATED, PrivacyView } from './PrivacyView';
 const html = renderToStaticMarkup(createElement(PrivacyView));
 
 describe('PrivacyView', () => {
-  it.each(['30 days', 'Stripe', 'local storage', 'Vercel', 'Reset to the sample profile', LAST_UPDATED])(
+  it.each(['30 days', 'Stripe', 'local storage', 'Vercel', 'Reset to the sample profile', 'Forget this device', LAST_UPDATED])(
     'mentions %s',
     (needle) => {
       expect(html).toContain(needle);
@@ -26,6 +26,6 @@ describe('PrivacyView', () => {
     expect(html).toContain('href="/"');
     expect(html).not.toContain('Paul approves');
     expect(html).toContain('The Reading key');
-    expect(LAST_UPDATED).toBe('23 October 2026');
+    expect(LAST_UPDATED).toBe('24 October 2026');
   });
 });

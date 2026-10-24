@@ -13,7 +13,7 @@ export { default as LockedOverlay } from './components/LockedOverlay';
 export { default as ProBadge } from './components/ProBadge';
 export { default as AdminBar } from './components/AdminBar';
 export { useTapGuard, isEarlyPointerTap, TAP_GUARD_MS } from './tap-guard';
-export { load, save } from './persistence';
+export { load, save, forgetDevice, clearByPrefix } from './persistence';
 export {
   captureUtmParams,
   getUtmParams,

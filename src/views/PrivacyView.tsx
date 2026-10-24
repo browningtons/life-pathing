@@ -7,7 +7,7 @@
 
 import { FOCUS_RING, FONT, PAGE_BG, PAGE_TEXT } from '../design/tokens';
 
-export const LAST_UPDATED = '23 October 2026';
+export const LAST_UPDATED = '24 October 2026';
 
 export const PRIVACY_PATH = '/privacy';
 
@@ -44,8 +44,10 @@ export function PrivacyView() {
           </p>
           <p className={P}>
             &ldquo;Reset to the sample profile&rdquo; on the Your Data tab clears the numbers. It does not clear a
-            purchase. Clearing this site&rsquo;s data in your browser clears everything, the purchase flag included;
-            Restore brings the purchase back.
+            purchase. &ldquo;Forget this device&rdquo; on the same tab clears everything this site keeps in your browser, the
+            purchase flag and the saved Reading included, which is the one to use on a shared computer; Restore brings
+            the purchase back with the email from your receipt. Clearing this site&rsquo;s data in your browser does the
+            same.
           </p>
         </section>
 

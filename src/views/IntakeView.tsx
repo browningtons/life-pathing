@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Calendar, ClipboardPaste, RotateCcw, Save, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Calendar, ClipboardPaste, Eraser, RotateCcw, Save, SlidersHorizontal, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Brain, Zap, Heart, Compass } from 'lucide-react';
 import { BorderlineBadge } from '../components/BorderlineBadge';
@@ -28,7 +28,7 @@ import {
 import { isBorderline, poleScore, rawScore } from '../lib/deriveType';
 import { describeReport, parseReport, pastePatch } from '../lib/parseReport';
 import { dataHeading } from '../lib/provenance';
-import { useProfile } from '../store/useProfile';
+import { forgetDevice } from '../kit';import { useProfile } from '../store/useProfile';
 import type { MbtiDimension } from '../types';
 
 const CATEGORY_ICONS: Record<TraitCategory, LucideIcon> = {
@@ -82,6 +82,19 @@ export const IntakeView = () => {
     }
   };
 
+  // Clears everything under the app's storage prefix, then reloads so no
+  // in-memory copy (profile, Pro flag, banner) writes anything back.
+  const onForget = () => {
+    if (
+      window.confirm(
+        'This device forgets your numbers and your purchase. The profile, the Reading text and the unlock are removed from this browser. Restore the purchase any time with the email from your receipt.',
+      )
+    ) {
+      forgetDevice();
+      window.location.replace('/');
+    }
+  };
+
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
       {/* HERO */}
@@ -127,6 +140,17 @@ export const IntakeView = () => {
             >
               <RotateCcw size={14} aria-hidden="true" /> Reset to the sample profile
             </button>
+            <p className="mt-1.5 text-xs text-indigo-200/70">Clears your numbers. The purchase stays.</p>
+            <button
+              type="button"
+              onClick={onForget}
+              className={`mt-3 w-full flex items-center justify-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-xs font-bold text-white/70 hover:bg-white/10 hover:text-white transition-colors ${FOCUS_RING_ON_DARK}`}
+            >
+              <Eraser size={14} aria-hidden="true" /> Forget this device
+            </button>
+            <p className="mt-1.5 text-xs text-indigo-200/70">
+              Clears everything, the purchase included. For a shared computer. Restore brings it back.
+            </p>
           </div>
         </div>
       </HeroCard>
