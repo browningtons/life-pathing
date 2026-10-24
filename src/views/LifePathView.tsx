@@ -66,6 +66,9 @@ const focusBirthdate = () => {
   const input = document.getElementById(BIRTHDATE_INPUT_ID) as HTMLInputElement | null;
   if (!input) return;
   input.focus();
+  // A picker helps on a touch screen. On a desktop it swallows typed digits
+  // until it is dismissed, so there the focused field is the whole help.
+  if (!window.matchMedia?.('(pointer: coarse)').matches) return;
   try {
     input.showPicker();
   } catch {
