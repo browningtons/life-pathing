@@ -18,6 +18,12 @@ function isBuyButtonConfigured(buyButtonId: string): boolean {
 
 interface UpgradeModalProps {
   onClose: () => void;
+  /**
+   * Optional. Called after `onClose` when the reader taps Done on a successful
+   * restore. The app decides where a restored reader lands; the kit does no
+   * navigation of its own.
+   */
+  onRestored?: () => void;
   /** Email restore (useAuth's handleRestore). Resolves what the form shows. */
   onRestore: (email: string) => Promise<RestoreResult>;
   /** Where in the app the modal was triggered, for funnel attribution. */
@@ -58,6 +64,7 @@ type RestoreState =
  */
 export default function UpgradeModal({
   onClose,
+  onRestored,
   onRestore,
   source,
   readingKey,
@@ -280,7 +287,10 @@ export default function UpgradeModal({
             <div role="status" aria-live="polite" className="pt-4">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => {
+                  onClose();
+                  onRestored?.();
+                }}
                 className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
               >
                 Done

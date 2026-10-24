@@ -11,7 +11,7 @@ import {
   Calendar,
   Compass,
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
 import { HeroCard } from '../components/HeroCard';
@@ -21,6 +21,7 @@ import { SectionHeading } from '../components/SectionHeading';
 import { COMPOUND_MEANINGS } from '../data/compoundMeanings';
 import { LIFE_PATH_MEANINGS } from '../data/lifePathMeanings';
 import {
+  ASIDE,
   BODY,
   EYEBROW,
   FOCUS_RING_ON_DARK,
@@ -28,6 +29,7 @@ import {
   HERO_PANEL,
   HERO_SUBTITLE,
   HERO_TITLE,
+  FOCUS_RING,
   MICRO_LABEL,
   toneFor,
   type Tone,
@@ -36,6 +38,7 @@ import { birthDateNote, reductionSteps } from '../lib/calculateLifePath';
 import { useKitConfig } from '../kit';
 import { trackLifePathShown } from '../lib/funnel';
 import { READING_ENABLED } from '../lib/readingFlag';
+import { useGate } from '../store/useGate';
 import { useProfile } from '../store/useProfile';
 import type { LifePathEntry } from '../types';
 
@@ -54,9 +57,27 @@ const FALLBACK_MEANING: LifePathEntry = {
 /** The hero's date input, so the sample banner can send a reader straight to it. */
 export const BIRTHDATE_INPUT_ID = 'lifepath-birthdate';
 
+/**
+ * The offer's "See my number" helper: put the cursor in the date field and,
+ * where the browser allows it, open the picker. It is not a submit; typing a
+ * date works as it always did.
+ */
+const focusBirthdate = () => {
+  const input = document.getElementById(BIRTHDATE_INPUT_ID) as HTMLInputElement | null;
+  if (!input) return;
+  input.focus();
+  try {
+    input.showPicker();
+  } catch {
+    // No picker here, or the browser would not open one: the focused field is enough.
+  }
+};
+
 export const LifePathView = () => {
   const { profile, lifePath, ownBirthDate, setBirthDate } = useProfile();
   const { upgrade } = useKitConfig();
+  const { isPro } = useGate();
+  const [exampleOpen, setExampleOpen] = useState(false);
   const meaning = LIFE_PATH_MEANINGS[lifePath.number] ?? FALLBACK_MEANING;
   const { breakdown, compound } = lifePath;
   const compoundMeaning = COMPOUND_MEANINGS[compound] ?? null;
@@ -158,9 +179,12 @@ export const LifePathView = () => {
               </>
             )}
 
-            <label className={`flex flex-wrap items-center gap-3 ${offer ? 'mb-1' : 'mb-5'}`}>
+            {/* One wrapper in both states, so the date input keeps its place in the tree. */}
+            <div className={offer ? 'flex flex-wrap items-end gap-x-4 gap-y-3 mb-1' : ''}>
+            <label className={`flex gap-3 ${offer ? 'flex-col items-start !gap-2' : 'flex-wrap items-center mb-5'}`}>
               <span className={`${EYEBROW} text-indigo-200/80 flex items-center gap-1`}>
-                {offer ? copy.inputLabel : 'Enter a birthdate'} <ArrowRight size={12} aria-hidden="true" />
+                {offer ? copy.inputLabel : 'Enter a birthdate'}
+                {!offer && <ArrowRight size={12} aria-hidden="true" />}
               </span>
               <span className="flex items-center gap-2">
                 <Calendar size={offer ? 22 : 18} className="text-indigo-300" aria-hidden="true" />
@@ -182,6 +206,16 @@ export const LifePathView = () => {
                 />
               </span>
             </label>
+            {offer && (
+              <button
+                type="button"
+                onClick={focusBirthdate}
+                className={`rounded-md bg-white px-4 py-2.5 text-sm font-bold text-indigo-700 shadow-sm hover:bg-indigo-50 ${FOCUS_RING_ON_DARK}`}
+              >
+                {copy.numberButton}
+              </button>
+            )}
+            </div>
             {dateNote && !offer && (
               <p className="-mt-3 mb-4 text-xs text-amber-200" role="status">
                 {dateNote}
@@ -220,9 +254,22 @@ export const LifePathView = () => {
       {/* THE EXAMPLE: the builder's sample, below the offer and labelled */}
       {offer && !isEmpty && (
         <section aria-labelledby="lifepath-example" className="space-y-3 pt-4">
-          <h2 id="lifepath-example" className={`${MICRO_LABEL} !text-slate-500 px-1`}>
-            {copy.exampleLabel}
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+            <h2 id="lifepath-example" className={`${MICRO_LABEL} !text-slate-500`}>
+              {copy.exampleLabel}
+            </h2>
+            <button
+              type="button"
+              aria-expanded={exampleOpen}
+              aria-controls="lifepath-example-body"
+              onClick={() => setExampleOpen((open) => !open)}
+              className={`-m-1.5 rounded-md p-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 ${FOCUS_RING}`}
+            >
+              {exampleOpen ? copy.hideExample : copy.showExample}
+            </button>
+          </div>
+          {exampleOpen && (
+          <div id="lifepath-example-body">
           <HeroCard>
             <div className="grid md:grid-cols-5 gap-8 items-start">
               <div className="md:col-span-3">
@@ -234,7 +281,16 @@ export const LifePathView = () => {
               {reductionPanel}
             </div>
           </HeroCard>
+          </div>
+          )}
         </section>
+      )}
+
+      {/* THE OFFER, KEPT IN SIGHT once the number is the reader's own */}
+      {!offer && !isEmpty && !isPro && (
+        <p className={`${ASIDE} px-1`} data-print-hide="">
+          {copy.reminder}
+        </p>
       )}
 
       {/* THE OTHER HALF — four letters, asked for right after the number */}
@@ -243,7 +299,7 @@ export const LifePathView = () => {
       {/* HOW THE NUMBER IS FOUND: under the ask when the ask is the next thing to do */}
       {panelBelow && <HeroCard>{reductionPanel}</HeroCard>}
 
-      {isEmpty ? null : (
+      {isEmpty || (offer && !exampleOpen) ? null : (
         <>
           {/* WHAT THE NUMBER ASKS */}
           <Card>

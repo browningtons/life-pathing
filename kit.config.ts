@@ -45,7 +45,7 @@ export const KIT_CONFIG: KitConfig = {
         headerTitle: 'Read the whole thing.',
         // "One-time purchase" is the price caption and the trust line says "No
         // subscription", so the subtitle does not say "One payment" a third time.
-        headerSubtitle: 'Your Reading and the whole Profile, kept on this device. Restore it elsewhere with your receipt email.',
+        headerSubtitle: 'Your Reading and the whole Profile, kept on this device. Restore it elsewhere with your receipt email, then enter the same birthdate and letters.',
         price: '$19',
         priceCaption: 'One-time purchase',
         features: [

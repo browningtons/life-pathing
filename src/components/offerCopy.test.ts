@@ -6,7 +6,7 @@ const BANNED = /journey|energy|universe|vibration|manifest|destiny/i;
 
 describe.each([true, false])('the first-screen offer (Reading on: %s)', (readingEnabled) => {
   const copy = offerCopy('$19', readingEnabled);
-  const all = [copy.eyebrow, copy.headline, copy.body, copy.inputLabel, copy.exampleLabel, ...copy.rows.flatMap((r) => [r.label, r.text])].join(' ');
+  const all = [copy.eyebrow, copy.headline, copy.body, copy.inputLabel, copy.exampleLabel, copy.reminder, copy.numberButton, copy.showExample, copy.hideExample, ...copy.rows.flatMap((r) => [r.label, r.text])].join(' ');
 
   it('names both lenses in the headline', () => {
     expect(copy.headline).toMatch(/Life Path/);
@@ -36,6 +36,20 @@ describe.each([true, false])('the first-screen offer (Reading on: %s)', (reading
 
   it('stays in the almanac register', () => {
     expect(all).not.toMatch(BANNED);
+  });
+
+  it('keeps a one-line reminder of the offer, with the price from config', () => {
+    expect(copy.reminder).toContain('$19, once');
+    expect(copy.reminder).toMatch(readingEnabled ? /whole Reading/ : /whole Profile/);
+    expect(copy.reminder).toMatch(/free/i);
+    expect(copy.reminder.split(/(?<=\.)\s+/)).toHaveLength(1);
+    expect(offerCopy('$25', readingEnabled).reminder).toContain('$25, once');
+  });
+
+  it('says what the date-field button and the example control do', () => {
+    expect(copy.numberButton).toBe('See my number');
+    expect(copy.showExample).toBe('Show the example');
+    expect(copy.hideExample).toMatch(/example/i);
   });
 
   it('labels the sample as an example', () => {

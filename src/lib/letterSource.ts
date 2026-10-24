@@ -48,3 +48,17 @@ export const TYPED_TEMPERAMENT_NOTE =
 /** One line on the Adjacent Types tab for a typed reader. */
 export const TYPED_MATCHES_NOTE =
   'Your letters were typed, not scored, so every letter weighs the same and types the same number of letters away tie. Expect ties.';
+
+/** Where the result card's main button goes: the Reading when it exists, the Profile otherwise. */
+export const afterLettersDestination = (readingEnabled: boolean): 'reading' | 'profile' =>
+  readingEnabled ? 'reading' : 'profile';
+
+/** The label on that button. */
+export const afterLettersLabel = (readingEnabled: boolean): string =>
+  readingEnabled ? 'See your Reading' : 'See the two read together';
+
+/** The sentence under the result that says where the button leads. */
+export const afterLettersLead = (readingEnabled: boolean): string =>
+  readingEnabled
+    ? 'Your number and your type are now read together in your Reading.'
+    : 'Your number and your type are now read together on the Profile.';

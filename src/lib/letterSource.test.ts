@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  afterLettersDestination,
+  afterLettersLabel,
+  afterLettersLead,
   TYPED_MATCHES_NOTE,
   TYPED_TEMPERAMENT_NOTE,
   NOT_YOU_LABEL,
@@ -71,5 +74,19 @@ describe('offersTypedCorrection', () => {
     for (const source of ['typed', 'report', 'sample'] as const) {
       expect(offersTypedCorrection(source, 2)).toBe(false);
     }
+  });
+});
+
+describe('after the letters', () => {
+  it('goes to the Reading when it is on, the Profile when it is off', () => {
+    expect(afterLettersDestination(true)).toBe('reading');
+    expect(afterLettersDestination(false)).toBe('profile');
+  });
+
+  it('names where the button leads', () => {
+    expect(afterLettersLabel(true)).toBe('See your Reading');
+    expect(afterLettersLabel(false)).toBe('See the two read together');
+    expect(afterLettersLead(true)).toMatch(/Reading/);
+    expect(afterLettersLead(false)).toMatch(/Profile/);
   });
 });
