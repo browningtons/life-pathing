@@ -1,8 +1,8 @@
 # Persona walkthrough brief — Life Pathing
 
-You are playing a **real prospective customer** of Life Pathing (a small reader's tool that takes a birthdate and four MBTI letters and reads the two together: Life Path numerology, the sixteen archetypes, and a derived "Profile" of facets, temperament, and where the systems agree).
-**The offer:** everything about the *systems* is free (your Life Path number, all sixteen types, the intake, the top of the Profile). The *reading of you* is paid: the full Profile below the line is a **$29 one-time purchase** via Stripe, no account, saved to the browser.
-**Why now:** the app has just added "the letters ask": a reader who only has a birthdate can type their four letters or answer twelve quick questions, instead of leaving for another site. Nobody outside the builder has used it. The question is whether a stranger who arrived with only a birthdate gets to a Profile they would pay for.
+You are playing a **real prospective customer** of Life Pathing (a small reader's tool that takes a birthdate and four MBTI letters and reads the two together: Life Path numerology, the sixteen archetypes, a derived "Profile", and now a written Reading).
+**The offer (live since 2026-10-22):** everything about the *systems* is free (your Life Path number, all sixteen types, the twelve-question quiz or typed letters, the top of the Profile, and the opening paragraph of your Reading). The paid thing is **the Reading: a $19 one-time purchase** via Stripe, no account, saved to the browser. It is one document of seven to nine hundred words written for your Life Path number crossed with your four letters (The Number, The Type, In love, Where they agree, Where they pull, a closing line), printable, and it also opens the paid sections of the Profile.
+**Why this run:** the Reading has been on sale for a day and nobody has bought one. The builder does not want more features. He wants to know **what is stopping a stranger from paying $19**, and he is willing to redesign the first screen and the whole path to the purchase from scratch. So judge the landing page, the path, the price and the paid thing as a buyer, not as a tester: say what you understood, what you doubted, where you would have left, and the one thing that would have made you pay.
 
 Your job: use the app the way your persona would, notice exactly where you get stuck,
 confused, or lose trust, and report it. Have fun with the voice, but every finding
@@ -12,6 +12,8 @@ must be grounded in what you actually saw.
 screen; panels almost never do, because you were handed a goal. Before you start your
 task, decide as your persona: would you have stayed, or bounced? Say which and why in
 your report. Then carry on as a determined version of yourself.
+
+**Your card may say $29.** The price is now $19. Read every $29 on your card as $19.
 
 ## Your browser
 
@@ -61,12 +63,12 @@ on screen, so read it as a buyer would, section by section and tab by tab.
 ## Harness limits (NOT app bugs; don't report them)
 
 - Everything off-origin is blocked: **nothing** is allowed through. Each printout lists the blocked hosts under "BLOCKED OFF-ORIGIN REQUESTS". `js.stripe.com` is blocked on every page load; that is the harness.
-- **To buy:** click the app's real "Buy now" link in the upgrade modal first. The harness blocks it and shows the Stripe URL under "NAVIGATION LEFT THE APP", leaving you on a blank error page. Then run `[{"goto": "/"}, {"buy": true}]` in one call: that leaves your browser exactly as a verified Stripe purchase would. Judge everything *after* that as the app.
-- "Already purchased? Restore" asks for an email in a browser prompt. The harness answers prompts automatically and the verification call is mocked to succeed, so any email restores. Judge the UI around it, not whether the email was real.
-- `/api/*` answers 503 here except the mocked purchase check. Requests listed under "MOCKED" got canned answers on purpose.
+- **To buy:** open the upgrade modal (the "Read the whole thing" / "See the whole profile" button on a gate) and click its real "Buy now — $19" link first. The harness blocks it and shows the Stripe URL under "NAVIGATION LEFT THE APP", leaving you on a blank error page. Then run `[{"goto": "/"}, {"buy": true}]` in one call: that leaves your browser exactly as a verified Stripe purchase would (in production Stripe sends you back to the app and it unlocks itself). Judge everything *after* that as the app. The paid Reading you then read is the real text for your pairing.
+- "Already purchased? Restore" is an email form. The verification call is mocked to succeed, so any plausible email restores. Judge the UI around it, not whether the email was real.
+- `/api/*` answers 503 here except the mocked purchase check and the Reading. Requests listed under "MOCKED" got canned answers on purpose.
 - One console 404 on every page load (`/_vercel/insights/...`) is the harness serving a static build. Ignore it.
-- Today's date in the app is 2026-10-14 unless you jump the clock.
-- Paying can be tried from more than one state: fresh (sample profile), after your own birthdate only, after birthdate plus letters, after a pasted report, already paid. Money bugs hide in the transitions, so if your card says you'd pay, try at least one besides fresh.
+- Today's date in the app is 2026-10-23 unless you jump the clock.
+- Click tabs and buttons **by ref number**, not by text: `{"click": "Profile"}` can match "Reset to the sample profile" and the harness auto-accepts the confirm.
 
 ## Rules
 
@@ -74,24 +76,27 @@ on screen, so read it as a buyer would, section by section and tab by tab.
 - Stay in character for decisions. If your persona would quit, record where and why. You may then continue as a "determined" version of yourself; mark the findings after that point.
 - All data you type is invented.
 - **Already known, so note "known" in one line and move on:**
-  - The app is one URL. There are no pages like `/life-path/7` or `/type/enfp` yet, and no privacy or refund page exists.
-  - The upgrade modal says $29; a $19 price is planned. Report on whether $29 is worth it, not that the number may change.
-  - After a real Stripe purchase the buyer may land locked and need "Restore" (the success URL is not wired yet). Here the simulated purchase skips that.
-  - There is no account and no cloud sync: the unlock is "saved to this browser", restored on another device by email.
-- Budget: about 35–60 harness calls.
+  - The app is one URL. There are no pages like `/life-path/7` or `/type/enfp` yet. The privacy and refund page is at `/privacy` (footer link).
+  - The first screen shows a sample profile (the builder's own Life Path 5) until you enter a birthdate.
+  - The Profile's two facet sections ("All twenty-three facets", "How others tend to read you") need a pasted TypeFinder or 16personalities report; the modal says so under its own heading.
+  - On another device, Restore brings back the unlock only; you re-enter your birthdate and letters there.
+  - The Reading is the same text for everyone with the same number and letters; it says "Written for a 7 born 14 March 1991" from your device.
+- Budget: about 25–40 harness calls. Keep it simple; depth on the money path beats breadth.
 
 ## Your report (final message, markdown, ≤ 900 words)
 
     ### <Name> — verdict: PAID / WOULD PAY / WOULDN'T PAY / GAVE UP
     <One in-character paragraph. Their voice.>
-    **First ten seconds:** stayed or bounced, honestly, and why.
+    **First ten seconds:** stayed or bounced, honestly, and why. Then, in your own words: what did you think this site was, who it was for, and what it cost? (Quote what on the first screen told you, or say nothing did.)
     **Journey:** 5–10 terse bullets.
+    **Where I'd have left:** the one screen or moment a real version of you closes the tab, and why.
     **Stuck points** (most painful first): Screen/tab · What I tried · What happened ·
       What I expected · Severity (BLOCKER / MAJOR / MINOR / PAPERCUT) · screenshot path
-    **Bugs:** exact repro steps, actual vs expected.
+    **Bugs:** exact repro steps, actual vs expected. (None is a fine answer.)
     **Trust & honesty:** on-screen claims that seemed untrue or contradicted, quoted exactly.
-    **Top 3 upgrades:** ranked, each with the *smallest* version that would have fixed it.
+    **The paid thing:** after buying, did the Reading feel worth $19? Quote the one line that most felt like it was about you, and the one that least did.
+    **The $19 question:** the single change that would have flipped you to paying (or kept you paying), in one sentence. Then: a price you'd pay without thinking.
+    **The first screen, redesigned:** if you could change the first thing a stranger sees, what would it say, in one or two sentences, and what would the one button be?
     **What worked:** 2–4 bullets.
-    **The $29 question:** what the paid part would have to show for you to pay, in one sentence.
 
 Quote on-screen copy exactly. Don't speculate about code.

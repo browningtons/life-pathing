@@ -24,7 +24,7 @@ On a 1366×700 laptop only the edge of "THE OTHER HALF" shows after the reductio
 
 ### L3 — Jargon with no gloss; the letters are never decoded
 
-*Filed 2026-10-14 (Linda, Maya). 3+5+2−2 = **8**.*
+*Filed 2026-10-14 (Linda, Maya). Re-hit 2026-10-23 by 5 of 10 (Linda, Maya, Carlos, Dave, Kevin): temperament names as unexplained chips, three labels for one person ("The Debater · The Leader · Theorist"; "Logistician" vs "Preserver"), "BORDERLINE" with no gloss. Raised to 4+5+3−2 = **10**. Linda's exit was this.*
 
 "MBTI", "Big Five", "Enneagram", "Preserver", "1 LETTER APART", "Si FIRST, Fe SECOND" appear with no explanation. The result card says "READ AS ISFJ · The Defender" and never says I = Introversion and so on.
 
@@ -91,3 +91,23 @@ The "kept artifact" is a print stylesheet. On iOS Safari, Save as PDF is buried 
 **Smallest change:** a script step that prints each Reading to PDF with Playwright; the route serves `application/pdf` when asked.
 
 **Done looks like:** on a phone, "Save the PDF" produces a file without the share sheet.
+
+### L11 — Quiz friction on a phone
+
+*Filed 2026-10-23 from the [persona walkthrough](runs/2026-10-23.md) (Maya, Kevin, Linda; on `a280de3`). 3+4+2−2 = **7**.*
+
+No progress bar beyond "QUESTION n OF 12"; a tap within about 600 ms of an advance is swallowed with no feedback (the double-tap guard), which a fast thumb reads as frozen; a reload mid-quiz starts over; Linda felt forced on four of twelve questions.
+
+**Smallest change:** a thin progress bar; a brief disabled state on the answer buttons during the guard window so the swallowed tap is visible; keep answers in sessionStorage until the result.
+
+**Done looks like:** tap answers as fast as the harness allows with `{"click": N}` twelve times; every tap is either accepted or visibly refused; reload at question 6 resumes at question 6.
+
+### L12 — Your Data shows the builder's facets under the reader's own type
+
+*Filed 2026-10-23 (Aisha, Tom). 2+5+2−1 = **8**.*
+
+After buying with letters only, Your Data lists "Insightful 94%, Friendly 78%, Aesthetic 90%" under the reader's type with the aside "the facets below are still the sample's". Honest, but the numbers read as the reader's at a glance.
+
+**Smallest change:** when `facetSource` is `sample` and the letters are the reader's own, render the facet rows as empty "not in your report" rows (same component L1 needs) instead of the sample values.
+
+**Done looks like:** type INTJ, buy, open Your Data: no percentage from the sample profile is visible.

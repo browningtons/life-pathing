@@ -1,10 +1,20 @@
 {
-  "_why": "Serve the production build (npm ci && npm run build; the app reads no VITE_ public env vars, so no build env is needed). The bundle carries the live Stripe publishable key and a live Payment Link, so everything off-origin stays blocked: no allowHosts. /api/verify-purchase is mocked to {verified:true} for both GET (post-checkout #session_id=cs_… redirect) and POST (email restore), so the unlock completes on screen without touching Stripe. paidState mirrors what useAuth leaves behind after a verified purchase: lp_pro, lp_stripe_session_id, and the one-time lp_just_purchased banner flag. Ports 5188/7311 are the defaults; agents pass APP_PORT/CTRL_PORT to get their own pair. The repo has no Playwright: run the harness with NODE_PATH pointing at a sibling repo's node_modules (see brief.md).",
+  "_why": "Serve the production build. Build: `npm ci && VITE_READING_ENABLED=1 npm run build` (the only public build flag; production has it on since 2026-10-22, and the built bundle hash matched production's on 2026-10-23). The bundle carries the live Stripe publishable key and the live $19 Payment Link, so everything off-origin stays blocked: no allowHosts. Mocks: /api/verify-purchase answers {verified:true, sessionId:'cs_test_persona'} for GET (the #session_id redirect) and POST (email restore), so an unlock completes on screen without touching Stripe. /api/reading answers from api/_readings/index.json, picking the entry by the `key` query parameter (the harness's bodyFile/select mock, added 2026-10-23), so the paid Reading a persona opens is the real text for their own pairing; an unknown key gets the route's own 404 body. paidState mirrors what useAuth leaves behind after a verified purchase: lp_pro, lp_stripe_session_id (the Reading route reads it as the x-reading-session header), and the one-time lp_just_purchased banner flag. Ports 5188/7311 are the defaults; agents pass APP_PORT/CTRL_PORT for their own pair. The repo has no Playwright: run the harness with NODE_PATH=<our-family-lizard>/node_modules (see brief.md).",
   "serve": "dist",
   "blockApi": "/api/",
   "mock": [
-    { "match": "/api/verify-purchase", "method": "GET", "status": 200, "body": { "verified": true } },
-    { "match": "/api/verify-purchase", "method": "POST", "status": 200, "body": { "verified": true } }
+    { "match": "/api/verify-purchase", "method": "GET", "status": 200, "body": { "verified": true, "sessionId": "cs_test_persona" } },
+    { "match": "/api/verify-purchase", "method": "POST", "status": 200, "body": { "verified": true, "sessionId": "cs_test_persona" } },
+    {
+      "match": "/api/reading",
+      "method": "GET",
+      "status": 200,
+      "bodyFile": "api/_readings/index.json",
+      "select": { "query": "key" },
+      "body": { "key": "$entry.key", "version": "$entry.version", "reading": "$entry" },
+      "missingStatus": 404,
+      "missingBody": { "error": "no reading for this key" }
+    }
   ],
   "allowHosts": [],
   "paidState": "localStorage.setItem('lp_pro','true'); localStorage.setItem('lp_stripe_session_id','\"cs_test_persona\"'); sessionStorage.setItem('lp_just_purchased','1');"
