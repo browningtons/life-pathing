@@ -8,7 +8,16 @@ import type { QuizPole } from '../data/quiz';
 import type { DimensionDetail } from '../lib/deriveType';
 import { useTapGuard } from '../kit';
 import { trackLettersEntered, trackQuizStarted } from '../lib/funnel';
-import { NOT_YOU_LABEL, offersTypedCorrection, resultLeanCopy, resultRetakeLabel } from '../lib/letterSource';
+import {
+  NOT_YOU_LABEL,
+  afterLettersDestination,
+  afterLettersLabel,
+  afterLettersLead,
+  offersTypedCorrection,
+  resultLeanCopy,
+  resultRetakeLabel,
+} from '../lib/letterSource';
+import { READING_ENABLED } from '../lib/readingFlag';
 import { checkTypeCode, scoresFromQuiz, scoresFromTypeCode, type QuizAnswers } from '../lib/letters';
 import { useNav } from '../store/useNav';
 import { useProfile } from '../store/useProfile';
@@ -101,7 +110,7 @@ export const LettersAsk = () => {
         <Result
           typeCode={typeCode}
           dimensions={dimensions}
-          onContinue={() => go('profile')}
+          onContinue={() => go(afterLettersDestination(READING_ENABLED))}
           onRetake={() => setPhase('quiz')}
           onTypeInstead={() => setPhase('typed')}
         />
@@ -272,11 +281,11 @@ const Result = ({ typeCode, dimensions, onContinue, onRetake, onTypeInstead }: R
         <TypeCode letters={dimensions} /> <span className="text-lg font-medium text-indigo-600">· {title}</span>
       </h3>
       <p className={`${BODY} mt-2 max-w-2xl`}>
-        {resultLeanCopy(source, borderline.length)} Your number and your type are now read together on the Profile.
+        {resultLeanCopy(source, borderline.length)} {afterLettersLead(READING_ENABLED)}
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button type="button" className={PRIMARY} onClick={(e) => settled(e) && onContinue()}>
-          See the two read together <ArrowRight size={14} aria-hidden="true" />
+          {afterLettersLabel(READING_ENABLED)} <ArrowRight size={14} aria-hidden="true" />
         </button>
         <button
           type="button"

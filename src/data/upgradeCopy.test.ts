@@ -44,7 +44,7 @@ describe('the upgrade copy with the Reading on', () => {
   it('tells the reader the purchase travels by receipt email', async () => {
     const copy = await readingCopy();
     expect(copy.headerSubtitle).toBe(
-      'Your Reading and the whole Profile, kept on this device. Restore it elsewhere with your receipt email.',
+      'Your Reading and the whole Profile, kept on this device. Restore it elsewhere with your receipt email, then enter the same birthdate and letters.',
     );
   });
 

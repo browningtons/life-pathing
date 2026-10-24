@@ -132,7 +132,9 @@ function Shell() {
   //   letters  the birthdate is theirs, the type is still the sample's
   const banner: 'sample' | 'letters' | null =
     // The Reading tab asks for the missing birthdate or letters itself.
-    view === 'intake' || view === 'reading' ? null : isSample ? 'sample' : ownBirthDate && !lettersKnown ? 'letters' : null;
+    view === 'intake' || view === 'reading' || (view === 'lifepath' && !ownBirthDate)
+      ? null
+      : isSample ? 'sample' : ownBirthDate && !lettersKnown ? 'letters' : null;
 
   // The single entitlement instance, published to the views. Admins
   // viewing-as-user see the free experience; see kit/auth/useAuth.
@@ -237,14 +239,7 @@ function Shell() {
                 data-print-hide=""
                 className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-2.5 text-xs text-indigo-800"
               >
-                {banner === 'sample' && view === 'lifepath' ? (
-                  // The offer above the fold says what this is; the banner only
-                  // says whose example sits under it.
-                  <span>
-                    <span className="font-bold">The example below is a sample.</span> Its numbers belong to the person
-                    who built this.
-                  </span>
-                ) : banner === 'sample' ? (
+                {banner === 'sample' ? (
                   <span>
                     <span className="font-bold">Reading a sample profile.</span> The numbers here belong to the person
                     who built this.
@@ -260,17 +255,13 @@ function Shell() {
                   onClick={() =>
                     banner === 'letters'
                       ? nav.go('lifepath', LETTERS_ASK_ID)
-                      : view === 'lifepath'
-                        ? nav.go('lifepath', BIRTHDATE_INPUT_ID)
-                        : setView('intake')
+                      : setView('intake')
                   }
                   className={`inline-flex items-center gap-1 rounded-md font-bold text-indigo-700 hover:text-indigo-900 ${FOCUS_RING}`}
                 >
                   {banner === 'letters'
                     ? 'Add your four letters'
-                    : view === 'lifepath'
-                      ? 'Start with your birthdate'
-                      : 'Enter your own scores'}{' '}
+                    : 'Enter your own scores'}{' '}
                   <ArrowRight size={12} aria-hidden="true" />
                 </button>
               </div>
@@ -292,6 +283,13 @@ function Shell() {
               <UpgradeModal
                 source={auth.upgradeSource}
                 onClose={auth.closeUpgrade}
+                onRestored={() => {
+                  // A restored purchase opens the Reading for the same number and
+                  // letters. A reader who has both goes straight to it; anyone else
+                  // is sent to the birthdate field to supply them.
+                  if (READING_ENABLED && ownBirthDate && lettersKnown) nav.go('reading');
+                  else nav.go('lifepath', BIRTHDATE_INPUT_ID);
+                }}
                 onRestore={auth.handleRestore}
                 readingKey={readingKey}
                 pairingLabel={pairingLabel}
