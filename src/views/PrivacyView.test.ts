@@ -13,7 +13,7 @@ describe('PrivacyView', () => {
     },
   );
 
-  it('has every section, links back to the app, and names who approves', () => {
+  it('has every section, links back to the app, and keeps internal notes off the page', () => {
     for (const h of [
       'What stays on your device',
       'What leaves your device',
@@ -24,6 +24,8 @@ describe('PrivacyView', () => {
       expect(html).toContain(h);
     }
     expect(html).toContain('href="/"');
-    expect(html).toContain('Paul approves');
+    expect(html).not.toContain('Paul approves');
+    expect(html).toContain('The Reading key');
+    expect(LAST_UPDATED).toBe('23 October 2026');
   });
 });

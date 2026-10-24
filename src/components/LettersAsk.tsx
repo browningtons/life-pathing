@@ -75,7 +75,7 @@ export const LettersAsk = () => {
               <Keyboard size={14} aria-hidden="true" /> I know my type
             </button>
           </div>
-          <p className={`${ASIDE} mt-3`}>About two minutes. Nothing leaves this browser.</p>
+          <p className={`${ASIDE} mt-3`}>About two minutes. Nothing leaves this browser until you buy; then only your number and letters go with the purchase.</p>
         </>
       )}
 

@@ -253,7 +253,7 @@ export const IntakeView = () => {
       })}
 
       <p className="text-center text-xs text-slate-400 italic pt-4">
-        Nothing leaves this browser. Clear your site data and the sample profile comes back.
+        Nothing leaves this browser until you buy; then only your number and letters go with the purchase, never your birthdate. Clear your site data and the sample profile comes back.
       </p>
     </div>
   );

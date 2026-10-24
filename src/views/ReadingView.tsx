@@ -31,6 +31,7 @@ import { useNav } from '../store/useNav';
 import { useProfile } from '../store/useProfile';
 import { BIRTHDATE_INPUT_ID } from './LifePathView';
 import { readingKey } from '../lib/readingKey';
+import { withArticle } from '../lib/article';
 import { loadTeaserFile } from '../lib/teaserFile';
 
 /** "a 7", or "a 16/7" when the compound carries a label, with the letters. */
@@ -112,6 +113,7 @@ export const ReadingView = () => {
 
 const StartWithBirthdate = () => {
   const { go } = useNav();
+  const { restore } = useGate();
   return (
     <Card variant="tinted">
       <SectionHeading icon={Calendar} tone="indigo" className="!mb-3">
@@ -124,6 +126,15 @@ const StartWithBirthdate = () => {
       <button type="button" className={`${PRIMARY} mt-4`} onClick={() => go('lifepath', BIRTHDATE_INPUT_ID)}>
         Enter a birthdate on the Life Path tab <ArrowRight size={14} aria-hidden="true" />
       </button>
+      <div className="mt-3">
+        <button
+          type="button"
+          onClick={restore}
+          className={`rounded text-[11px] text-slate-400 underline underline-offset-2 hover:text-slate-600 ${FOCUS_RING}`}
+        >
+          Already purchased? Restore
+        </button>
+      </div>
     </Card>
   );
 };
@@ -210,7 +221,7 @@ const ReadingHeader = () => {
         The Reading
       </h1>
       <p className="text-sm text-indigo-200" data-reading-written-for="">
-        Written for a {lifePath.number} born {longDate(profile.birthDate)}
+        Written for {withArticle(lifePath.number)} born {longDate(profile.birthDate)}
       </p>
     </Card>
   );

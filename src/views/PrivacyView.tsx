@@ -7,7 +7,7 @@
 
 import { FOCUS_RING, FONT, PAGE_BG, PAGE_TEXT } from '../design/tokens';
 
-export const LAST_UPDATED = '18 October 2026';
+export const LAST_UPDATED = '23 October 2026';
 
 export const PRIVACY_PATH = '/privacy';
 
@@ -56,6 +56,11 @@ export function PrivacyView() {
           <p className={P}>Nothing about you goes to this app&rsquo;s server, with these exceptions:</p>
           <ul className="list-disc pl-5 space-y-1.5 mb-2">
             <li className={LI}>
+              The Reading key: your Life Path number and your four letters. It rides on the
+              Stripe checkout link, so Stripe can bind the purchase to them, and on the request that fetches your
+              Reading. Your birthdate and your quiz answers are not part of it.
+            </li>
+            <li className={LI}>
               The Stripe Checkout session id, when a purchase is verified or a Reading is fetched. It is a receipt
               number, not a name.
             </li>
@@ -100,8 +105,7 @@ export function PrivacyView() {
           <p className={P}>A reader&rsquo;s tool, not psychological or life advice.</p>
         </section>
 
-        <p className="text-xs text-slate-500 mb-1">Last updated {LAST_UPDATED}.</p>
-        <p className="text-xs text-slate-500">Paul approves any change to this wording.</p>
+        <p className="text-xs text-slate-500">Last updated {LAST_UPDATED}.</p>
       </main>
     </div>
   );
