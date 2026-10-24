@@ -1,0 +1,34 @@
+<!doctype html>
+<!--
+  The 1200x630 share image. rasterize.sh screenshots this page into
+  public/og.png. Keep the headline in step with the homepage's.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;800&display=swap">
+<style>
+  html, body { margin: 0; }
+  body {
+    width: 1200px; height: 630px; box-sizing: border-box;
+    padding: 72px 64px 64px 80px;
+    background: #312e81; color: #ffffff;
+    font-family: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+    display: flex; align-items: center; gap: 48px; overflow: hidden;
+  }
+  .copy { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+  .name { font-size: 30px; font-weight: 800; letter-spacing: -0.01em; color: #c7d2fe; }
+  h1 { margin: 0; font-size: 56px; line-height: 1.08; font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
+  .site { font-size: 24px; font-weight: 600; color: #c7d2fe; }
+  img { width: 440px; height: 440px; flex: none; }
+</style>
+</head>
+<body>
+  <div class="copy">
+    <span class="name">Life Pathing</span>
+    <h1>Your Life Path number and your four letters of type, read together.</h1>
+    <span class="site">lifepathing.app</span>
+  </div>
+  <img src="../../src/assets/brand/mark-reversed.svg" alt="">
+</body>
+</html>
