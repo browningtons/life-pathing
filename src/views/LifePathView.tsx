@@ -16,6 +16,7 @@ import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
 import { HeroCard } from '../components/HeroCard';
 import { LettersAsk } from '../components/LettersAsk';
+import { offerCopy } from '../components/offerCopy';
 import { SectionHeading } from '../components/SectionHeading';
 import { COMPOUND_MEANINGS } from '../data/compoundMeanings';
 import { LIFE_PATH_MEANINGS } from '../data/lifePathMeanings';
@@ -32,7 +33,9 @@ import {
   type Tone,
 } from '../design/tokens';
 import { birthDateNote, reductionSteps } from '../lib/calculateLifePath';
+import { useKitConfig } from '../kit';
 import { trackLifePathShown } from '../lib/funnel';
+import { READING_ENABLED } from '../lib/readingFlag';
 import { useProfile } from '../store/useProfile';
 import type { LifePathEntry } from '../types';
 
@@ -53,6 +56,7 @@ export const BIRTHDATE_INPUT_ID = 'lifepath-birthdate';
 
 export const LifePathView = () => {
   const { profile, lifePath, ownBirthDate, setBirthDate } = useProfile();
+  const { upgrade } = useKitConfig();
   const meaning = LIFE_PATH_MEANINGS[lifePath.number] ?? FALLBACK_MEANING;
   const { breakdown, compound } = lifePath;
   const compoundMeaning = COMPOUND_MEANINGS[compound] ?? null;
@@ -119,62 +123,119 @@ export const LifePathView = () => {
           </div>
   );
 
+  // Until the birthdate is the reader's own, the hero is the offer: what this
+  // is, what it costs, and an empty field for the reader's own date. The
+  // builder's sample moves below it, labelled as an example. The date input
+  // keeps its place in the tree across the switch, so a date half-typed is
+  // not lost when the first complete value lands.
+  const offer = !ownBirthDate;
+  const copy = offerCopy(upgrade.price, READING_ENABLED);
+  const compoundChip = !isEmpty && compound >= 10 && (
+    <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 rounded-lg text-indigo-100">
+      <Gem size={14} className="text-indigo-300" aria-hidden="true" />
+      <span className="text-xs font-bold uppercase tracking-wide">
+        {compound} / {lifePath.number}
+        {compoundMeaning ? `: ${compoundMeaning}` : ''}
+      </span>
+    </div>
+  );
+
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
       {/* HERO */}
       <HeroCard>
-        <div className={`grid md:grid-cols-5 ${panelBelow ? 'gap-4 md:gap-8' : 'gap-8'} items-start`}>
+        <div className={`grid md:grid-cols-5 ${panelBelow || offer ? 'gap-4 md:gap-8' : 'gap-8'} items-start`}>
           <div className="md:col-span-3">
             <div className="flex items-center gap-3 mb-3 opacity-80">
               <Compass size={20} aria-hidden="true" />
-              <span className={EYEBROW}>Reading a Life Path</span>
+              <span className={EYEBROW}>{offer ? copy.eyebrow : 'Reading a Life Path'}</span>
             </div>
 
-            <label className="flex flex-wrap items-center gap-3 mb-5">
+            {offer && (
+              <>
+                <h2 className="text-2xl sm:text-3xl font-bold leading-tight mb-3">{copy.headline}</h2>
+                <p className={`${HERO_BODY} !max-w-lg mb-5`}>{copy.body}</p>
+              </>
+            )}
+
+            <label className={`flex flex-wrap items-center gap-3 ${offer ? 'mb-1' : 'mb-5'}`}>
               <span className={`${EYEBROW} text-indigo-200/80 flex items-center gap-1`}>
-                Enter a birthdate <ArrowRight size={12} aria-hidden="true" />
+                {offer ? copy.inputLabel : 'Enter a birthdate'} <ArrowRight size={12} aria-hidden="true" />
               </span>
               <span className="flex items-center gap-2">
-                <Calendar size={18} className="text-indigo-300" aria-hidden="true" />
+                <Calendar size={offer ? 22 : 18} className="text-indigo-300" aria-hidden="true" />
                 <input
                   id={BIRTHDATE_INPUT_ID}
                   type="date"
-                  aria-label="Birth date"
-                  value={profile.birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  className={`bg-white/10 border border-white/10 rounded-md px-2 py-1 text-white font-bold text-base cursor-pointer [color-scheme:dark] ${FOCUS_RING_ON_DARK}`}
+                  aria-label={offer ? 'Your birth date' : 'Birth date'}
+                  value={offer ? '' : profile.birthDate}
+                  onChange={(e) => {
+                    // A cleared field on the offer is not a date; the sample stays.
+                    if (offer && !e.target.value) return;
+                    setBirthDate(e.target.value);
+                  }}
+                  className={`rounded-md text-white font-bold cursor-pointer [color-scheme:dark] ${FOCUS_RING_ON_DARK} ${
+                    offer
+                      ? 'bg-white/15 border-2 border-indigo-300/70 px-3 py-2.5 text-lg min-w-[12rem]'
+                      : 'bg-white/10 border border-white/10 px-2 py-1 text-base'
+                  }`}
                 />
               </span>
             </label>
-            {dateNote && (
+            {dateNote && !offer && (
               <p className="-mt-3 mb-4 text-xs text-amber-200" role="status">
                 {dateNote}
               </p>
             )}
 
             <div aria-live="polite" aria-atomic="true">
-              <h2 className={HERO_TITLE}>{isEmpty ? 'Add a birthdate' : `Life Path ${lifePath.number}`}</h2>
-              {!isEmpty && <h3 className={HERO_SUBTITLE}>{meaning.title}</h3>}
+              {!offer && (
+                <>
+                  <h2 className={HERO_TITLE}>{isEmpty ? 'Add a birthdate' : `Life Path ${lifePath.number}`}</h2>
+                  {!isEmpty && <h3 className={HERO_SUBTITLE}>{meaning.title}</h3>}
+                </>
+              )}
             </div>
-            {!isEmpty && compound >= 10 && (
-              <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 rounded-lg text-indigo-100">
-                <Gem size={14} className="text-indigo-300" aria-hidden="true" />
-                <span className="text-xs font-bold uppercase tracking-wide">
-                  {compound} / {lifePath.number}
-                  {compoundMeaning ? `: ${compoundMeaning}` : ''}
-                </span>
-              </div>
-            )}
-            {!panelBelow && <p className={HERO_BODY}>{meaning.description}</p>}
+            {!offer && compoundChip}
+            {!offer && !panelBelow && <p className={HERO_BODY}>{meaning.description}</p>}
           </div>
 
-          {panelBelow ? (
+          {offer ? (
+            <dl className="md:col-span-2 md:self-end space-y-3 border-t border-white/10 pt-4 md:border-t-0 md:pt-0 md:border-l md:pl-6">
+              {copy.rows.map((row) => (
+                <div key={row.label}>
+                  <dt className={`${EYEBROW} text-indigo-200`}>{row.label}</dt>
+                  <dd className="text-sm text-indigo-100/80 leading-relaxed">{row.text}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : panelBelow ? (
             <p className={`${HERO_BODY} md:col-span-2 md:self-end`}>{meaning.description}</p>
           ) : (
             reductionPanel
           )}
         </div>
       </HeroCard>
+
+      {/* THE EXAMPLE: the builder's sample, below the offer and labelled */}
+      {offer && !isEmpty && (
+        <section aria-labelledby="lifepath-example" className="space-y-3 pt-4">
+          <h2 id="lifepath-example" className={`${MICRO_LABEL} !text-slate-500 px-1`}>
+            {copy.exampleLabel}
+          </h2>
+          <HeroCard>
+            <div className="grid md:grid-cols-5 gap-8 items-start">
+              <div className="md:col-span-3">
+                <h3 className={HERO_TITLE}>Life Path {lifePath.number}</h3>
+                <p className={HERO_SUBTITLE}>{meaning.title}</p>
+                {compoundChip}
+                <p className={HERO_BODY}>{meaning.description}</p>
+              </div>
+              {reductionPanel}
+            </div>
+          </HeroCard>
+        </section>
+      )}
 
       {/* THE OTHER HALF — four letters, asked for right after the number */}
       <LettersAsk />

@@ -164,12 +164,12 @@ function Shell() {
                     auth.handleLogoTap();
                     setView('lifepath');
                   }}
-                  aria-label="Life Number Pathing — go to Life Path"
+                  aria-label="Life Pathing — go to Life Path"
                   className={`flex items-center gap-3 rounded-md ${FOCUS_RING}`}
                 >
                   <img src={logo} alt="" aria-hidden="true" className="h-20 w-auto sm:h-20 object-contain" />
                   <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">
-                    Life Number Pathing
+                    Life Pathing
                   </span>
                   {auth.isPro && <ProBadge />}
                 </button>
@@ -237,7 +237,14 @@ function Shell() {
                 data-print-hide=""
                 className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-2.5 text-xs text-indigo-800"
               >
-                {banner === 'sample' ? (
+                {banner === 'sample' && view === 'lifepath' ? (
+                  // The offer above the fold says what this is; the banner only
+                  // says whose example sits under it.
+                  <span>
+                    <span className="font-bold">The example below is a sample.</span> Its numbers belong to the person
+                    who built this.
+                  </span>
+                ) : banner === 'sample' ? (
                   <span>
                     <span className="font-bold">Reading a sample profile.</span> The numbers here belong to the person
                     who built this.

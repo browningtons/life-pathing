@@ -3,6 +3,7 @@ import { sections } from './personality';
 import {
   FACET_DETAIL_GATE,
   GATE_COPY,
+  EXCERPT_LABEL,
   INCLUDED_WITH_READING,
   PAID_SECTIONS,
   READING_GATE,
@@ -74,5 +75,10 @@ describe('the free / paid split', () => {
 
   it('names the Reading in the Profile gates\' shared line', () => {
     expect(INCLUDED_WITH_READING).toMatch(/the Reading/);
+  });
+
+  it('labels the Reading gate excerpt with the section it comes from', () => {
+    expect(EXCERPT_LABEL).toMatch(/^From /);
+    expect(READING_SECTIONS.some((s) => EXCERPT_LABEL.includes(s.title))).toBe(true);
   });
 });

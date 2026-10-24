@@ -20,7 +20,7 @@ import { LettersAsk } from '../components/LettersAsk';
 import { ProGate } from '../components/ProGate';
 import { SectionHeading } from '../components/SectionHeading';
 import { temperamentForMbti } from '../data/personality';
-import { READING_GATE, READING_SECTIONS } from '../data/tiers';
+import { EXCERPT_LABEL, READING_GATE, READING_SECTIONS } from '../data/tiers';
 import { ASIDE, BODY, FOCUS_RING, MICRO_LABEL } from '../design/tokens';
 import { load } from '../kit';
 import { KIT_CONFIG } from '../../kit.config';
@@ -142,7 +142,7 @@ const StartWithBirthdate = () => {
 };
 
 type TeaserState =
-  | { key: string; status: 'ok'; text: string }
+  | { key: string; status: 'ok'; text: string; excerpt: string | null }
   | { key: string; status: 'missing' }
   | { key: string; status: 'error' };
 
@@ -162,7 +162,9 @@ const ReadingDocument = () => {
     let live = true;
     void loadTeaserFile(key).then((res) => {
       if (!live) return;
-      setTeaser(res.status === 'ok' ? { key, status: 'ok', text: res.teaser } : { key, status: res.status });
+      setTeaser(
+        res.status === 'ok' ? { key, status: 'ok', text: res.teaser, excerpt: res.excerpt } : { key, status: res.status },
+      );
     });
     return () => {
       live = false;
@@ -171,6 +173,9 @@ const ReadingDocument = () => {
 
   const current = teaser?.key === key ? teaser : null;
   const opening = cached?.teaser ?? (current?.status === 'ok' ? current.text : null);
+  // The same line the upgrade modal quotes, set beside the price on the gate.
+  const gateExcerpt =
+    current?.status === 'ok' && current.excerpt ? { label: EXCERPT_LABEL, text: current.excerpt } : undefined;
 
   useEffect(() => {
     if (opening) trackReadingTeaserShown(key);
@@ -188,7 +193,7 @@ const ReadingDocument = () => {
             </SectionHeading>
             <Prose text={opening} />
           </Card>
-          <ProGate gate={READING_GATE} surface="reading" buttonLabel="Read the whole thing">
+          <ProGate gate={READING_GATE} surface="reading" buttonLabel="Read the whole thing" excerpt={gateExcerpt}>
             {cached ? <FullText reading={cached} /> : <PaidReading readingKey={key} />}
           </ProGate>
         </>
