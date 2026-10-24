@@ -43,6 +43,7 @@ Events are fired from `src/lib/funnel.ts` (app-specific) and the kit's `trackEve
 ## Before taking real money
 
 - [x] Payment Link success URL set to `https://life-pathing.vercel.app/#session_id={CHECKOUT_SESSION_ID}` (2026-10-22).
+- [ ] Domain `lifepathing.app` bought and attached (2026-10-24). Change the Payment Link's success URL in the Stripe dashboard to `https://lifepathing.app/#session_id={CHECKOUT_SESSION_ID}` so a buyer lands on the new domain (the old one still works as an alias).
 - [x] A $19 price and Payment Link, on a new product (`prod_VUXnrnuSvEozxE`); `kit.config.ts` carries the link, the price and the product id together. `STRIPE_PRICE_ID` and `STRIPE_PRODUCT_ID` in Vercel must match (2026-10-22).
 - [x] Privacy and refund page at `/privacy` (2026-10-21).
 - [ ] Replace `buy_btn_REPLACE_ME` with a real Buy Button, or keep the Payment Link fallback deliberately.
